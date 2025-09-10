@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Style Demo | Instant Sale</title>
+  <!-- ここで style.css を読み込む -->
+  <link rel="stylesheet" href="/public/style.css" />
+</head>
+<body>
+  <header class="site-header"><a class="logo" href="/">Instant Sale</a></header>
+  <main class="container">
+    <h1>スタイルデモ</h1>
+
+    <div class="card">
+      <h2>ボタン</h2>
+      <p>
+        <a class="btn" href="#">.btn</a>
+        <a class="btn primary" href="#">.btn.primary</a>
+      </p>
+    </div>
+
+    <div class="card success">
+      <h2>カード（success）</h2>
+      <p>これは成功メッセージ用のカードです。</p>
+    </div>
+
+    <div class="card error">
+      <h2>カード（error）</h2>
+      <p>これはエラーメッセージ用のカードです。</p>
+    </div>
+
+    <div class="card">
+      <h2>フォーム要素</h2>
+      <label>テキスト<input type="text" placeholder="テキスト" /></label>
+      <label>数値<input type="number" value="300" /></label>
+      <label>ファイル<input type="file" /></label>
+    </div>
+
+    <article class="product card">
+      <img class="product-image" src="https://picsum.photos/seed/demo/560/315" alt="demo" />
+      <div class="product-info">
+        <h2>商品カード例</h2>
+        <div class="muted">by Demo</div>
+        <div class="price">300 JPY</div>
+        <a class="btn primary" href="#">購入ボタン例</a>
+      </div>
+    </article>
+  </main>
+  <footer class="site-footer">© <script>document.write(new Date().getFullYear())</script> Instant Sale</footer>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <% if (typeof og !== 'undefined') { %>
+    <title><%= og.title %></title>
+    <meta name="description" content="<%= og.desc %>" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="<%= og.title %>" />
+    <meta property="og:description" content="<%= og.desc %>" />
+    <meta property="og:image" content="<%= og.image %>" />
+    <meta property="og:url" content="<%= og.url %>" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="<%= og.title %>" />
+    <meta name="twitter:description" content="<%= og.desc %>" />
+    <meta name="twitter:image" content="<%= og.image %>" />
+  <% } else { %>
+    <title>Instant Sale</title>
+  <% } %>
+  <link rel="stylesheet" href="/public/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="logo">Instant Sale</a>
+  </header>
+  <main class="container">
+    <%- body %>
+  </main>
+  <footer class="site-footer">© <%= new Date().getFullYear() %> Instant Sale</footer>
+</body>
+</html>

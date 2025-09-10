@@ -1,0 +1,30 @@
+{
+  "name": "instant-sale",
+  "version": "1.0.0",
+  "description": "AI画像クリエイター向け・即販売リンク自動生成ツール（OGP対応/Stripe決済/支払い後DL）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development nodemon server.js"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.1.0",
+    "express-session": "^1.18.2",
+    "helmet": "^8.1.0",
+    "mime-types": "^2.1.35",
+    "mongoose": "^8.5.3",
+    "multer": "^1.4.5-lts.1",
+    "nanoid": "^5.0.7",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "sharp": "^0.33.4",
+    "stripe": "^16.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

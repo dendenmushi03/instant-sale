@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= og.title %></title>
+  <meta name="description" content="<%= og.desc %>" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="<%= og.title %>" />
+  <meta property="og:description" content="<%= og.desc %>" />
+  <meta property="og:image" content="<%= og.image %>" />
+  <meta property="og:url" content="<%= og.url %>" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="<%= og.title %>" />
+  <meta name="twitter:description" content="<%= og.desc %>" />
+  <meta name="twitter:image" content="<%= og.image %>" />
+  <link rel="stylesheet" href="/public/style.css" />
+</head>
+
+<body class="layout">
+
+<header class="nav">
+  <a class="nav__brand" href="/">
+    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
+    <span class="nav__brandText">Instant Sale</span>
+  </a>
+  <nav class="nav__right">
+    <% if (me) { %>
+      <span class="nav__user"><%= me.name || me.email %></span>
+      <form method="post" action="/logout" class="inline">
+        <button class="btn btn--ghost">ログアウト</button>
+      </form>
+    <% } else { %>
+      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+    <% } %>
+  </nav>
+</header>
+  
+  <main class="container">
+    <article class="product">
+<div class="product-imageWrap">
+  <img class="product-image" src="<%= item.previewPath %>" alt="<%= item.title %>" />
+</div>
+      <div class="product-info">
+        <h1><%= item.title %></h1>
+        <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
+        <div class="price"><%= item.price.toLocaleString() %> <%= item.currency.toUpperCase() %></div>
+          <% if (typeof connect !== 'undefined' && connect && (!connect.hasAccount || !connect.payoutsEnabled)) { %>
+    <div class="card error" style="background:#fffaf0; border:1px solid #ffe6b3; padding:12px; margin:12px 0;">
+      <strong>（オーナー向けの注意）</strong><br>
+      この商品は売上の受取設定が完了していません。<br>
+      <a href="/connect/onboard">こちら</a> から Stripe で振込口座の登録を行ってください。
+    </div>
+  <% } %>
+        <form action="/checkout/<%= item.slug %>" method="post">
+          <button class="btn primary" type="submit">高解像度を購入してダウンロード</button>
+        </form>
+        <p class="hint">決済はStripe（カード）で安全に処理されます。</p>
+      </div>
+    </article>
+  </main>
+
+<footer class="site-footer">
+  <div class="footer__links">
+    <a href="/terms">利用規約</a>
+    <span class="dot">•</span>
+    <a href="/privacy">プライバシーポリシー</a>
+    <span class="dot">•</span>
+    <a href="/tokushoho">特定商取引法に基づく表記</a>
+  </div>
+  <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
+</footer>
+
+</body>
+</html>
