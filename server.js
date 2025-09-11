@@ -268,33 +268,47 @@ app.get('/connect/onboard', ensureAuthed, async (req, res) => {
       return res.status(500).render('error', { message: 'Stripeが未設定です（STRIPE_SECRET_KEY）。' });
     }
 
-    // DBから最新ユーザーを取得（stripeAccountId保存のため）
-    let user = await User.findById(req.user._id);
+// DBから最新ユーザーを取得（stripeAccountId保存のため）
+let user = await User.findById(req.user._id);
+let acctId = user.stripeAccountId;
 
-    // まだ接続アカウントが無ければ作成
-    if (!user.stripeAccountId) {
-      const account = await stripe.accounts.create({
-        type: 'express',
-        country: 'JP', // クリエイターの国に合わせて
-        email: user.email,
-        capabilities: {
-          transfers: { requested: true },
-          card_payments: { requested: true },
-        },
-      });
-      user.stripeAccountId = account.id;
-      await user.save();
+// 現在のAPIキー（テスト/本番）でそのacctが有効かチェック。
+// 失敗したら新規作成して置き換える（モード切替の古いIDを自動修復）。
+const ensureConnectedAccount = async () => {
+  if (acctId) {
+    try {
+      await stripe.accounts.retrieve(acctId); // 取得できればOK
+      return acctId;
+    } catch (err) {
+      console.warn('[Stripe] stale stripeAccountId; recreating. reason:', err?.raw?.message || err.message);
+      acctId = null;
     }
+  }
+  const account = await stripe.accounts.create({
+    type: 'express',
+    country: 'JP',
+    email: user.email,
+    capabilities: {
+      transfers: { requested: true },
+      card_payments: { requested: true },
+    },
+  });
+  user.stripeAccountId = account.id;
+  await user.save();
+  return account.id;
+};
 
-    // オンボーディングリンクを発行
-    const accountLink = await stripe.accountLinks.create({
-      account: user.stripeAccountId,
-      refresh_url: `${BASE_URL}/connect/refresh`,
-      return_url:  `${BASE_URL}/connect/return`,
-      type: 'account_onboarding',
-    });
+const connectedAccountId = await ensureConnectedAccount();
 
-    return res.redirect(accountLink.url);
+// オンボーディングリンクを発行
+const accountLink = await stripe.accountLinks.create({
+  account: connectedAccountId,
+  refresh_url: `${BASE_URL}/connect/refresh`,
+  return_url:  `${BASE_URL}/connect/return`,
+  type: 'account_onboarding',
+});
+
+return res.redirect(accountLink.url);
 
 } catch (e) {
   // Stripeのエラー本文を画面にも出す（暫定）
