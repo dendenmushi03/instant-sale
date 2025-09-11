@@ -42,6 +42,11 @@ if (!STRIPE_SECRET_KEY) {
 
 /* ====== Views ====== */
 app.set('view engine', 'ejs');
+
+// Render のリバースプロキシ配下での secure cookie 用
+app.set('trust proxy', 1);
+const isProd = process.env.NODE_ENV === 'production';
+
 app.set('views', path.join(__dirname, 'views'));
 
 /* ====== Core middlewares ====== */
@@ -49,9 +54,19 @@ app.use(session({
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    secure: isProd,
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  },
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
+
+// ★ Webhook は JSON パーサより前に raw を先適用
+app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -63,7 +78,7 @@ app.use(helmet());
 app.use(compression());
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300, // 15分で最大300リクエスト
+  max: 300,
 }));
 
 // どちらのURLでも配信できるように二本立てにします
@@ -444,14 +459,17 @@ app.post('/checkout/:slug', async (req, res) => {
       payment_method_types: paymentMethodTypes,
       line_items: [
         {
-          price_data: {
-            currency: item.currency,
-            unit_amount: item.price, // JPY は 1=1円
-            product_data: {
-              name: item.title,
-              images: [`${BASE_URL}${item.previewPath}`],
-            },
-          },
+
+price_data: {
+  currency: item.currency,
+  unit_amount: item.price, // ← 表示している「税込」金額をそのままセット
+  tax_behavior: 'inclusive', // ★ 合計金額に税が含まれている前提で計上
+  product_data: {
+    name: item.title,
+    images: [`${BASE_URL}${item.previewPath}`],
+  },
+},
+
           quantity: 1,
         },
       ],
@@ -461,6 +479,8 @@ app.post('/checkout/:slug', async (req, res) => {
         itemId: String(item._id),
         slug: item.slug,
       },
+      billing_address_collection: 'auto',     // ★ 自動で必要時のみ住所入力を促す（推奨）
+      automatic_tax: { enabled: true }, // ★ Stripe Taxで「内税」を自動分解（500円の内訳に税を含める）
     };
 
     // ── 接続アカウントがあれば transfer_data + application_fee_amount を設定 ──
