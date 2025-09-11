@@ -23,7 +23,17 @@ const app = express();
 
 /* ====== ENV ====== */
 const PORT = process.env.PORT || 3000;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const isProd = process.env.NODE_ENV === 'production';
+
+const RAW_BASE_URL = process.env.BASE_URL;
+if (isProd && !RAW_BASE_URL) {
+  throw new Error('BASE_URL is required in production');
+}
+// 本番は https 前提＆末尾スラ無しに正規化（誤設定防止）
+const BASE_URL = (RAW_BASE_URL || `http://localhost:${PORT}`)
+  .replace(/\/+$/, '')
+  .replace(/^http:\/\//, 'https://');
+
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/instant_sale';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const CURRENCY = (process.env.CURRENCY || 'jpy').toLowerCase();
@@ -45,7 +55,6 @@ app.set('view engine', 'ejs');
 
 // Render のリバースプロキシ配下での secure cookie 用
 app.set('trust proxy', 1);
-const isProd = process.env.NODE_ENV === 'production';
 
 app.set('views', path.join(__dirname, 'views'));
 
@@ -286,11 +295,15 @@ app.get('/connect/onboard', ensureAuthed, async (req, res) => {
     });
 
     return res.redirect(accountLink.url);
-  } catch (e) {
-    console.error(e);
-    return res.status(500).render('error', { message: 'オンボーディングリンクの発行に失敗しました。' });
-  }
-});
+
+} catch (e) {
+  // Stripeのエラー本文を画面にも出す（暫定）
+  const detail = e?.raw?.message || e?.message || 'unknown error';
+  console.error('[Stripe onboard] failed:', detail, e);
+  return res.status(500).render('error', { message: `オンボーディングリンクの発行に失敗しました：${detail}` });
+}
+
+  });
 
 // オンボーディング完了後の戻り先（接続状態の同期）
 app.get('/connect/return', ensureAuthed, async (req, res) => {
@@ -501,8 +514,8 @@ price_data: {
 
 // ====== Stripe Webhook（決済確定トリガー）======
 // 注意: このルートは raw が必要（署名検証のため）
-app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  try {
+app.post('/webhooks/stripe', async (req, res) => {
+try {
     if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
       return res.status(500).send('Webhook not configured');
     }
