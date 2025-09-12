@@ -29,10 +29,11 @@ const RAW_BASE_URL = process.env.BASE_URL;
 if (isProd && !RAW_BASE_URL) {
   throw new Error('BASE_URL is required in production');
 }
-// 本番は https 前提＆末尾スラ無しに正規化（誤設定防止）
-const BASE_URL = (RAW_BASE_URL || `http://localhost:${PORT}`)
-  .replace(/\/+$/, '')
-  .replace(/^http:\/\//, 'https://');
+
+// 末尾スラ無しに正規化
+let BASE_URL = (RAW_BASE_URL || `http://localhost:${PORT}`).replace(/\/+$/, '');
+// 本番だけ http→https を強制
+if (isProd) BASE_URL = BASE_URL.replace(/^http:\/\//, 'https://');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/instant_sale';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -543,35 +544,42 @@ try {
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // 決済完了
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object; // Stripe.Checkout.Session
-      const sessionId = session.id;
-      const paid = session.payment_status === 'paid';
-      const itemId = session.metadata?.itemId;
+// 決済完了（カード等）＋ 非同期ウォレット成功（PayPay等）
+if (
+  event.type === 'checkout.session.completed' ||
+  event.type === 'checkout.session.async_payment_succeeded'
+) {
+  const session = event.data.object; // Stripe.Checkout.Session
+  const sessionId = session.id;
+  const paid = session.payment_status === 'paid';
+  const itemId = session.metadata?.itemId;
 
-      if (paid && itemId) {
-        // すでに発行済みならスキップ（冪等）
-        const existing = await DownloadToken.findOne({ sessionId });
-        if (!existing) {
-          const item = await Item.findById(itemId);
-          if (item) {
-            const token = nanoid(32);
-            const ttlMin = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
-            const expiresAt = new Date(Date.now() + ttlMin * 60 * 1000);
-            await DownloadToken.create({
-              token,
-              item: item._id,
-              expiresAt,
-              sessionId, // ← ここでセッションに紐付け
-            });
+  if (paid && itemId) {
+    // すでに発行済みならスキップ（冪等）
+    const existing = await DownloadToken.findOne({ sessionId });
+    if (!existing) {
+      const item = await Item.findById(itemId);
+      if (item) {
+        const token = nanoid(32);
+        const ttlMin = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
+        const expiresAt = new Date(Date.now() + ttlMin * 60 * 1000);
+        await DownloadToken.create({
+          token,
+          item: item._id,
+          expiresAt,
+          sessionId, // ← セッションに紐付け
+        });
 
-            // TODO: ここで購入者にメール送信したい場合は送る（SendGrid/nodemailer等）
-            // 送信先は session.customer_details?.email が候補
-          }
-        }
+        // TODO: ここで購入者にメール送信したい場合は送る（SendGrid/nodemailer等）
+        // 送信先は session.customer_details?.email が候補
       }
     }
+  }
+} else if (event.type === 'checkout.session.async_payment_failed') {
+  // 任意: 非同期決済が失敗したときの監視用ログ（通知などに繋げたい場合）
+  const session = event.data.object; // Stripe.Checkout.Session
+  console.warn('[webhook] async payment failed:', session.id);
+}
 
     res.json({ received: true });
   } catch (e) {
