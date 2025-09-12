@@ -512,10 +512,11 @@ price_data: {
 
     // ── 接続アカウントがあれば transfer_data + application_fee_amount を設定 ──
     if (destinationAccountId) {
-      params.payment_intent_data = {
-        application_fee_amount: platformFee,      // ← あなたの取り分
-        transfer_data: { destination: destinationAccountId }, // ← クリエイターへ
-      };
+params.payment_intent_data = {
+  application_fee_amount: platformFee,
+  transfer_data: { destination: destinationAccountId },
+  on_behalf_of: destinationAccountId, // ★ これを追加：接続アカウントをMoRにし、損失責任も接続側へ
+};
     }
 
     const session = await stripe.checkout.sessions.create(params);
