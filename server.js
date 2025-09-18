@@ -480,36 +480,41 @@ app.post('/checkout/:slug', async (req, res) => {
     // destination を使うと一部ウォレットが未対応 → カードのみを安全運用に
     const paymentMethodTypes = destinationAccountId ? ['card'] : ['card', 'paypay'];
 
-    // ── Checkout セッション作成パラメータ ──
-    /** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
-    const params = {
-      mode: 'payment',
-      payment_method_types: paymentMethodTypes,
-      line_items: [
-        {
-
-price_data: {
-  currency: item.currency,
-  unit_amount: item.price, // ← 表示している「税込」金額をそのままセット
-  tax_behavior: 'inclusive', // ★ 合計金額に税が含まれている前提で計上
-  product_data: {
-    name: item.title,
-    images: [`${BASE_URL}${item.previewPath}`],
-  },
-},
-
-          quantity: 1,
+// ── Checkout セッション作成パラメータ ──
+/** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
+const params = {
+  mode: 'payment',
+  payment_method_types: paymentMethodTypes,
+  line_items: [
+    {
+      price_data: {
+        currency: item.currency,
+        unit_amount: item.price,
+        tax_behavior: 'inclusive',
+        product_data: {
+          name: item.title,
+          images: [`${BASE_URL}${item.previewPath}`],
         },
-      ],
-      success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&slug=${item.slug}`,
-      cancel_url: `${BASE_URL}/s/${item.slug}`,
-      metadata: {
-        itemId: String(item._id),
-        slug: item.slug,
       },
-      billing_address_collection: 'auto',     // ★ 自動で必要時のみ住所入力を促す（推奨）
-      automatic_tax: { enabled: true }, // ★ Stripe Taxで「内税」を自動分解（500円の内訳に税を含める）
-    };
+      quantity: 1,
+    },
+  ],
+  success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&slug=${item.slug}`,
+  cancel_url: `${BASE_URL}/s/${item.slug}`,
+  metadata: {
+    itemId: String(item._id),
+    slug: item.slug,
+  },
+
+  // ▼ここから変更点
+  billing_address_collection: 'required', // ← 'auto' から置き換え
+  customer_update: { address: 'auto' },   // ← 追加：既存/作成された顧客の住所を保存しやすくする
+  // （任意）将来のために顧客を作って住所を保存したい場合は次も追加可
+  // customer_creation: 'always',
+  // ▲ここまで変更点
+
+  automatic_tax: { enabled: true },       // 税の自動計算はONのまま
+};
 
     // ── 接続アカウントがあれば transfer_data + application_fee_amount を設定 ──
     if (destinationAccountId) {
