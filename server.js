@@ -538,8 +538,9 @@ app.post('/checkout/:slug', async (req, res) => {
     }
     // それ以外（charges_enabled=false）はプラットフォーム受領 → Webhook で transfer 実施
 
-    const session = await stripe.checkout.sessions.create(params);
-    return res.redirect(session.url);
+const session = await stripe.checkout.sessions.create(params);
+console.log('[checkout] session created:', session.id, '→', session.url);
+return res.redirect(303, session.url);
 
 } catch (e) {
   const detail = e?.raw?.message || e.message || 'unknown';
