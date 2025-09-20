@@ -520,6 +520,7 @@ app.post('/checkout/:slug', async (req, res) => {
       billing_address_collection: 'required',
       customer_update: { address: 'auto' },
       automatic_tax: { enabled: true },
+      customer_creation: 'always',  // ← セッション完了時にCustomerを自動作成
       // どちらのルートでも PI に transfer_group & metadata を付与しておく
       payment_intent_data: {
         transfer_group: transferGroup,
