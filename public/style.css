@@ -422,3 +422,84 @@ label > input[type="checkbox"] + * {
 .muted {
   color: #a9c0e6;  /* 既存より少し濃く */
 }
+
+/* =========================================================
+   Mobile friendly layout for sale page
+   ========================================================= */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { overflow-x: hidden; }
+
+img { max-width: 100%; height: auto; display: block; }
+
+/* コンテナの余白を少し広めに（スマホで読みやすく） */
+.container {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* 商品レイアウト：PC は 2 カラム、スマホは 1 カラム */
+.product {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 28px;
+  align-items: start;
+}
+
+/* 画像まわり：はみ出しや黒帯を防ぐ */
+.product-imageWrap {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0f1115; /* 好みで */
+}
+
+.product-image {
+  width: 100%;
+  height: auto;      /* ← 固定高さは持たせない */
+  object-fit: contain; /* 画像全体を見せる（トリミングしない） */
+}
+
+/* 価格やボタンのタップしやすさ向上 */
+.price { font-size: 1.8rem; font-weight: 700; }
+
+.product-info form .btn,
+.product-info .btn {
+  width: 100%;              /* スマホではボタンを横いっぱい */
+  padding: 14px 16px;
+  font-size: 1rem;
+}
+
+/* 細かい行間・余白調整 */
+.product-info h1 { margin: 0 0 8px; line-height: 1.2; }
+.product-info .muted { opacity: .8; margin-bottom: 12px; }
+.hint { font-size: .9rem; opacity: .8; }
+
+/* ヘッダが大きすぎる時の縮小 */
+.nav { position: sticky; top: 0; z-index: 50; }
+.nav__brandText { white-space: nowrap; }
+
+/* ---------- スマホ用 ---------- */
+@media (max-width: 768px) {
+  .container { padding: 16px; }
+  .product {
+    grid-template-columns: 1fr;  /* 1 カラムに */
+    gap: 16px;
+  }
+
+  /* 画像は縦長・横長でもそのまま収まるように */
+  .product-image { width: 100%; height: auto; object-fit: contain; }
+
+  .price { font-size: 1.5rem; }
+  .site-footer .footer__links { gap: 8px; }
+}
+
+/* さらに小さい端末向け */
+@media (max-width: 360px) {
+  .container { padding: 12px; }
+  .price { font-size: 1.35rem; }
+}
