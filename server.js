@@ -485,7 +485,7 @@ app.post('/checkout/:slug', async (req, res) => {
     }
 
     // 決済手段：destination charge のときは card のみに（未対応のPMを避ける）
-    const paymentMethodTypes = canChargeOnSeller ? ['card'] : ['card', 'paypay'];
+    const paymentMethodTypes = ['card'];
 
     const successUrl = `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&slug=${item.slug}`;
     const cancelUrl  = `${BASE_URL}/s/${item.slug}`;
