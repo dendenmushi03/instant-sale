@@ -503,3 +503,5 @@ img { max-width: 100%; height: auto; display: block; }
   .container { padding: 12px; }
   .price { font-size: 1.35rem; }
 }
+
+.nav__logo { filter: brightness(0) saturate(100%) invert(1); }
