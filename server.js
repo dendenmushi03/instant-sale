@@ -381,24 +381,38 @@ app.post('/upload', ensureAuthed, upload.single('image'), async (req, res) => {
     const previewName = `${slug}-preview.jpg`;
     const previewFull = path.join(__dirname, 'previews', previewName);
 
-    const previewBase = await sharp(req.file.path)
-      .rotate()
-      .resize(1200, 630, { fit: 'cover' })
-      .jpeg({ quality: 85 })
-      .toBuffer();
+const previewBase = await sharp(req.file.path)
+  .rotate()
+  .resize(1200, 630, { fit: 'cover' }) // ← OGPは見栄え重視で従来通り
+  .jpeg({ quality: 85 })
+  .toBuffer();
 
-    const svg = Buffer.from(`
-      <svg width="1200" height="630">
-        <style>
-          .wmark { fill: rgba(255,255,255,0.25); font-size: 110px; font-weight: 700; }
-        </style>
-        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="wmark">SAMPLE</text>
-      </svg>
-    `);
+const svg = Buffer.from(`
+  <svg width="1200" height="630">
+    <style>
+      .wmark { fill: rgba(255,255,255,0.25); font-size: 110px; font-weight: 700; }
+    </style>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="wmark">SAMPLE</text>
+  </svg>
+`);
 
-    await sharp(previewBase)
-      .composite([{ input: svg, gravity: 'center' }])
-      .toFile(previewFull);
+await sharp(previewBase)
+  .composite([{ input: svg, gravity: 'center' }])
+  .toFile(previewFull);
+
+// ★ Stripe用（縦長が切れない “contain” 版）を追加生成
+const stripeName = `${slug}-stripe.jpg`;
+const stripeFull = path.join(__dirname, 'previews', stripeName);
+
+await sharp(req.file.path)
+  .rotate()
+  .resize(1200, 630, {
+    fit: 'contain',                               // 余白を付けて全体を表示
+    background: { r: 10, g: 16, b: 24, alpha: 1 } // ダーク系余白
+  })
+  .composite([{ input: svg, gravity: 'center' }]) // 透かしは同じでOK（不要なら外しても可）
+  .jpeg({ quality: 85 })
+  .toFile(stripeFull);
 
     const item = await Item.create({
   slug,
@@ -498,6 +512,17 @@ app.post('/checkout/:slug', async (req, res) => {
       sellerId: seller?._id ? String(seller._id) : ''
     };
 
+    // 縦長でも切れない Stripe 用サムネが存在すればそれを優先、無ければ従来プレビューを使用
+const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
+const stripeImgAbs = path.join(__dirname, stripeImgRel);
+let productImageUrl = `${BASE_URL}${item.previewPath}`;
+try {
+  await fsp.access(stripeImgAbs);
+  productImageUrl = `${BASE_URL}${stripeImgRel}`;
+} catch (_) {
+  // ない場合はそのまま previewPath を使う
+}
+
     /** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
     const params = {
       mode: 'payment',
@@ -509,7 +534,7 @@ app.post('/checkout/:slug', async (req, res) => {
           tax_behavior: 'inclusive',
           product_data: {
             name: item.title,
-            images: [`${BASE_URL}${item.previewPath}`],
+            images: [productImageUrl],
           },
         },
         quantity: 1,

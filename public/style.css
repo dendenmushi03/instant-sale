@@ -491,8 +491,13 @@ img { max-width: 100%; height: auto; display: block; }
     gap: 16px;
   }
 
-  /* 画像は縦長・横長でもそのまま収まるように */
-  .product-image { width: 100%; height: auto; object-fit: contain; }
+/* public/style.css に追加（or 調整） */
+.product-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;        /* cover → contain にすると縦長が切れない */
+  background: #0a1120;        /* 余白が出る時の背景色 */
+}
 
   .price { font-size: 1.5rem; }
   .site-footer .footer__links { gap: 8px; }
