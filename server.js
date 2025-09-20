@@ -452,7 +452,7 @@ app.get('/s/:slug', async (req, res) => {
   return res.render('sale', { item, baseUrl: BASE_URL, og, connect });
 });
 
-// checkout（プラットフォーム手数料 + クリエイターへ自動分配）
+// checkout（接続アカウントが未有効ならプラットフォーム受領にフォールバック）
 app.post('/checkout/:slug', async (req, res) => {
   try {
     if (!stripe) {
@@ -463,80 +463,93 @@ app.post('/checkout/:slug', async (req, res) => {
     const item = await Item.findOne({ slug });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
 
-    // ── プラットフォーム手数料（ENV: PLATFORM_FEE_PERCENT を使用）──
-    // 例: 10% -> 価格500なら 50円
-    const platformFee = Math.max(
-      0,
-      Math.floor(item.price * (PLATFORM_FEE_PERCENT / 100))
-    );
+    // 手数料
+    const platformFee = Math.max(0, Math.floor(item.price * (PLATFORM_FEE_PERCENT / 100)));
 
-    // ── クリエイターの接続アカウントを取得（ある場合のみ自動分配）──
-    let creator = null;
+    // 販売者（オーナー）
+    let seller = null;
     if (USE_STRIPE_CONNECT && item.ownerUser) {
-      creator = await User.findById(item.ownerUser).lean();
+      seller = await User.findById(item.ownerUser);
     }
-    const destinationAccountId = creator?.stripeAccountId || null;
+    const destinationAccountId = seller?.stripeAccountId || null;
 
-    // destination を使うと一部ウォレットが未対応 → カードのみを安全運用に
-    const paymentMethodTypes = destinationAccountId ? ['card'] : ['card', 'paypay'];
-
-// ── Checkout セッション作成パラメータ ──
-/** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
-const params = {
-  mode: 'payment',
-  payment_method_types: paymentMethodTypes,
-  line_items: [
-    {
-      price_data: {
-        currency: item.currency,
-        unit_amount: item.price,
-        tax_behavior: 'inclusive',
-        product_data: {
-          name: item.title,
-          images: [`${BASE_URL}${item.previewPath}`],
-        },
-      },
-      quantity: 1,
-    },
-  ],
-  success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&slug=${item.slug}`,
-  cancel_url: `${BASE_URL}/s/${item.slug}`,
-  metadata: {
-    itemId: String(item._id),
-    slug: item.slug,
-  },
-
-  // ▼ここから変更点
-  billing_address_collection: 'required', // ← 'auto' から置き換え
-  customer_update: { address: 'auto' },   // ← 追加：既存/作成された顧客の住所を保存しやすくする
-  // （任意）将来のために顧客を作って住所を保存したい場合は次も追加可
-  // customer_creation: 'always',
-  // ▲ここまで変更点
-
-  automatic_tax: { enabled: true },       // 税の自動計算はONのまま
-};
-
-    // ── 接続アカウントがあれば transfer_data + application_fee_amount を設定 ──
+    // 販売者が destination charge を使えるか（charges_enabled）
+    let canChargeOnSeller = false;
     if (destinationAccountId) {
-params.payment_intent_data = {
-  application_fee_amount: platformFee,
-  transfer_data: { destination: destinationAccountId },
-  on_behalf_of: destinationAccountId, // ★ これを追加：接続アカウントをMoRにし、損失責任も接続側へ
-};
+      try {
+        const acct = await stripe.accounts.retrieve(destinationAccountId);
+        canChargeOnSeller = !!acct?.charges_enabled;
+      } catch (err) {
+        console.warn('[checkout] retrieve account failed:', err?.raw?.message || err.message);
+      }
     }
+
+    // 決済手段：destination charge のときは card のみに（未対応のPMを避ける）
+    const paymentMethodTypes = canChargeOnSeller ? ['card'] : ['card', 'paypay'];
+
+    const successUrl = `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&slug=${item.slug}`;
+    const cancelUrl  = `${BASE_URL}/s/${item.slug}`;
+
+    // 後続の transfer と突合するためのグループ & メタデータ
+    const transferGroup = `item_${item._id}`;
+    const commonMetadata = {
+      itemId: String(item._id),
+      slug: item.slug,
+      sellerId: seller?._id ? String(seller._id) : ''
+    };
+
+    /** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
+    const params = {
+      mode: 'payment',
+      payment_method_types: paymentMethodTypes,
+      line_items: [{
+        price_data: {
+          currency: item.currency,
+          unit_amount: item.price,            // 最小通貨単位
+          tax_behavior: 'inclusive',
+          product_data: {
+            name: item.title,
+            images: [`${BASE_URL}${item.previewPath}`],
+          },
+        },
+        quantity: 1,
+      }],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: commonMetadata,
+      billing_address_collection: 'required',
+      customer_update: { address: 'auto' },
+      automatic_tax: { enabled: true },
+      // どちらのルートでも PI に transfer_group & metadata を付与しておく
+      payment_intent_data: {
+        transfer_group: transferGroup,
+        metadata: commonMetadata
+      }
+    };
+
+    if (canChargeOnSeller) {
+      // ✅ 直接接続アカウントで決済（destination charge）
+      params.payment_intent_data = {
+        ...params.payment_intent_data,
+        application_fee_amount: platformFee,
+        transfer_data: { destination: destinationAccountId },
+        on_behalf_of: destinationAccountId
+      };
+    }
+    // それ以外（charges_enabled=false）はプラットフォーム受領 → Webhook で transfer 実施
 
     const session = await stripe.checkout.sessions.create(params);
     return res.redirect(session.url);
   } catch (e) {
-    console.error(e);
+    console.error('[checkout] error', e?.raw?.message || e.message, e?.raw || e);
     return res.status(500).render('error', { message: '決済セッションの作成に失敗しました。' });
   }
 });
 
-// ====== Stripe Webhook（決済確定トリガー）======
+// ====== Stripe Webhook（決済確定→ダウンロード発行＋必要なら送金）======
 // 注意: このルートは raw が必要（署名検証のため）
 app.post('/webhooks/stripe', async (req, res) => {
-try {
+  try {
     if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
       return res.status(500).send('Webhook not configured');
     }
@@ -549,42 +562,101 @@ try {
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-// 決済完了（カード等）＋ 非同期ウォレット成功（PayPay等）
-if (
-  event.type === 'checkout.session.completed' ||
-  event.type === 'checkout.session.async_payment_succeeded'
-) {
-  const session = event.data.object; // Stripe.Checkout.Session
-  const sessionId = session.id;
-  const paid = session.payment_status === 'paid';
-  const itemId = session.metadata?.itemId;
+    // 決済完了（カード等）＋ 非同期ウォレット成功（PayPay等）
+    if (
+      event.type === 'checkout.session.completed' ||
+      event.type === 'checkout.session.async_payment_succeeded'
+    ) {
+      const session = event.data.object; // Stripe.Checkout.Session
+      const sessionId = session.id;
+      const paid = session.payment_status === 'paid';
+      const itemId = session.metadata?.itemId;
 
-  if (paid && itemId) {
-    // すでに発行済みならスキップ（冪等）
-    const existing = await DownloadToken.findOne({ sessionId });
-    if (!existing) {
-      const item = await Item.findById(itemId);
-      if (item) {
-        const token = nanoid(32);
-        const ttlMin = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
-        const expiresAt = new Date(Date.now() + ttlMin * 60 * 1000);
-        await DownloadToken.create({
-          token,
-          item: item._id,
-          expiresAt,
-          sessionId, // ← セッションに紐付け
-        });
-
-        // TODO: ここで購入者にメール送信したい場合は送る（SendGrid/nodemailer等）
-        // 送信先は session.customer_details?.email が候補
+      // --------------------
+      // 1) ダウンロードトークンの発行（既存ロジック）
+      // --------------------
+      if (paid && itemId) {
+        const existing = await DownloadToken.findOne({ sessionId });
+        if (!existing) {
+          const item = await Item.findById(itemId);
+          if (item) {
+            const token = nanoid(32);
+            const ttlMin = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
+            const expiresAt = new Date(Date.now() + ttlMin * 60 * 1000);
+            await DownloadToken.create({
+              token,
+              item: item._id,
+              expiresAt,
+              sessionId,
+            });
+          }
+        }
       }
+
+      // --------------------
+      // 2) destination でなかった場合、販売者へ transfer を実施
+      // --------------------
+      try {
+        // Checkout Session → PaymentIntent を取得
+        const piId = session.payment_intent;
+        if (piId) {
+          const pi = await stripe.paymentIntents.retrieve(piId);
+
+          // transfer_data が無ければ「プラットフォーム受領」= 要 transfer
+          const needTransfer = !pi.transfer_data;
+
+          if (needTransfer && itemId) {
+            const item = await Item.findById(itemId);
+            if (!item?.ownerUser) {
+              console.warn('[transfer] item/seller not found', { itemId });
+            } else {
+              const seller = await User.findById(item.ownerUser);
+              if (seller?.stripeAccountId) {
+                // 手数料と送金額
+                const feePercent = Number(process.env.PLATFORM_FEE_PERCENT || 0);
+                const fee = Math.floor(item.price * (feePercent / 100));
+                const sellerAmount = item.price - fee;
+
+                // 送金可否（payouts_enabled）を軽くチェック（厳密に capabilities でもOK）
+                let canTransfer = true;
+                try {
+                  const acc = await stripe.accounts.retrieve(seller.stripeAccountId);
+                  canTransfer = !!acc?.payouts_enabled;
+                } catch (accErr) {
+                  console.warn('[transfer] retrieve account failed', accErr?.raw?.message || accErr.message);
+                }
+
+                if (sellerAmount > 0 && canTransfer) {
+                  await stripe.transfers.create({
+                    amount: sellerAmount,
+                    currency: item.currency,
+                    destination: seller.stripeAccountId,
+                    transfer_group: pi.transfer_group || `item_${item._id}`, // 念のため
+                  });
+                  console.log('[transfer] success', {
+                    pi: pi.id,
+                    dest: seller.stripeAccountId,
+                    amount: sellerAmount
+                  });
+                } else {
+                  console.warn('[transfer] skipped (amount<=0 or cannot transfer)', {
+                    sellerAmount, canTransfer, sellerId: seller._id
+                  });
+                }
+              } else {
+                console.warn('[transfer] seller has no stripeAccountId', { sellerId: seller?._id });
+              }
+            }
+          }
+        }
+      } catch (tErr) {
+        console.error('[transfer] error', tErr?.raw?.message || tErr.message, tErr?.raw || tErr);
+        // TODO: ここで保留キューに退避し、後で再送金する運用にしてもOK
+      }
+    } else if (event.type === 'checkout.session.async_payment_failed') {
+      const session = event.data.object; // Stripe.Checkout.Session
+      console.warn('[webhook] async payment failed:', session.id);
     }
-  }
-} else if (event.type === 'checkout.session.async_payment_failed') {
-  // 任意: 非同期決済が失敗したときの監視用ログ（通知などに繋げたい場合）
-  const session = event.data.object; // Stripe.Checkout.Session
-  console.warn('[webhook] async payment failed:', session.id);
-}
 
     res.json({ received: true });
   } catch (e) {
