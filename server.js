@@ -540,11 +540,14 @@ app.post('/checkout/:slug', async (req, res) => {
 
     const session = await stripe.checkout.sessions.create(params);
     return res.redirect(session.url);
-  } catch (e) {
-    console.error('[checkout] error', e?.raw?.message || e.message, e?.raw || e);
-    return res.status(500).render('error', { message: '決済セッションの作成に失敗しました。' });
-  }
-});
+
+} catch (e) {
+  const detail = e?.raw?.message || e.message || 'unknown';
+  console.error('[checkout] error:', detail, e);
+  return res.status(500).render('error', { message: `決済セッションの作成に失敗しました：${detail}` });
+}
+
+  });
 
 // ====== Stripe Webhook（決済確定→ダウンロード発行＋必要なら送金）======
 // 注意: このルートは raw が必要（署名検証のため）
