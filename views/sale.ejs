@@ -64,9 +64,13 @@
       <a href="/connect/onboard">こちら</a> から Stripe で振込口座の登録を行ってください。
     </div>
   <% } %>
-        <form action="/checkout/<%= item.slug %>" method="post">
-          <button class="btn primary" type="submit">高解像度を購入してダウンロード</button>
+
+          <form id="checkoutForm" action="/checkout/<%= item.slug %>" method="post" target="_top" novalidate>
+          <button id="checkoutBtn" class="btn primary" type="submit" aria-live="polite">
+            高解像度を購入してダウンロード
+          </button>
         </form>
+
         <p class="hint">決済はStripe（カード）で安全に処理されます。</p>
       </div>
     </article>
@@ -83,5 +87,27 @@
   <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
 </footer>
 
+<script>
+  (function () {
+    var form = document.getElementById('checkoutForm');
+    var btn  = document.getElementById('checkoutBtn');
+    if (!form || !btn) return;
+
+    // 二度押し防止 & 視覚的なフィードバック
+    form.addEventListener('submit', function () {
+      try {
+        btn.disabled = true;
+        btn.style.opacity = '0.75';
+        btn.textContent = 'Stripeに移動中…';
+      } catch (_) {}
+      // 念のため、最上位フレームへ遷移を強制（iOSアプリ内ブラウザ対策）
+      try {
+        form.setAttribute('target', '_top');
+      } catch (_) {}
+    }, { once: true });
+  })();
+</script>
+
 </body>
 </html>
+

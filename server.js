@@ -540,7 +540,30 @@ app.post('/checkout/:slug', async (req, res) => {
 
 const session = await stripe.checkout.sessions.create(params);
 console.log('[checkout] session created:', session.id, '→', session.url);
-return res.redirect(303, session.url);
+
+// 303 リダイレクトを素直に採用しない環境向けフォールバック（JS + meta refresh）
+const to = session.url;
+return res
+  .status(200)
+  .set('Content-Type', 'text/html; charset=utf-8')
+  .send(`<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Stripeへ遷移します…</title>
+  <meta http-equiv="refresh" content="0;url=${to}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>body{font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto;padding:24px}a{color:#06f}</style>
+</head>
+<body>
+  <p>Stripe の決済ページへ遷移します…<br>
+  自動で切り替わらない場合は <a href="${to}" target="_top" rel="noopener">こちらをタップ</a> してください。</p>
+  <script>
+    try { window.top.location.replace(${JSON.stringify(to)}); }
+    catch(_) { location.href = ${JSON.stringify(to)}; }
+  </script>
+</body>
+</html>`);
 
 } catch (e) {
   const detail = e?.raw?.message || e.message || 'unknown';
