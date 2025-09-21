@@ -15,15 +15,15 @@
   .row{display:flex;gap:12px;flex-wrap:wrap}
   .row .field{flex:1}
 
-/* ▼ラジオ選択で表示/非表示を CSS だけで切替 */
-[data-biz-only]{ display:none; }                                   /* 既定は非表示 */
-#legalForm.form--business [data-biz-only]{ display:flex; }         /* 事業者のとき表示 */
+/* ▼ ラジオ選択で表示/非表示（他CSSに負けないように !important で固定） */
+[data-biz-only]{ display:none !important; } /* 既定は非表示 */
+#legalForm[data-type="business"] [data-biz-only]{ display:flex !important; }
 
-/* 氏名/販売業者ラベルの切替（CSSだけで） */
-#legalForm.form--business [data-label-individual]{ display:none; }
-#legalForm.form--business [data-label-business]{ display:inline; }
-#legalForm:not(.form--business) [data-label-individual]{ display:inline; }
-#legalForm:not(.form--business) [data-label-business]{ display:none; }
+/* 氏名/販売業者ラベルの切替（こちらも確実に） */
+#legalForm[data-type="business"] [data-label-individual]{ display:none !important; }
+#legalForm[data-type="business"] [data-label-business]{ display:inline !important; }
+#legalForm[data-type="individual"] [data-label-individual]{ display:inline !important; }
+#legalForm[data-type="individual"] [data-label-business]{ display:none !important; }
 
 </style>
 
@@ -48,8 +48,9 @@
   <h1>事業者情報（特商法表記）</h1>
   <p class="muted">販売する場合は、必要事項を正確に入力してください。電話番号を公開したくない場合は、メール連絡を確実に受けられるようにし、電話は空欄でも構いません。</p>
 
-<form class="grid <%= (legal?.sellerType === 'business') ? 'form--business' : '' %>"
-      action="/creator/legal" method="post" id="legalForm">
+<form class="grid"
+      action="/creator/legal" method="post" id="legalForm"
+      data-type="<%= (legal?.sellerType === 'business') ? 'business' : 'individual' %>">
 
     <div class="seg">
       <div class="field">
@@ -140,24 +141,41 @@
 
 <script>
 (function () {
-  var form = document.getElementById('legalForm');
-  if (!form) return;
+  var f = document.getElementById('legalForm');
+  if (!f) return;
 
-  function setType(val){
-    if (val === 'business') {
-      form.classList.add('form--business');
-    } else {
-      form.classList.remove('form--business');
+  var radios = f.querySelectorAll('input[name="sellerType"]');
+  var bizOnly = [].slice.call(f.querySelectorAll('[data-biz-only]'));
+  var labelInd = f.querySelector('[data-label-individual]');
+  var labelBiz = f.querySelector('[data-label-business]');
+
+  function currentType(){
+    var checked = f.querySelector('input[name="sellerType"]:checked');
+    return (checked && checked.value === 'business') ? 'business' : 'individual';
+  }
+
+  function apply(type){
+    var isBiz = (type === 'business');
+    f.setAttribute('data-type', isBiz ? 'business' : 'individual');
+
+    // CSS に勝てるよう inline style でも強制切替
+    bizOnly.forEach(function(el){ el.style.display = isBiz ? 'flex' : 'none'; });
+
+    if (labelInd && labelBiz){
+      labelInd.style.display = isBiz ? 'none' : '';
+      labelBiz.style.display = isBiz ? '' : 'none';
     }
   }
 
-  form.addEventListener('change', function(e){
-    if (e.target && e.target.name === 'sellerType') {
-      setType(e.target.value);
-    }
-  });
+  // 初期適用
+  apply(currentType());
 
-  // 初期表示：サーバが付けた form--business クラスを尊重（何もしなくてOK）
+  // ラジオ変更時
+  radios.forEach(function(r){
+    r.addEventListener('change', function(){
+      apply(currentType());
+    });
+  });
 })();
 </script>
 
