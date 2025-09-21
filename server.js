@@ -422,13 +422,13 @@ if (!title || !priceNum || priceNum < MIN_PRICE) {
     const slug = nanoid(10);
     const mimeType = req.file.mimetype;
 
-    // OGPプレビュー（1200x630）
-    const previewName = `${slug}-preview.jpg`;
-    const previewFull = path.join(__dirname, 'previews', previewName);
+// OGPプレビュー（1200x630）
+const previewName = `${slug}-preview.jpg`;
+const previewFull = path.join(__dirname, 'previews', previewName);
 
 const previewBase = await sharp(req.file.path)
   .rotate()
-  .resize(1200, 630, { fit: 'cover' }) // ← OGPは見栄え重視で従来通り
+  .resize(1200, 630, { fit: 'cover' })
   .jpeg({ quality: 85 })
   .toBuffer();
 
@@ -445,19 +445,30 @@ await sharp(previewBase)
   .composite([{ input: svg, gravity: 'center' }])
   .toFile(previewFull);
 
-// ★ Stripe用（縦長が切れない “contain” 版）を追加生成
+// ★ Stripe用（縦長が切れない “contain” 版）
 const stripeName = `${slug}-stripe.jpg`;
 const stripeFull = path.join(__dirname, 'previews', stripeName);
 
 await sharp(req.file.path)
   .rotate()
   .resize(1200, 630, {
-    fit: 'contain',                               // 余白を付けて全体を表示
-    background: { r: 10, g: 16, b: 24, alpha: 1 } // ダーク系余白
+    fit: 'contain',
+    background: { r: 10, g: 16, b: 24, alpha: 1 }
   })
-  .composite([{ input: svg, gravity: 'center' }]) // 透かしは同じでOK（不要なら外しても可）
+  .composite([{ input: svg, gravity: 'center' }])
   .jpeg({ quality: 85 })
   .toFile(stripeFull);
+
+// ★ 等倍プレビュー（透かし入り・最大4096pxに内接）
+const fullName = `${slug}-full.jpg`;
+const fullPath = path.join(__dirname, 'previews', fullName);
+
+await sharp(req.file.path)
+  .rotate()
+  .resize(4096, 4096, { fit: 'inside' }) // でかすぎる原稿は上限をかける
+  .composite([{ input: svg, gravity: 'center' }]) // 透かしはそのまま
+  .jpeg({ quality: 90 })
+  .toFile(fullPath);
 
     const item = await Item.create({
   slug,

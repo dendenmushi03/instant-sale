@@ -60,6 +60,7 @@ input[type="text"], input[type="password"], input[type="number"], input[type="fi
 /* 画像をラップして重ねがけ用のレイヤを作る */
 .product-imageWrap{
   position: relative;
+
   width: 100%;
   max-width: 560px;
   border-radius: 12px;
@@ -67,6 +68,9 @@ input[type="text"], input[type="password"], input[type="number"], input[type="fi
   border: 1px solid var(--border, #223);
   background: #000;            /* 余白が出たときの下地 */
 }
+
+/* クリックできる感を出すだけ（任意） */
+.product-imageWrap{ cursor: zoom-in; text-decoration:none; }
 
 /* 中の <img> は枠の装飾を持たせない（ラッパが持つ） */
 .product-imageWrap .product-image{

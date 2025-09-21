@@ -50,9 +50,10 @@
   
   <main class="container">
     <article class="product">
-<div class="product-imageWrap">
+<a class="product-imageWrap" href="/previews/<%= item.slug %>-full.jpg" target="_blank" rel="noopener">
   <img class="product-image" src="<%= item.previewPath %>" alt="<%= item.title %>" />
-</div>
+</a>
+<div class="hint">画像をタップすると等倍（別タブ）で表示できます。</div>
       <div class="product-info">
         <h1><%= item.title %></h1>
         <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>

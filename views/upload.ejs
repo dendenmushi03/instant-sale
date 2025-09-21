@@ -87,15 +87,8 @@
         <input type="text" name="title" placeholder="作品タイトル" required />
       </label>
       <div class="row">
-        <label style="flex:1">価格（<%= (process.env.CURRENCY || 'jpy').toUpperCase() %>）
-  <input
-    type="number"
-    name="price"
-    min="<%= process.env.MIN_PRICE || 50 %>"
-    step="1"
-    value="500"   <!-- 既定値は500のまま。必要ならここも 50 に -->
-    required
-  />
+<label style="flex:1">価格（<%= (process.env.CURRENCY || 'jpy').toUpperCase() %>）
+  <input type="number" name="price" min="<%= process.env.MIN_PRICE || 50 %>" step="1" value="50" required />
 </label>
         <label style="flex:1">通貨
           <input type="text" name="currency" value="<%= (process.env.CURRENCY || 'jpy') %>" />
