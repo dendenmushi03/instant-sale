@@ -15,15 +15,22 @@
   .row{display:flex;gap:12px;flex-wrap:wrap}
   .row .field{flex:1}
 
-/* ▼ ラジオ選択で表示/非表示（他CSSに負けないように !important で固定） */
-[data-biz-only]{ display:none !important; } /* 既定は非表示 */
-#legalForm[data-type="business"] [data-biz-only]{ display:flex !important; }
+/* 事業者専用フィールドを“ブラックアウト”表示で無効化するための見た目 */
+.dim { position: relative; }
+.dim::after{
+  content:"";
+  position:absolute; inset:0;
+  background: rgba(0,0,0,.38);    /* 黒っぽく覆う */
+  border-radius:10px;
+}
+.dim *{ pointer-events:none; }
+.dim input, .dim select, .dim textarea{ filter: grayscale(1) opacity(.75); }
 
-/* 氏名/販売業者ラベルの切替（こちらも確実に） */
-#legalForm[data-type="business"] [data-label-individual]{ display:none !important; }
-#legalForm[data-type="business"] [data-label-business]{ display:inline !important; }
-#legalForm[data-type="individual"] [data-label-individual]{ display:inline !important; }
-#legalForm[data-type="individual"] [data-label-business]{ display:none !important; }
+/* ラベルの文言切替だけは残す（任意） */
+#legalForm[data-type="business"] [data-label-individual]{ display:none; }
+#legalForm[data-type="business"] [data-label-business]{ display:inline; }
+#legalForm[data-type="individual"] [data-label-individual]{ display:inline; }
+#legalForm[data-type="individual"] [data-label-business]{ display:none; }
 
 </style>
 
@@ -69,7 +76,6 @@
 <div class="field">
   <label for="name">
     <span data-label-individual>氏名（本名）</span>
-    <span data-label-business style="display:none">販売業者（屋号/法人名）</span>
     <span class="help">※必須</span>
     <input id="name" type="text" name="name" value="<%= legal?.name || '' %>" required />
   </label>
@@ -141,41 +147,47 @@
 
 <script>
 (function () {
-  var f = document.getElementById('legalForm');
-  if (!f) return;
+  var form = document.getElementById('legalForm');
+  if (!form) return;
 
-  var radios = f.querySelectorAll('input[name="sellerType"]');
-  var bizOnly = [].slice.call(f.querySelectorAll('[data-biz-only]'));
-  var labelInd = f.querySelector('[data-label-individual]');
-  var labelBiz = f.querySelector('[data-label-business]');
+  var radioBiz = form.querySelector('input[name="sellerType"][value="business"]');
+  var radioInd = form.querySelector('input[name="sellerType"][value="individual"]');
+  var bizBlocks = [].slice.call(form.querySelectorAll('[data-biz-only]'));
 
-  function currentType(){
-    var checked = f.querySelector('input[name="sellerType"]:checked');
-    return (checked && checked.value === 'business') ? 'business' : 'individual';
+  function setType(val){
+    form.setAttribute('data-type', val === 'business' ? 'business' : 'individual');
   }
 
-  function apply(type){
-    var isBiz = (type === 'business');
-    f.setAttribute('data-type', isBiz ? 'business' : 'individual');
+  function applyState(){
+    var isBiz = radioBiz && radioBiz.checked;
 
-    // CSS に勝てるよう inline style でも強制切替
-    bizOnly.forEach(function(el){ el.style.display = isBiz ? 'flex' : 'none'; });
+    bizBlocks.forEach(function(block){
+      // 見た目を黒く潰す
+      block.classList.toggle('dim', !isBiz);
+      block.setAttribute('aria-disabled', String(!isBiz));
 
-    if (labelInd && labelBiz){
-      labelInd.style.display = isBiz ? 'none' : '';
-      labelBiz.style.display = isBiz ? '' : 'none';
-    }
-  }
-
-  // 初期適用
-  apply(currentType());
-
-  // ラジオ変更時
-  radios.forEach(function(r){
-    r.addEventListener('change', function(){
-      apply(currentType());
+      // 入力を完全に無効化（送信もしない）
+      var ctrls = block.querySelectorAll('input, select, textarea, button');
+      ctrls.forEach(function(el){
+        el.disabled = !isBiz;   // ← 送信されなくなる
+        if (!isBiz) {
+          // 必須を外す（万一 required 指定されていても詰まらないように）
+          el.required = false;
+        }
+      });
     });
+  }
+
+  // ラジオ変更で反映
+  form.addEventListener('change', function(e){
+    if (e.target && e.target.name === 'sellerType') {
+      setType(e.target.value);
+      applyState();
+    }
   });
+
+  // 初期状態反映（サーバ埋め込みに依らず確実に評価）
+  applyState();
 })();
 </script>
 
