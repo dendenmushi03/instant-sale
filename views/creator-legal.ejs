@@ -129,40 +129,36 @@
 <script>
 (function () {
   var form = document.getElementById('legalForm');
-  if (!form) return;
-
   var radioIndividual = form.querySelector('input[name="sellerType"][value="individual"]');
   var radioBusiness   = form.querySelector('input[name="sellerType"][value="business"]');
-  var bizOnly = [].slice.call(form.querySelectorAll('[data-biz-only]'));
+  var bizOnly = [].slice.call(form.querySelectorAll('.only-business'));
 
-  // ラベルとプレースホルダ
-  var lblInd = form.querySelector('[data-label-individual]');
-  var lblBiz = form.querySelector('[data-label-business]');
-  var nameInput = document.getElementById('name');
+  // ★ 追加：名前ラベル要素を取得
+  var nameLabelIndividual = form.querySelector('[data-label-individual]');
+  var nameLabelBusiness   = form.querySelector('[data-label-business]');
 
   function updateView() {
-    var isBiz = radioBusiness && radioBusiness.checked;
+    var isBiz = radioBusiness.checked;
 
-    // 事業者のみの行表示
-    bizOnly.forEach(function(el){ el.style.display = isBiz ? '' : 'none'; });
+    // 事業者向け項目の表示/非表示
+    bizOnly.forEach(function(el){ el.style.display = isBiz ? 'flex' : 'none'; });
 
-    // ラベル切替
-    if (lblInd && lblBiz) {
-      lblInd.style.display = isBiz ? 'none' : '';
-      lblBiz.style.display = isBiz ? '' : 'none';
+    // ★ 追加：氏名/販売業者ラベルの切替
+    if (nameLabelIndividual && nameLabelBusiness) {
+      nameLabelIndividual.style.display = isBiz ? 'none' : '';
+      nameLabelBusiness.style.display   = isBiz ? '' : 'none';
     }
 
-    // プレースホルダ微調整（任意）
-    if (nameInput) {
-      nameInput.placeholder = isBiz ? '例）株式会社〇〇 / 〇〇商店' : '例）山田 太郎（本名）';
-    }
+    // 必須制御（現状は任意のまま）
+    var resp = form.querySelector('input[name="responsible"]');
+    var inv  = form.querySelector('input[name="invoiceRegNo"]');
+    if (resp) resp.required = false;
+    if (inv)  inv.required  = false;
   }
 
-  [radioIndividual, radioBusiness].forEach(function(r){
-    if (r) r.addEventListener('change', updateView);
-  });
-
-  updateView(); // 初期表示
+  radioIndividual.addEventListener('change', updateView);
+  radioBusiness.addEventListener('change', updateView);
+  updateView();
 })();
 </script>
 
