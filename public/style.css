@@ -1,4 +1,6 @@
-* { box-sizing: border-box; }
+*,
+*::before,
+*::after { box-sizing: border-box; }
 html, body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Noto Sans JP", sans-serif; color: #101828; background: #f6f7fb; }
 a { color: #2563eb; text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -28,8 +30,6 @@ body.layout .site-footer{
 
 .logo { font-weight: 700; color: #111827; text-decoration: none; }
 
-.container { max-width: 980px; margin: 24px auto; padding: 0 16px; }
-
 h1 { font-size: 28px; margin: 12px 0 20px; }
 .card {
   background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 16px;
@@ -53,33 +53,6 @@ input[type="text"], input[type="password"], input[type="number"], input[type="fi
 .btn:hover { opacity: 0.92; }
 
 .muted { color: #6b7280; }
-
-.product { display:flex; gap:22px; }
-.product-image { width: 100%; max-width: 560px; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; }
-
-/* 画像をラップして重ねがけ用のレイヤを作る */
-.product-imageWrap{
-  position: relative;
-
-  width: 100%;
-  max-width: 560px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border, #223);
-  background: #000;            /* 余白が出たときの下地 */
-}
-
-/* クリックできる感を出すだけ（任意） */
-.product-imageWrap{ cursor: zoom-in; text-decoration:none; }
-
-/* 中の <img> は枠の装飾を持たせない（ラッパが持つ） */
-.product-imageWrap .product-image{
-  display: block;
-  width: 100%;
-  height: auto;
-  border: 0;
-  border-radius: 0;
-}
 
 /* ここが “ロゴをタイル状に敷く透かし” 本体 */
 .product-imageWrap::after{
@@ -178,7 +151,6 @@ body.layout main.container{
 .inline{ display:inline; }
 
 /* ---------- Container / hero ---------- */
-.container{ max-width:960px; margin:0 auto; padding:48px 20px; }
 .hero{ text-align:left; padding-top:56px; padding-bottom:56px; }
 .hero__title{ font-size:32px; margin:0 0 8px; }
 .hero__lead{ color:var(--muted); margin:0 0 28px; }
@@ -430,9 +402,6 @@ label > input[type="checkbox"] + * {
 /* =========================================================
    Mobile friendly layout for sale page
    ========================================================= */
-*,
-*::before,
-*::after { box-sizing: border-box; }
 
 html, body { overflow-x: hidden; }
 
@@ -452,20 +421,6 @@ img { max-width: 100%; height: auto; display: block; }
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 28px;
   align-items: start;
-}
-
-/* 画像まわり：はみ出しや黒帯を防ぐ */
-.product-imageWrap {
-  width: 100%;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #0f1115; /* 好みで */
-}
-
-.product-image {
-  width: 100%;
-  height: auto;      /* ← 固定高さは持たせない */
-  object-fit: contain; /* 画像全体を見せる（トリミングしない） */
 }
 
 /* 価格やボタンのタップしやすさ向上 */
@@ -495,14 +450,6 @@ img { max-width: 100%; height: auto; display: block; }
     gap: 16px;
   }
 
-/* public/style.css に追加（or 調整） */
-.product-image {
-  width: 100%;
-  height: auto;
-  object-fit: contain;        /* cover → contain にすると縦長が切れない */
-  background: #0a1120;        /* 余白が出る時の背景色 */
-}
-
   .price { font-size: 1.5rem; }
   .site-footer .footer__links { gap: 8px; }
 }
@@ -515,21 +462,13 @@ img { max-width: 100%; height: auto; display: block; }
 
 .nav__logo { filter: brightness(0) saturate(100%) invert(1); }
 
-/* 事業者モードのときだけ専用フィールドを表示（強制） */
-.form--business .only-business { display: flex !important; }
-
-/* 商品画像はクリックできる感じだけ出す */
-.product-imageWrap{ cursor: zoom-in; }
+.form--business [data-biz-only] { display: flex !important; }
 
 /* ライトボックス */
 .lightbox{
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
+  position: fixed; inset: 0; z-index: 1000;
   background: rgba(0,0,0,.92);
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 8px;
+  display: grid; grid-template-rows: auto 1fr; gap: 8px;
   padding: 12px;
 }
 .lightbox[hidden]{ display:none; }
@@ -538,20 +477,35 @@ img { max-width: 100%; height: auto; display: block; }
   justify-self: end;
   background: rgba(255,255,255,.12);
   border: 1px solid rgba(255,255,255,.25);
-  color: #fff;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 18px;
-  line-height: 1;
+  color: #fff; border-radius: 8px; padding: 6px 10px;
+  font-size: 20px; line-height: 1; cursor: pointer;
 }
-
 .lightbox__inner{
-  overflow: auto;                       /* 等倍がはみ出すときはスクロール */
+  overflow: auto;                  /* はみ出した分はスクロール */
   display: flex; align-items: center; justify-content: center;
 }
-
 .lightbox__img{
-  display: block;
-  max-width: none;                      /* ← 等倍で表示するために解除 */
+  display:block;
+  max-width: none;                 /* ← 等倍で表示（縮めない） */
   height: auto;
+}
+
+.product-imageWrap{
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border, #223);
+  background: #0f1115;     /* 下地は統一（好みで #000 でもOK） */
+  cursor: zoom-in;         /* 重複は一つに */
+  text-decoration: none;
+}
+
+.product-image{
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;  /* トリミングしない */
+  border: 0;
+  border-radius: 0;
 }

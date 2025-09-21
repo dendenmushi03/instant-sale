@@ -543,6 +543,38 @@ app.get('/s/:slug', async (req, res) => {
   }
 });
 
+// 等倍プレビュー（透かし付き、元画像サイズのまま）
+app.get('/view/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const item = await Item.findOne({ slug }).lean();
+    if (!item) return res.status(404).send('Not found');
+
+    // 中央に大きめの SAMPLE 透かし（軽量）
+    const svg = Buffer.from(`
+      <svg width="2000" height="2000" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          .wm { fill: rgba(255,255,255,.25); font-size: 220px; font-weight: 700; }
+        </style>
+        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="wm" transform="rotate(-18,1000,1000)">SAMPLE</text>
+      </svg>
+    `);
+
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+
+    // リサイズしない → 等倍。EXIF回転だけ整える
+    await sharp(item.filePath)
+      .rotate()
+      .composite([{ input: svg, gravity: 'center' }])
+      .jpeg({ quality: 90 })
+      .pipe(res);
+  } catch (e) {
+    console.error('[view-full]', e.message);
+    res.status(500).send('viewer error');
+  }
+});
+
 // checkout（接続アカウントが未有効ならプラットフォーム受領にフォールバック）
 app.post('/checkout/:slug', async (req, res) => {
   try {
