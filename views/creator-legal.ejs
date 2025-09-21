@@ -3,19 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>事業者情報の設定 | Instant Sale</title>
+  <title>事業者情報（特商法表記） | Instant Sale</title>
   <link rel="stylesheet" href="/public/style.css" />
+  <style>
+    .muted{opacity:.8}
+    .grid{display:grid;gap:12px}
+    .only-business{display:none}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .help{font-size:.9em;opacity:.75}
+    .seg{padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:10px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .row .field{flex:1}
+  </style>
 </head>
 <body class="layout">
-
 <header class="nav">
   <a class="nav__brand" href="/">
     <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" />
     <span class="nav__brandText">Instant Sale</span>
   </a>
   <nav class="nav__right">
-    <span class="nav__user"><%= me?.name || me?.email %></span>
-    <form method="post" action="/logout" class="inline"><button class="btn btn--ghost">ログアウト</button></form>
+    <% if (me) { %>
+      <span class="nav__user"><%= me.name || me.email %></span>
+      <form method="post" action="/logout" class="inline"><button class="btn btn--ghost">ログアウト</button></form>
+    <% } else { %>
+      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+    <% } %>
   </nav>
 </header>
 
@@ -23,24 +36,110 @@
   <h1>事業者情報（特商法表記）</h1>
   <p class="muted">販売する場合は、必要事項を正確に入力してください。電話番号を公開したくない場合は、メール連絡を確実に受けられるようにし、電話は空欄でも構いません。</p>
 
-  <form method="post" action="/creator/legal" class="form">
-    <label>販売業者（屋号/法人名/氏名）<input name="name" value="<%= legal.name||'' %>" required></label>
-    <label>運営責任者<input name="responsible" value="<%= legal.responsible||'' %>"></label>
-    <label>所在地<textarea name="address" rows="2" required><%= legal.address||'' %></textarea></label>
-    <label>電話番号（任意）<input name="phone" value="<%= legal.phone||'' %>"></label>
-    <label>メールアドレス（必須）<input type="email" name="email" value="<%= legal.email||'' %>" required></label>
-    <label>サイトURL（任意）<input type="url" name="website" value="<%= legal.website||'' %>"></label>
-    <label>適格請求書番号（任意）<input name="invoiceRegNo" value="<%= legal.invoiceRegNo||'' %>"></label>
+  <form class="grid" action="/creator/legal" method="post" id="legalForm">
+    <div class="seg">
+      <div class="field">
+        <label><strong>販売者の種別</strong></label>
+        <div class="row">
+          <label><input type="radio" name="sellerType" value="individual"
+            <%= (legal?.sellerType !== 'business') ? 'checked' : '' %> /> 個人販売者</label>
+          <label><input type="radio" name="sellerType" value="business"
+            <%= (legal?.sellerType === 'business') ? 'checked' : '' %> /> 事業者（法人/屋号）</label>
+        </div>
+      </div>
+    </div>
 
-    <label class="checkbox">
-      <input type="checkbox" name="publish" <%= legal.published ? 'checked' : '' %> />
-      この情報を購入ページに表示することに同意します
-    </label>
+    <div class="seg grid">
+      <div class="field">
+        <label>販売業者（屋号/法人名/氏名）<span class="help">※必須／個人の方は本名</span>
+          <input type="text" name="name" value="<%= legal?.name || '' %>" required />
+        </label>
+      </div>
 
-    <button class="btn primary" type="submit">保存する</button>
-    <a class="btn btn--ghost" href="/creator">アップロードへ戻る</a>
+      <div class="field only-business">
+        <label>運営責任者 <span class="help">（事業者の場合のみ・任意）</span>
+          <input type="text" name="responsible" value="<%= legal?.responsible || '' %>" />
+        </label>
+      </div>
+
+      <div class="field">
+        <label>所在地 <span class="help">※必須</span>
+          <input type="text" name="address" value="<%= legal?.address || '' %>" required />
+        </label>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>電話番号 <span class="help">任意</span>
+            <input type="tel" name="phone" value="<%= legal?.phone || '' %>" />
+          </label>
+        </div>
+        <div class="field">
+          <label>メールアドレス <span class="help">※必須</span>
+            <input type="email" name="email" value="<%= legal?.email || '' %>" required />
+          </label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>サイトURL <span class="help">任意</span>
+            <input type="url" name="website" value="<%= legal?.website || '' %>" />
+          </label>
+        </div>
+        <div class="field only-business">
+          <label>適格請求書番号（インボイス） <span class="help">事業者のみ・任意</span>
+            <input type="text" name="invoiceRegNo" value="<%= legal?.invoiceRegNo || '' %>" />
+          </label>
+        </div>
+      </div>
+
+      <label class="field">
+        <span>
+          <input type="checkbox" name="publish" <%= legal?.published ? 'checked' : '' %> />
+          この情報を購入ページに表示することに同意します
+        </span>
+      </label>
+    </div>
+
+    <div class="row">
+      <button type="submit" class="btn primary">保存する</button>
+      <a class="btn" href="/creator">アップロードへ戻る</a>
+    </div>
   </form>
 </main>
 
+<footer class="site-footer">
+  <div class="footer__links">
+    <a href="/terms">利用規約</a><span class="dot">•</span>
+    <a href="/privacy">プライバシーポリシー</a><span class="dot">•</span>
+    <a href="/tokushoho">特定商取引法に基づく表記</a>
+  </div>
+  <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
+</footer>
+
+<script>
+(function () {
+  var form = document.getElementById('legalForm');
+  var radioIndividual = form.querySelector('input[name="sellerType"][value="individual"]');
+  var radioBusiness   = form.querySelector('input[name="sellerType"][value="business"]');
+  var bizOnly = [].slice.call(form.querySelectorAll('.only-business'));
+
+  function updateView() {
+    var isBiz = radioBusiness.checked;
+    bizOnly.forEach(function(el){ el.style.display = isBiz ? '' : 'none'; });
+
+    // 必須制御：事業者のときだけ責任者/インボイスを必須にしたいならここで切替
+    var resp = form.querySelector('input[name="responsible"]');
+    var inv  = form.querySelector('input[name="invoiceRegNo"]');
+    if (resp) resp.required = false; // ←任意のまま（必要なら true に）
+    if (inv)  inv.required  = false; // ←任意のまま
+  }
+
+  radioIndividual.addEventListener('change', updateView);
+  radioBusiness.addEventListener('change', updateView);
+  updateView(); // 初期表示
+})();
+</script>
 </body>
 </html>

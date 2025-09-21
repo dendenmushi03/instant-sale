@@ -352,20 +352,32 @@ app.get('/creator/legal', ensureAuthed, async (req, res) => {
 });
 
 app.post('/creator/legal', ensureAuthed, async (req, res) => {
-  const { name, responsible, address, phone, email, website, invoiceRegNo, publish } = req.body;
+  const {
+    sellerType, // ← 追加: 'business' or 'individual'
+    name, responsible, address, phone, email, website, invoiceRegNo, publish
+  } = req.body;
+
+  const type = (sellerType === 'business') ? 'business' : 'individual';
+
+  // 種別に応じたサニタイズ（個人なら責任者/インボイスは空で保存）
+  const safeResponsible = (type === 'business') ? (responsible || '').trim() : '';
+  const safeInvoice     = (type === 'business') ? (invoiceRegNo || '').trim() : '';
+
   const u = await User.findById(req.user._id);
   u.legal = {
+    sellerType: type,                        // ★ 追加
     name: (name||'').trim(),
-    responsible: (responsible||'').trim(),
+    responsible: safeResponsible,
     address: (address||'').trim(),
     phone: (phone||'').trim(),
     email: (email||'').trim(),
     website: (website||'').trim(),
-    invoiceRegNo: (invoiceRegNo||'').trim(),
-    published: publish === 'on',         // 掲載可チェック
+    invoiceRegNo: safeInvoice,
+    published: publish === 'on',
     updatedAt: new Date()
   };
   await u.save();
+
   return res.render('error', { message: '事業者情報を保存しました。<br><a href="/creator">アップロードへ戻る</a>' });
 });
 
