@@ -344,6 +344,31 @@ app.get('/connect/refresh', ensureAuthed, (req, res) => {
   return res.render('error', { message: 'オンボーディングを再開してください。<br><a href="/connect/onboard">もう一度始める</a>' });
 });
 
+// クリエイター：特商法（売主）情報の設定画面
+app.get('/creator/legal', ensureAuthed, async (req, res) => {
+  const me = await User.findById(req.user._id).lean();
+  const legal = me?.legal || {};
+  res.render('creator-legal', { baseUrl: BASE_URL, me, legal });
+});
+
+app.post('/creator/legal', ensureAuthed, async (req, res) => {
+  const { name, responsible, address, phone, email, website, invoiceRegNo, publish } = req.body;
+  const u = await User.findById(req.user._id);
+  u.legal = {
+    name: (name||'').trim(),
+    responsible: (responsible||'').trim(),
+    address: (address||'').trim(),
+    phone: (phone||'').trim(),
+    email: (email||'').trim(),
+    website: (website||'').trim(),
+    invoiceRegNo: (invoiceRegNo||'').trim(),
+    published: publish === 'on',         // 掲載可チェック
+    updatedAt: new Date()
+  };
+  await u.save();
+  return res.render('error', { message: '事業者情報を保存しました。<br><a href="/creator">アップロードへ戻る</a>' });
+});
+
 // creator
 app.get('/creator', ensureAuthed, async (req, res) => {
   const connect = await getConnectStatus(req.user);
@@ -463,7 +488,20 @@ app.get('/s/:slug', async (req, res) => {
     connect = await getConnectStatus(req.user);
   }
 
-  return res.render('sale', { item, baseUrl: BASE_URL, og, connect });
+let seller = null;
+if (item.ownerUser) {
+  seller = await User.findById(item.ownerUser).lean();
+}
+
+let sellerLegal = null;
+if (item.ownerUser) {
+  const seller = await User.findById(item.ownerUser).lean();
+  if (seller?.legal?.published) sellerLegal = seller.legal;
+}
+
+return res.render('sale', { item, baseUrl: BASE_URL, og, connect, sellerLegal });
+
+
 });
 
 // checkout（接続アカウントが未有効ならプラットフォーム受領にフォールバック）
@@ -489,6 +527,23 @@ app.post('/checkout/:slug', async (req, res) => {
 
     // 販売者が destination charge を使えるか（charges_enabled）
     let canChargeOnSeller = false;
+
+// ★ 特商法の必須入力チェック
+if (seller) {
+  const L = seller.legal || {};
+  const hasLegal =
+    !!L.published &&
+    !!L.name &&
+    !!L.address &&
+    !!L.email; // 電話は任意（公開したくない事業者もいるため）
+
+  if (!hasLegal) {
+    return res.status(400).render('error', {
+      message: '販売者の特商法表記が未設定です。<br><a href="/creator/legal">事業者情報の設定</a> を先に完了してください。'
+    });
+  }
+}
+
     if (destinationAccountId) {
       try {
         const acct = await stripe.accounts.retrieve(destinationAccountId);
@@ -810,6 +865,26 @@ app.get('/legal/privacy', (req, res) => {
     website: process.env.LEGAL_WEBSITE || process.env.BASE_URL || '',
   });
 });
+
+// ▼▼▼ ここから追加：販売者ごとの特商法表示ページ ▼▼▼
+app.get('/legal/seller/:userId', async (req, res) => {
+  try {
+    const u = await User.findById(req.params.userId).lean();
+    if (!u || !u.legal || !u.legal.name) {
+      return res
+        .status(404)
+        .render('error', { message: '販売者の特商法情報が未設定です。' });
+    }
+    res.render('legal/tokushoho_seller', {
+      site: process.env.SITE_NAME || 'Instant Sale',
+      legal: u.legal
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).render('error', { message: '表示に失敗しました。' });
+  }
+});
+// ▲▲▲ 追加ここまで ▲▲▲
 
 // start
 app.listen(PORT, () => {

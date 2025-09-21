@@ -57,6 +57,36 @@
         <h1><%= item.title %></h1>
         <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
         <div class="price"><%= item.price.toLocaleString() %> <%= item.currency.toUpperCase() %></div>
+
+        <% if (sellerLegal) { %>
+  <div class="card" style="margin:12px 0;">
+    <div class="muted" style="margin-bottom:6px;">販売事業者に関する表示（特定商取引法）</div>
+    <ul class="plain">
+      <li><strong>販売業者</strong>：<%= sellerLegal.name %></li>
+      <% if (sellerLegal.responsible) { %><li><strong>運営責任者</strong>：<%= sellerLegal.responsible %></li><% } %>
+      <li><strong>所在地</strong>：<%= sellerLegal.address %></li>
+      <% if (sellerLegal.phone) { %><li><strong>電話番号</strong>：<%= sellerLegal.phone %></li><% } %>
+      <li><strong>メール</strong>：<%= sellerLegal.email %></li>
+      <% if (sellerLegal.website) { %><li><strong>サイト</strong>：<a href="<%= sellerLegal.website %>" target="_blank" rel="noopener">開く</a></li><% } %>
+      <% if (sellerLegal.invoiceRegNo) { %><li><strong>適格請求書番号</strong>：<%= sellerLegal.invoiceRegNo %></li><% } %>
+    </ul>
+  </div>
+<% } %>
+
+        <div class="muted">※税込表示</div>
+
+<% if (seller) { %>
+  <div class="muted">
+    販売事業者：
+    <%= (seller.legal && seller.legal.name) ? seller.legal.name : (seller.name || seller.email) %>
+    （<a href="/legal/seller/<%= seller._id %>" target="_blank" rel="noopener">特定商取引法に基づく表示</a>）
+  </div>
+<% } %>
+
+<div class="muted" style="margin-top:8px;">
+  デジタル商品のため、購入後のキャンセルは原則できません。誤課金・ファイル不具合時はお問い合わせください。
+</div>
+
           <% if (typeof connect !== 'undefined' && connect && (!connect.hasAccount || !connect.payoutsEnabled)) { %>
     <div class="card error" style="background:#fffaf0; border:1px solid #ffe6b3; padding:12px; margin:12px 0;">
       <strong>（オーナー向けの注意）</strong><br>

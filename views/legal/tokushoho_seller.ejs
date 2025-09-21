@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>特定商取引法に基づく表示 | <%= site %></title>
+  <link rel="stylesheet" href="/public/style.css" />
+</head>
+<body class="layout container">
+  <h1>特定商取引法に基づく表示</h1>
+
+  <dl class="legal-list">
+    <dt>販売事業者</dt><dd><%= legal.name %></dd>
+    <% if (legal.responsible) { %><dt>運営責任者</dt><dd><%= legal.responsible %></dd><% } %>
+    <dt>所在地</dt><dd><%= legal.address %></dd>
+    <dt>電話番号</dt><dd><%= legal.phone %></dd>
+    <dt>メールアドレス</dt><dd><%= legal.email %></dd>
+    <% if (legal.website) { %><dt>ウェブサイト</dt><dd><a href="<%= legal.website %>" target="_blank" rel="noopener"><%= legal.website %></a></dd><% } %>
+    <% if (legal.invoiceRegNo) { %><dt>適格請求書登録番号</dt><dd><%= legal.invoiceRegNo %></dd><% } %>
+
+    <dt>販売価格</dt><dd>各商品ページに税込価格で表示</dd>
+    <dt>商品代金以外の必要料金</dt><dd><%= legal.extraFees || 'なし（通信費等はお客様負担）' %></dd>
+    <dt>支払方法</dt><dd><%= legal.paymentMethod %></dd>
+    <dt>支払時期</dt><dd><%= legal.paymentTiming %></dd>
+    <dt>商品の引渡時期</dt><dd><%= legal.deliveryTime %></dd>
+    <dt>返品・キャンセル</dt><dd><%= legal.returns %></dd>
+  </dl>
+
+  <p><a class="btn" href="/">トップへ戻る</a></p>
+</body>
+</html>
