@@ -39,13 +39,6 @@
   <main class="container">
     <h1>即販売リンクを作る</h1>
 
-<p class="muted">
-  売上を受け取る前に
-  <a href="/connect/onboard">Stripe接続</a> と
-  <a href="/creator/legal">事業者情報の設定</a>
-  を完了してください。
-</p>
-
 <% if (typeof connect !== 'undefined') {
      const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
      const lr = (typeof legalReady !== 'undefined') ? !!legalReady : false;
