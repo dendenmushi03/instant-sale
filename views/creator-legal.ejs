@@ -6,35 +6,23 @@
   <title>事業者情報（特商法表記） | Instant Sale</title>
   <link rel="stylesheet" href="/public/style.css" />
 
-<style>
-  .muted{opacity:.8}
-  .grid{display:grid;gap:12px}
-  .field{display:flex;flex-direction:column;gap:6px}
-  .help{font-size:.9em;opacity:.75}
-  .seg{padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:10px}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  .row .field{flex:1}
+  <style>
+    .muted{opacity:.8}
+    .grid{display:grid;gap:12px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .help{font-size:.9em;opacity:.75}
+    .seg{padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:10px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .row .field{flex:1}
 
-/* 事業者専用フィールドを“ブラックアウト”表示で無効化するための見た目 */
-.dim { position: relative; }
-.dim::after{
-  content:"";
-  position:absolute; inset:0;
-  background: rgba(0,0,0,.38);    /* 黒っぽく覆う */
-  border-radius:10px;
-}
-.dim *{ pointer-events:none; }
-.dim input, .dim select, .dim textarea{ filter: grayscale(1) opacity(.75); }
-
-/* ラベルの文言切替だけは残す（任意） */
-#legalForm[data-type="business"] [data-label-individual]{ display:none; }
-#legalForm[data-type="business"] [data-label-business]{ display:inline; }
-#legalForm[data-type="individual"] [data-label-individual]{ display:inline; }
-#legalForm[data-type="individual"] [data-label-business]{ display:none; }
-
-</style>
-
+    /* ここから下は今回の並び替えでは使っていないが残してOK（後で掃除可） */
+    .dim { position: relative; }
+    .dim::after{ content:""; position:absolute; inset:0; background: rgba(0,0,0,.38); border-radius:10px; }
+    .dim *{ pointer-events:none; }
+    .dim input, .dim select, .dim textarea{ filter: grayscale(1) opacity(.75); }
+  </style>
 </head>
+
 <body class="layout">
 <header class="nav">
   <a class="nav__brand" href="/">
@@ -55,10 +43,8 @@
   <h1>事業者情報（特商法表記）</h1>
   <p class="muted">販売する場合は、必要事項を正確に入力してください。電話番号を公開したくない場合は、メール連絡を確実に受けられるようにし、電話は空欄でも構いません。</p>
 
-<form class="grid"
-      action="/creator/legal" method="post" id="legalForm"
-      data-type="<%= (legal?.sellerType === 'business') ? 'business' : 'individual' %>">
-
+  <form class="grid" action="/creator/legal" method="post" id="legalForm">
+    <!-- 区分ラジオ（そのまま保持。今回は表示切替は行わない） -->
     <div class="seg">
       <div class="field">
         <label><strong>販売者の種別</strong></label>
@@ -71,26 +57,27 @@
       </div>
     </div>
 
+    <!-- ここから並び替え後の入力群 -->
     <div class="seg grid">
 
-<div class="field">
-  <label for="name">
-    <span data-label-individual>氏名（本名）</span>
-    <span data-label-business>販売業者（屋号/法人名）</span>
-    <span class="help">※必須</span>
-  </label>
-  <input id="name" type="text" name="name" value="<%= legal?.name || '' %>" required />
-</div>
-      
-<div class="field" data-biz-only>
-  <label>運営責任者 <span class="help">（事業者の場合のみ・任意）</span>
-    <input type="text" name="responsible" value="<%= legal?.responsible || '' %>" />
-  </label>
-</div>
+      <!-- 個人販売者の必須項目（上に集約） -->
+      <h3 class="muted" style="margin:0 0 8px;">個人販売者の必須項目</h3>
+
+      <div class="field">
+        <label>氏名（本名） <span class="help">※必須</span>
+          <input type="text" name="name" value="<%= legal?.name || '' %>" required />
+        </label>
+      </div>
 
       <div class="field">
         <label>所在地 <span class="help">※必須</span>
           <input type="text" name="address" value="<%= legal?.address || '' %>" required />
+        </label>
+      </div>
+
+      <div class="field">
+        <label>メールアドレス <span class="help">※必須</span>
+          <input type="email" name="email" value="<%= legal?.email || '' %>" required />
         </label>
       </div>
 
@@ -101,28 +88,36 @@
           </label>
         </div>
         <div class="field">
-          <label>メールアドレス <span class="help">※必須</span>
-            <input type="email" name="email" value="<%= legal?.email || '' %>" required />
-          </label>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field">
           <label>サイトURL <span class="help">任意</span>
             <input type="url" name="website" value="<%= legal?.website || '' %>" />
           </label>
         </div>
-
-<div class="field" data-biz-only>
-  <label>適格請求書番号（インボイス） <span class="help">事業者のみ・任意</span>
-    <input type="text" name="invoiceRegNo" value="<%= legal?.invoiceRegNo || '' %>" />
-  </label>
-</div>
-
       </div>
 
-      <label class="field">
+      <!-- 事業者の必須項目（下にまとめ、ラベルに「事業者の場合必須」） -->
+      <h3 class="muted" style="margin:14px 0 8px;">事業者の必須項目</h3>
+
+      <!-- name は共通フィールドなので説明で誘導 -->
+      <div class="field">
+        <label>販売業者（屋号/法人名） <span class="help">（事業者の場合必須）</span></label>
+        <p class="help" style="margin:4px 0 0;">
+          ※ 事業者の方は、上の「氏名（本名）」欄に屋号/法人名を入力してください。
+        </p>
+      </div>
+
+      <div class="field">
+        <label>運営責任者 <span class="help">（事業者の場合必須）</span>
+          <input type="text" name="responsible" value="<%= legal?.responsible || '' %>" />
+        </label>
+      </div>
+
+      <div class="field">
+        <label>適格請求書番号（インボイス） <span class="help">（事業者の場合必須）</span>
+          <input type="text" name="invoiceRegNo" value="<%= legal?.invoiceRegNo || '' %>" />
+        </label>
+      </div>
+
+      <label class="field" style="margin-top:8px;">
         <span>
           <input type="checkbox" name="publish" <%= legal?.published ? 'checked' : '' %> />
           この情報を購入ページに表示することに同意します
@@ -147,52 +142,8 @@
 </footer>
 
 <script>
-(function () {
-  var form = document.getElementById('legalForm');
-  if (!form) return;
-
-  var radioBiz = form.querySelector('input[name="sellerType"][value="business"]');
-  var radioInd = form.querySelector('input[name="sellerType"][value="individual"]');
-  var bizBlocks = [].slice.call(form.querySelectorAll('[data-biz-only]'));
-
-  function setType(val){
-    form.setAttribute('data-type', val === 'business' ? 'business' : 'individual');
-  }
-
-  function applyState(){
-    var isBiz = radioBiz && radioBiz.checked;
-
-    bizBlocks.forEach(function(block){
-      // 見た目を黒く潰す
-      block.classList.toggle('dim', !isBiz);
-      block.setAttribute('aria-disabled', String(!isBiz));
-
-      // 入力を完全に無効化（送信もしない）
-      var ctrls = block.querySelectorAll('input, select, textarea, button');
-      ctrls.forEach(function(el){
-        el.disabled = !isBiz;   // ← 送信されなくなる
-        if (!isBiz) {
-          // 必須を外す（万一 required 指定されていても詰まらないように）
-          el.required = false;
-        }
-      });
-    });
-  }
-
-  // ラジオ変更で反映
-  form.addEventListener('change', function(e){
-    if (e.target && e.target.name === 'sellerType') {
-      setType(e.target.value);
-      applyState();
-    }
-  });
-
-  // 初期状態：ラジオの選択値で data-type を確実にセットしてから状態適用
-  var initChecked = form.querySelector('input[name="sellerType"]:checked');
-  setType(initChecked ? initChecked.value : 'individual');
-  applyState();
-})();
-
+// 動的切替は一旦停止（常に全項目表示）
+// ※ 事業者時にサーバ側で必須判定を強化する場合は、server.js の POST /creator/legal でバリデーションを追加。
 </script>
 
 </body>
