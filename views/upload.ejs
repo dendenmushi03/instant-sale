@@ -46,47 +46,6 @@
   を完了してください。
 </p>
 
-<% if (typeof connect !== 'undefined') { 
-     const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
-     const lr = (typeof legalReady !== 'undefined') ? !!legalReady : false;
-%>
-  <section class="setup">
-
-    <!-- ① 振込口座（Stripe） -->
-    <div class="setup__item">
-      <div class="setup__status"><%= connectReady ? '✅' : '⏳' %></div>
-      <div class="setup__body">
-        <div class="setup__title">振込口座</div>
-        <div class="setup__desc">
-          <%= connectReady
-              ? '振込口座の登録と本人確認が完了しています。'
-              : '売上を受け取るには、Stripeで振込口座の登録と本人確認が必要です。' %>
-        </div>
-      </div>
-      <a class="btn btn--primary" href="/connect/onboard">
-        <%= connectReady ? '確認/更新（Stripe）' : '振込口座を登録（Stripe）' %>
-      </a>
-    </div>
-
-    <!-- ② 販売者情報（特商法） -->
-    <div class="setup__item">
-      <div class="setup__status"><%= lr ? '✅' : '⏳' %></div>
-      <div class="setup__body">
-        <div class="setup__title">販売者情報（特商法）</div>
-        <div class="setup__desc">
-          <%= lr
-              ? '氏名/名称・住所・メールが登録され、購入ページへの掲載に同意済みです。'
-              : '氏名/名称・住所・メールを入力し、購入ページへの掲載に同意してください。' %>
-        </div>
-      </div>
-      <a class="btn" href="/creator/legal">
-        <%= lr ? '確認/編集' : '販売者情報を登録' %>
-      </a>
-    </div>
-
-  </section>
-<% } %>
-
 <% if (typeof connect !== 'undefined') {
      const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
      const lr = (typeof legalReady !== 'undefined') ? !!legalReady : false;
@@ -102,6 +61,37 @@
   </div>
 <%   }
    } %>
+
+<% if (typeof connect !== 'undefined') { 
+     const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
+     const lr = (typeof legalReady !== 'undefined') ? !!legalReady : false;
+%>
+  <section class="setup">
+
+<!-- ① 振込口座（Stripe） -->
+<div class="setup__item">
+  <div class="setup__status"><%= connectReady ? '✅' : '⏳' %></div>
+  <div class="setup__body">
+    <div class="setup__title">振込口座</div>
+  </div>
+  <a class="btn btn--primary" href="/connect/onboard">
+    <%= connectReady ? '確認/更新（Stripe）' : '振込口座を登録（Stripe）' %>
+  </a>
+</div>
+
+<!-- ② 販売者情報（特商法） -->
+<div class="setup__item">
+  <div class="setup__status"><%= lr ? '✅' : '⏳' %></div>
+  <div class="setup__body">
+    <div class="setup__title">販売者情報（特商法）</div>
+  </div>
+  <a class="btn" href="/creator/legal">
+    <%= lr ? '確認/編集' : '販売者情報を登録' %>
+  </a>
+</div>
+
+  </section>
+<% } %>
 
     <form class="card" action="/upload" method="post" enctype="multipart/form-data">
       <label>タイトル
