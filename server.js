@@ -38,6 +38,8 @@ if (isProd) BASE_URL = BASE_URL.replace(/^http:\/\//, 'https://');
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/instant_sale';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const CURRENCY = (process.env.CURRENCY || 'jpy').toLowerCase();
+// 最低価格（未設定なら JPY は 50）
+const MIN_PRICE = Number(process.env.MIN_PRICE || (CURRENCY === 'jpy' ? 50 : 50));
 const CREATOR_SECRET = process.env.CREATOR_SECRET || 'changeme';
 const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
@@ -412,10 +414,10 @@ app.post('/upload', ensureAuthed, upload.single('image'), async (req, res) => {
     }
 
     const priceNum = Number(price);
-    if (!title || !priceNum || priceNum < 1) {
-      await fsp.unlink(req.file.path).catch(() => {});
-      return res.status(400).render('error', { message: 'タイトルと価格（1以上）は必須です。' });
-    }
+if (!title || !priceNum || priceNum < MIN_PRICE) {
+  await fsp.unlink(req.file.path).catch(() => {});
+  return res.status(400).render('error', { message: `タイトルと価格（${MIN_PRICE}以上）は必須です。` });
+}
 
     const slug = nanoid(10);
     const mimeType = req.file.mimetype;
