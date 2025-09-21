@@ -76,9 +76,10 @@
 <div class="field">
   <label for="name">
     <span data-label-individual>氏名（本名）</span>
+    <span data-label-business>販売業者（屋号/法人名）</span>
     <span class="help">※必須</span>
-    <input id="name" type="text" name="name" value="<%= legal?.name || '' %>" required />
   </label>
+  <input id="name" type="text" name="name" value="<%= legal?.name || '' %>" required />
 </div>
       
 <div class="field" data-biz-only>
@@ -186,9 +187,12 @@
     }
   });
 
-  // 初期状態反映（サーバ埋め込みに依らず確実に評価）
+  // 初期状態：ラジオの選択値で data-type を確実にセットしてから状態適用
+  var initChecked = form.querySelector('input[name="sellerType"]:checked');
+  setType(initChecked ? initChecked.value : 'individual');
   applyState();
 })();
+
 </script>
 
 </body>
