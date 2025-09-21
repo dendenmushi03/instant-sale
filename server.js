@@ -86,7 +86,11 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy:   { policy: 'same-origin-allow-popups' },
+  crossOriginEmbedderPolicy: false,
+}));
 app.use(compression());
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -463,29 +467,29 @@ await sharp(req.file.path)
 const fullName = `${slug}-full.jpg`;
 const fullPath = path.join(__dirname, 'previews', fullName);
 
-// 入力の実サイズを取得（resize 後の想定サイズを計算）
-const metaIn = await sharp(req.file.path).metadata();
-const inW = Math.max(1, metaIn.width  || 1200);
-const inH = Math.max(1, metaIn.height || 1200);
+// まず「回転＋内接リサイズ」をバッファに作る
+const fullBase = await sharp(req.file.path)
+  .rotate()
+  .resize(4096, 4096, { fit: 'inside' })
+  .toBuffer();
 
-// 4096px 内接後の出力サイズを計算（内接なので min を取るだけでOK）
-const outW = Math.min(inW, 4096);
-const outH = Math.min(inH, 4096);
+// 出来上がった fullBase の実寸を取得（←これが確実）
+const fullMeta = await sharp(fullBase).metadata();
+const fw = Math.max(1, fullMeta.width  || 1200);
+const fh = Math.max(1, fullMeta.height || 1200);
 
-// 画像サイズに合わせた SVG を生成（短辺の約14%をフォントサイズに）
-const fontSizeFull = Math.round(Math.min(outW, outH) * 0.14);
+// 実寸にピッタリの SVG を生成（短辺の約14%をフォントサイズ）
+const wmSize = Math.round(Math.min(fw, fh) * 0.14);
 const svgFull = Buffer.from(`
-  <svg width="${outW}" height="${outH}" xmlns="http://www.w3.org/2000/svg">
-    <style>.wm{ fill: rgba(255,255,255,.25); font-size: ${fontSizeFull}px; font-weight: 700; }</style>
+  <svg width="${fw}" height="${fh}" xmlns="http://www.w3.org/2000/svg">
+    <style>.wm{ fill: rgba(255,255,255,.25); font-size: ${wmSize}px; font-weight: 700; }</style>
     <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-          class="wm" transform="rotate(-18 ${outW/2} ${outH/2})">SAMPLE</text>
+      class="wm" transform="rotate(-18 ${fw/2} ${fh/2})">SAMPLE</text>
   </svg>
 `);
 
-await sharp(req.file.path)
-  .rotate()
-  .resize(4096, 4096, { fit: 'inside' })        // ← 実出力は outW × outH
-  .composite([{ input: svgFull, gravity: 'center' }]) // ← 同サイズSVGなので安全
+await sharp(fullBase)
+  .composite([{ input: svgFull }])  // ← fullBase と同寸の SVG なので安全
   .jpeg({ quality: 90 })
   .toFile(fullPath);
 
