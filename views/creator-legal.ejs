@@ -5,16 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>事業者情報（特商法表記） | Instant Sale</title>
   <link rel="stylesheet" href="/public/style.css" />
-  <style>
-    .muted{opacity:.8}
-    .grid{display:grid;gap:12px}
-    .only-business{display:none}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .help{font-size:.9em;opacity:.75}
-    .seg{padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:10px}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .row .field{flex:1}
-  </style>
+
+<style>
+  .muted{opacity:.8}
+  .grid{display:grid;gap:12px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .help{font-size:.9em;opacity:.75}
+  .seg{padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:10px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row .field{flex:1}
+
+/* ▼ラジオ選択で表示/非表示を CSS だけで切替 */
+[data-biz-only]{ display:none; }                                   /* 既定は非表示 */
+#legalForm.form--business [data-biz-only]{ display:flex; }         /* 事業者のとき表示 */
+
+/* 氏名/販売業者ラベルの切替（CSSだけで） */
+#legalForm.form--business [data-label-individual]{ display:none; }
+#legalForm.form--business [data-label-business]{ display:inline; }
+#legalForm:not(.form--business) [data-label-individual]{ display:inline; }
+#legalForm:not(.form--business) [data-label-business]{ display:none; }
+
+</style>
+
 </head>
 <body class="layout">
 <header class="nav">
@@ -62,7 +74,7 @@
   </label>
 </div>
       
-<div class="field only-business" data-biz-only>
+<div class="field" data-biz-only>
   <label>運営責任者 <span class="help">（事業者の場合のみ・任意）</span>
     <input type="text" name="responsible" value="<%= legal?.responsible || '' %>" />
   </label>
@@ -94,7 +106,7 @@
           </label>
         </div>
 
-<div class="field only-business" data-biz-only>
+<div class="field" data-biz-only>
   <label>適格請求書番号（インボイス） <span class="help">事業者のみ・任意</span>
     <input type="text" name="invoiceRegNo" value="<%= legal?.invoiceRegNo || '' %>" />
   </label>
@@ -129,38 +141,23 @@
 <script>
 (function () {
   var form = document.getElementById('legalForm');
-  var radioIndividual = form.querySelector('input[name="sellerType"][value="individual"]');
-  var radioBusiness   = form.querySelector('input[name="sellerType"][value="business"]');
+  if (!form) return;
 
-  var nameLabelIndividual = form.querySelector('[data-label-individual]');
-  var nameLabelBusiness   = form.querySelector('[data-label-business]');
-
-  function updateView() {
-    var isBiz = !!radioBusiness.checked;
-
-    // フォームにクラスをトグル → CSS（style.css）の
-    // .form--business .only-business { display:flex !important; }
-    // が効いて表示が切り替わる
-    form.classList.toggle('form--business', isBiz);
-
-    // ラベル文言の切替
-    if (nameLabelIndividual && nameLabelBusiness) {
-      nameLabelIndividual.style.display = isBiz ? 'none' : '';
-      nameLabelBusiness.style.display   = isBiz ? '' : 'none';
+  function setType(val){
+    if (val === 'business') {
+      form.classList.add('form--business');
+    } else {
+      form.classList.remove('form--business');
     }
-
-    // 必須制御（必要なら true に）
-    var resp = form.querySelector('input[name="responsible"]');
-    var inv  = form.querySelector('input[name="invoiceRegNo"]');
-    if (resp) resp.required = false;
-    if (inv)  inv.required  = false;
   }
 
-  radioIndividual.addEventListener('change', updateView);
-  radioBusiness.addEventListener('change', updateView);
+  form.addEventListener('change', function(e){
+    if (e.target && e.target.name === 'sellerType') {
+      setType(e.target.value);
+    }
+  });
 
-  // 初期状態（保存済みの sellerType を反映）
-  updateView();
+  // 初期表示：サーバが付けた form--business クラスを尊重（何もしなくてOK）
 })();
 </script>
 
