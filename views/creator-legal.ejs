@@ -50,17 +50,22 @@
     </div>
 
     <div class="seg grid">
-      <div class="field">
-        <label>販売業者（屋号/法人名/氏名）<span class="help">※必須／個人の方は本名</span>
-          <input type="text" name="name" value="<%= legal?.name || '' %>" required />
-        </label>
-      </div>
 
-      <div class="field only-business">
-        <label>運営責任者 <span class="help">（事業者の場合のみ・任意）</span>
-          <input type="text" name="responsible" value="<%= legal?.responsible || '' %>" />
-        </label>
-      </div>
+<div class="field">
+  <label for="name">
+    <span data-label-individual>氏名（本名）</span>
+    <span data-label-business style="display:none">販売業者（屋号/法人名）</span>
+    <span class="help">※必須</span>
+    <input id="name" type="text" name="name" value="<%= legal?.name || '' %>" required />
+  </label>
+</div>
+      
+<div class="field only-business" data-biz-only
+     style="<%= (legal?.sellerType === 'business') ? '' : 'display:none' %>">
+  <label>運営責任者 <span class="help">（事業者の場合のみ・任意）</span>
+    <input type="text" name="responsible" value="<%= legal?.responsible || '' %>" />
+  </label>
+</div>
 
       <div class="field">
         <label>所在地 <span class="help">※必須</span>
@@ -87,11 +92,14 @@
             <input type="url" name="website" value="<%= legal?.website || '' %>" />
           </label>
         </div>
-        <div class="field only-business">
-          <label>適格請求書番号（インボイス） <span class="help">事業者のみ・任意</span>
-            <input type="text" name="invoiceRegNo" value="<%= legal?.invoiceRegNo || '' %>" />
-          </label>
-        </div>
+
+<div class="field only-business" data-biz-only
+     style="<%= (legal?.sellerType === 'business') ? '' : 'display:none' %>">
+  <label>適格請求書番号（インボイス） <span class="help">事業者のみ・任意</span>
+    <input type="text" name="invoiceRegNo" value="<%= legal?.invoiceRegNo || '' %>" />
+  </label>
+</div>
+
       </div>
 
       <label class="field">
@@ -121,25 +129,42 @@
 <script>
 (function () {
   var form = document.getElementById('legalForm');
+  if (!form) return;
+
   var radioIndividual = form.querySelector('input[name="sellerType"][value="individual"]');
   var radioBusiness   = form.querySelector('input[name="sellerType"][value="business"]');
-  var bizOnly = [].slice.call(form.querySelectorAll('.only-business'));
+  var bizOnly = [].slice.call(form.querySelectorAll('[data-biz-only]'));
+
+  // ラベルとプレースホルダ
+  var lblInd = form.querySelector('[data-label-individual]');
+  var lblBiz = form.querySelector('[data-label-business]');
+  var nameInput = document.getElementById('name');
 
   function updateView() {
-    var isBiz = radioBusiness.checked;
+    var isBiz = radioBusiness && radioBusiness.checked;
+
+    // 事業者のみの行表示
     bizOnly.forEach(function(el){ el.style.display = isBiz ? '' : 'none'; });
 
-    // 必須制御：事業者のときだけ責任者/インボイスを必須にしたいならここで切替
-    var resp = form.querySelector('input[name="responsible"]');
-    var inv  = form.querySelector('input[name="invoiceRegNo"]');
-    if (resp) resp.required = false; // ←任意のまま（必要なら true に）
-    if (inv)  inv.required  = false; // ←任意のまま
+    // ラベル切替
+    if (lblInd && lblBiz) {
+      lblInd.style.display = isBiz ? 'none' : '';
+      lblBiz.style.display = isBiz ? '' : 'none';
+    }
+
+    // プレースホルダ微調整（任意）
+    if (nameInput) {
+      nameInput.placeholder = isBiz ? '例）株式会社〇〇 / 〇〇商店' : '例）山田 太郎（本名）';
+    }
   }
 
-  radioIndividual.addEventListener('change', updateView);
-  radioBusiness.addEventListener('change', updateView);
+  [radioIndividual, radioBusiness].forEach(function(r){
+    if (r) r.addEventListener('change', updateView);
+  });
+
   updateView(); // 初期表示
 })();
 </script>
+
 </body>
 </html>
