@@ -69,23 +69,17 @@
   <section class="setup">
 
 <!-- ① 振込口座（Stripe） -->
-<div class="setup__item">
+<div class="setup__item setup__item--compact">
   <div class="setup__status"><%= connectReady ? '✅' : '⏳' %></div>
-  <div class="setup__body">
-    <div class="setup__title">振込口座</div>
-  </div>
-  <a class="btn btn--primary" href="/connect/onboard">
+  <a class="btn btn--primary" href="/connect/onboard" aria-label="振込口座（Stripe）">
     <%= connectReady ? '確認/更新（Stripe）' : '振込口座を登録（Stripe）' %>
   </a>
 </div>
 
 <!-- ② 販売者情報（特商法） -->
-<div class="setup__item">
+<div class="setup__item setup__item--compact">
   <div class="setup__status"><%= lr ? '✅' : '⏳' %></div>
-  <div class="setup__body">
-    <div class="setup__title">販売者情報（特商法）</div>
-  </div>
-  <a class="btn" href="/creator/legal">
+  <a class="btn btn--primary" href="/creator/legal" aria-label="販売者情報（特商法）">
     <%= lr ? '確認/編集' : '販売者情報を登録' %>
   </a>
 </div>
