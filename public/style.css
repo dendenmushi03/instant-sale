@@ -517,3 +517,41 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* 事業者モードのときだけ専用フィールドを表示（強制） */
 .form--business .only-business { display: flex !important; }
+
+/* 商品画像はクリックできる感じだけ出す */
+.product-imageWrap{ cursor: zoom-in; }
+
+/* ライトボックス */
+.lightbox{
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0,0,0,.92);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  padding: 12px;
+}
+.lightbox[hidden]{ display:none; }
+
+.lightbox__close{
+  justify-self: end;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.25);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.lightbox__inner{
+  overflow: auto;                       /* 等倍がはみ出すときはスクロール */
+  display: flex; align-items: center; justify-content: center;
+}
+
+.lightbox__img{
+  display: block;
+  max-width: none;                      /* ← 等倍で表示するために解除 */
+  height: auto;
+}

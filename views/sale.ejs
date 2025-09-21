@@ -50,10 +50,20 @@
   
   <main class="container">
     <article class="product">
-<a class="product-imageWrap" href="/previews/<%= item.slug %>-full.jpg" target="_blank" rel="noopener">
+
+<div class="product-imageWrap" id="openViewer">
   <img class="product-image" src="<%= item.previewPath %>" alt="<%= item.title %>" />
-</a>
-<div class="hint">画像をタップすると等倍（別タブ）で表示できます。</div>
+</div>
+<div class="hint">画像をタップすると、このページで等倍表示します。</div>
+
+<!-- 追加：ライトボックス（等倍ビュー） -->
+<div id="viewer" class="lightbox" hidden aria-modal="true" role="dialog">
+  <button class="lightbox__close" aria-label="閉じる">×</button>
+  <div class="lightbox__inner">
+    <img class="lightbox__img" src="/previews/<%= item.slug %>-full.jpg" alt="<%= item.title %> 等倍表示" />
+  </div>
+</div>
+
       <div class="product-info">
         <h1><%= item.title %></h1>
         <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
@@ -106,6 +116,34 @@
       </div>
     </article>
   </main>
+
+  <script>
+(function(){
+  var opener = document.getElementById('openViewer');
+  var modal  = document.getElementById('viewer');
+  if(!opener || !modal) return;
+
+  var btnClose = modal.querySelector('.lightbox__close');
+
+  function show(){
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden'; // 背景スクロール止める
+  }
+  function hide(){
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  opener.addEventListener('click', show);
+  btnClose.addEventListener('click', hide);
+  modal.addEventListener('click', function(e){
+    if(e.target === modal) hide();      // 外側クリックで閉じる
+  });
+  window.addEventListener('keydown', function(e){
+    if(e.key === 'Escape') hide();      // ESCで閉じる
+  });
+})();
+</script>
 
 <footer class="site-footer">
   <div class="footer__links">
