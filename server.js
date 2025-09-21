@@ -486,41 +486,48 @@ await sharp(req.file.path)
   }
 });
 
-// sale
 app.get('/s/:slug', async (req, res) => {
-  const { slug } = req.params;
-  const item = await Item.findOne({ slug });
-  if (!item) return res.status(404).render('error', { message: '販売ページが見つかりません。' });
+  try {
+    const { slug } = req.params;
 
-  // ビュー用 OGP
-  const og = {
-    title: `${item.title} | 即ダウンロード`,
-    desc: `高解像度をすぐ購入（${item.price.toLocaleString()} ${item.currency.toUpperCase()}）`,
-    image: `${BASE_URL}${item.previewPath}`,
-    url: `${BASE_URL}/s/${item.slug}`
-  };
+    // lean にしてシリアライズ安全に
+    const item = await Item.findOne({ slug }).lean();
+    if (!item) {
+      return res.status(404).render('error', { message: '販売ページが見つかりません。' });
+    }
 
-  // 「閲覧者がこの商品のオーナーかつ未接続/未有効なら注意表示」のためのフラグ
-  let connect = null;
-  if (req.user && item.ownerUser && String(item.ownerUser) === String(req.user._id)) {
-    connect = await getConnectStatus(req.user);
+    const og = {
+      title: `${item.title} | 即ダウンロード`,
+      desc: `高解像度をすぐ購入（${Number(item.price).toLocaleString()} ${String(item.currency).toUpperCase()}）`,
+      image: `${BASE_URL}${item.previewPath}`,
+      url: `${BASE_URL}/s/${item.slug}`
+    };
+
+    let connect = null;
+    if (req.user && item.ownerUser && String(item.ownerUser) === String(req.user._id)) {
+      connect = await getConnectStatus(req.user);
+    }
+
+    // 販売者は一度だけ取得してテンプレに渡す
+    let seller = null;
+    let sellerLegal = null;
+    if (item.ownerUser) {
+      seller = await User.findById(item.ownerUser).lean();
+      if (seller?.legal?.published) sellerLegal = seller.legal;
+    }
+
+    return res.render('sale', {
+      item,
+      baseUrl: BASE_URL,
+      og,
+      connect,
+      seller,        // ← これを必ず渡す（テンプレが参照していても落ちない）
+      sellerLegal
+    });
+  } catch (e) {
+    console.error('[sale] route error:', e);
+    return res.status(500).render('error', { message: '販売ページの表示に失敗しました。' });
   }
-
-let seller = null;
-if (item.ownerUser) {
-  seller = await User.findById(item.ownerUser).lean();
-}
-
-let sellerLegal = null;
-if (item.ownerUser) {
-  const seller = await User.findById(item.ownerUser).lean();
-  if (seller?.legal?.published && seller.legal.sellerType === 'business') {
-    sellerLegal = seller.legal; // 事業者のみ表示
-  }
-}
-
-return res.render('sale', { item, baseUrl: BASE_URL, og, connect, sellerLegal });
-
 });
 
 // checkout（接続アカウントが未有効ならプラットフォーム受領にフォールバック）
