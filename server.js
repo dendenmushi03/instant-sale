@@ -384,13 +384,13 @@ app.post('/creator/legal', ensureAuthed, async (req, res) => {
 app.get('/creator', ensureAuthed, async (req, res) => {
   const connect = await getConnectStatus(req.user);
 
-  // 追加：販売者情報（特商法）の完了判定
+  // C2C化：事業者（business）のときだけ販売者情報を必須にする
   const me = await User.findById(req.user._id).lean();
   const L = me?.legal || {};
-  // 「掲載に同意」かつ 必須3点（name/address/email）が埋まっているか
-  const legalReady = !!(L.published && L.name && L.address && L.email);
+  const isBiz = L.sellerType === 'business';
+  const legalReady = isBiz ? !!(L.published && L.name && L.address && L.email) : true;
 
-  res.render('upload', { baseUrl: BASE_URL, connect, legal: L, legalReady });
+  res.render('upload', { baseUrl: BASE_URL, connect, legal: L, legalReady, isBiz });
 });
 
 // upload
@@ -514,11 +514,12 @@ if (item.ownerUser) {
 let sellerLegal = null;
 if (item.ownerUser) {
   const seller = await User.findById(item.ownerUser).lean();
-  if (seller?.legal?.published) sellerLegal = seller.legal;
+  if (seller?.legal?.published && seller.legal.sellerType === 'business') {
+    sellerLegal = seller.legal; // 事業者のみ表示
+  }
 }
 
 return res.render('sale', { item, baseUrl: BASE_URL, og, connect, sellerLegal });
-
 
 });
 
@@ -546,19 +547,17 @@ app.post('/checkout/:slug', async (req, res) => {
     // 販売者が destination charge を使えるか（charges_enabled）
     let canChargeOnSeller = false;
 
-// ★ 特商法の必須入力チェック
+// ★ 特商法の必須入力チェック（C2C化：事業者のみ）
 if (seller) {
   const L = seller.legal || {};
-  const hasLegal =
-    !!L.published &&
-    !!L.name &&
-    !!L.address &&
-    !!L.email; // 電話は任意（公開したくない事業者もいるため）
-
-  if (!hasLegal) {
-    return res.status(400).render('error', {
-      message: '販売者の特商法表記が未設定です。<br><a href="/creator/legal">事業者情報の設定</a> を先に完了してください。'
-    });
+  const isBiz = L.sellerType === 'business';
+  if (isBiz) {
+    const hasBizLegal = !!L.published && !!L.name && !!L.address && !!L.email;
+    if (!hasBizLegal) {
+      return res.status(400).render('error', {
+        message: '（事業者向け）販売者情報の必須項目が未設定です。<br><a href="/creator/legal">販売者情報の設定</a> を先に完了してください。'
+      });
+    }
   }
 }
 

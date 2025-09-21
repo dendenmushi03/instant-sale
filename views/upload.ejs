@@ -42,15 +42,12 @@
 <% if (typeof connect !== 'undefined') {
      const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
      const lr = (typeof legalReady !== 'undefined') ? !!legalReady : false;
-     if (!connectReady || !lr) { %>
+     const biz = (typeof isBiz !== 'undefined') ? !!isBiz : false;
+     if (!connectReady || (biz && !lr)) { %>
   <div class="alert alert--error" role="status" aria-live="polite" style="margin-top:12px;">
     <strong>受取設定が未完了です。</strong><br>
-    <% if (!connectReady) { %>
-      ・振込口座の登録（Stripe）と本人確認を完了してください。<br>
-    <% } %>
-    <% if (!lr) { %>
-      ・販売者情報（氏名/名称・住所・メール）を登録し、購入ページへの掲載に同意してください。<br>
-    <% } %>
+    <% if (!connectReady) { %>・振込口座の登録（Stripe）と本人確認を完了してください。<br><% } %>
+    <% if (biz && !lr) { %>・（事業者のみ）販売者情報の必須項目を登録し、掲載に同意してください。<br><% } %>
   </div>
 <%   }
    } %>
@@ -58,28 +55,33 @@
 <% if (typeof connect !== 'undefined') { 
      const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
      const lr = (typeof legalReady !== 'undefined') ? !!legalReady : false;
+     const biz = (typeof isBiz !== 'undefined') ? !!isBiz : false;
 %>
   <section class="setup">
 
-<!-- ① 振込口座（Stripe） -->
-<div class="setup__item setup__item--compact">
-  <div class="setup__status"><%= connectReady ? '✅' : '⏳' %></div>
-  <a class="btn btn--primary" href="/connect/onboard" aria-label="振込口座（Stripe）">
-    <%= connectReady ? '確認/更新（Stripe）' : '振込口座を登録（Stripe）' %>
-  </a>
-</div>
+    <!-- ① 振込口座（Stripe） -->
+    <div class="setup__item">
+      <div class="setup__status"><%= connectReady ? '✅' : '⏳' %></div>
+      <div class="setup__body"></div>
+      <a class="btn btn--primary" href="/connect/onboard">
+        <%= connectReady ? '確認/更新（Stripe）' : '振込口座を登録（Stripe）' %>
+      </a>
+    </div>
 
-<!-- ② 販売者情報（特商法） -->
-<div class="setup__item setup__item--compact">
-  <div class="setup__status"><%= lr ? '✅' : '⏳' %></div>
-  <a class="btn btn--primary" href="/creator/legal" aria-label="販売者情報（特商法）">
-    <%= lr ? '確認/編集' : '販売者情報を登録' %>
-  </a>
-</div>
+    <!-- ② 販売者情報（特商法）：個人は完了扱い -->
+    <div class="setup__item">
+      <div class="setup__status">
+        <%= biz ? (lr ? '✅' : '⏳') : '✅' %>
+      </div>
+      <div class="setup__body"></div>
+      <a class="btn btn--primary" href="/creator/legal">
+        <%= biz ? (lr ? '確認/編集' : '販売者情報を登録') : '任意で編集' %>
+      </a>
+    </div>
 
   </section>
 <% } %>
-
+   
     <form class="card" action="/upload" method="post" enctype="multipart/form-data">
       <label>タイトル
         <input type="text" name="title" placeholder="作品タイトル" required />
