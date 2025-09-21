@@ -463,10 +463,29 @@ await sharp(req.file.path)
 const fullName = `${slug}-full.jpg`;
 const fullPath = path.join(__dirname, 'previews', fullName);
 
+// 入力の実サイズを取得（resize 後の想定サイズを計算）
+const metaIn = await sharp(req.file.path).metadata();
+const inW = Math.max(1, metaIn.width  || 1200);
+const inH = Math.max(1, metaIn.height || 1200);
+
+// 4096px 内接後の出力サイズを計算（内接なので min を取るだけでOK）
+const outW = Math.min(inW, 4096);
+const outH = Math.min(inH, 4096);
+
+// 画像サイズに合わせた SVG を生成（短辺の約14%をフォントサイズに）
+const fontSizeFull = Math.round(Math.min(outW, outH) * 0.14);
+const svgFull = Buffer.from(`
+  <svg width="${outW}" height="${outH}" xmlns="http://www.w3.org/2000/svg">
+    <style>.wm{ fill: rgba(255,255,255,.25); font-size: ${fontSizeFull}px; font-weight: 700; }</style>
+    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+          class="wm" transform="rotate(-18 ${outW/2} ${outH/2})">SAMPLE</text>
+  </svg>
+`);
+
 await sharp(req.file.path)
   .rotate()
-  .resize(4096, 4096, { fit: 'inside' }) // でかすぎる原稿は上限をかける
-  .composite([{ input: svg, gravity: 'center' }]) // 透かしはそのまま
+  .resize(4096, 4096, { fit: 'inside' })        // ← 実出力は outW × outH
+  .composite([{ input: svgFull, gravity: 'center' }]) // ← 同サイズSVGなので安全
   .jpeg({ quality: 90 })
   .toFile(fullPath);
 
@@ -550,27 +569,46 @@ app.get('/view/:slug', async (req, res) => {
     const item = await Item.findOne({ slug }).lean();
     if (!item) return res.status(404).send('Not found');
 
-    // 中央に大きめの SAMPLE 透かし（軽量）
+    // 元画像が無い場合はフルプレビューにフォールバック
+    const srcPath = path.resolve(item.filePath || '');
+    const fallbackFull = path.join(__dirname, 'previews', `${slug}-full.jpg`);
+
+    let usePath = srcPath;
+    if (!fs.existsSync(usePath)) {
+      if (fs.existsSync(fallbackFull)) {
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        return fs.createReadStream(fallbackFull).pipe(res);
+      }
+      return res.status(404).send('source image missing');
+    }
+
+    // 回転補正した後のサイズを取得
+    const base = sharp(usePath).rotate();
+    const meta = await base.metadata();
+    const w = Math.max(1, meta.width  || 1200);
+    const h = Math.max(1, meta.height || 1200);
+
+    // 画像サイズに合わせたSVG（フォントサイズは辺の短い方の約14%）
+    const fontSize = Math.round(Math.min(w, h) * 0.14);
     const svg = Buffer.from(`
-      <svg width="2000" height="2000" xmlns="http://www.w3.org/2000/svg">
-        <style>
-          .wm { fill: rgba(255,255,255,.25); font-size: 220px; font-weight: 700; }
-        </style>
-        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="wm" transform="rotate(-18,1000,1000)">SAMPLE</text>
+      <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+        <style>.wm{ fill: rgba(255,255,255,.25); font-size: ${fontSize}px; font-weight: 700; }</style>
+        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+              class="wm" transform="rotate(-18 ${w/2} ${h/2})">SAMPLE</text>
       </svg>
     `);
 
     res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
 
-    // リサイズしない → 等倍。EXIF回転だけ整える
-    await sharp(item.filePath)
-      .rotate()
-      .composite([{ input: svg, gravity: 'center' }])
+    await base
+      .composite([{ input: svg, gravity: 'center' }])  // ← 同サイズなのでエラーにならない
       .jpeg({ quality: 90 })
       .pipe(res);
+
   } catch (e) {
-    console.error('[view-full]', e.message);
+    console.error('[view-full]', e);
     res.status(500).send('viewer error');
   }
 });

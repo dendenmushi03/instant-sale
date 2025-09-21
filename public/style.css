@@ -471,6 +471,23 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid; grid-template-rows: auto 1fr; gap: 8px;
   padding: 12px;
 }
+
+/* ライトボックスをビューポートいっぱいに（iOSの縮み対策） */
+.lightbox{ width:100vw; height:100dvh; }
+
+/* 指でドラッグしやすい見た目＋慣性スクロール */
+.lightbox__inner{ cursor: grab; -webkit-overflow-scrolling: touch; }
+.lightbox__inner:active{ cursor: grabbing; }
+
+/* 等倍⇄フィット切替ボタン */
+.lightbox__fit{
+  position: absolute; top: 12px; right: 48px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.25);
+  color:#fff; border-radius:8px; padding:6px 10px;
+  font-size:13px; line-height:1; cursor:pointer;
+}
+
 .lightbox[hidden]{ display:none; }
 
 .lightbox__close{
