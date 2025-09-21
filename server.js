@@ -381,10 +381,16 @@ app.post('/creator/legal', ensureAuthed, async (req, res) => {
   return res.render('error', { message: '事業者情報を保存しました。<br><a href="/creator">アップロードへ戻る</a>' });
 });
 
-// creator
 app.get('/creator', ensureAuthed, async (req, res) => {
   const connect = await getConnectStatus(req.user);
-  res.render('upload', { baseUrl: BASE_URL, connect });
+
+  // 追加：販売者情報（特商法）の完了判定
+  const me = await User.findById(req.user._id).lean();
+  const L = me?.legal || {};
+  // 「掲載に同意」かつ 必須3点（name/address/email）が埋まっているか
+  const legalReady = !!(L.published && L.name && L.address && L.email);
+
+  res.render('upload', { baseUrl: BASE_URL, connect, legal: L, legalReady });
 });
 
 // upload

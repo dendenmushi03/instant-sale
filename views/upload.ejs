@@ -6,6 +6,17 @@
   <title>Upload | Instant Sale</title>
   <link rel="stylesheet" href="/public/style.css" />
 </head>
+
+<style>
+  .setup{display:grid;gap:12px;margin:12px 0}
+  .setup__item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.03)}
+  .setup__status{font-size:20px;min-width:24px;text-align:center}
+  .setup__body{flex:1}
+  .setup__title{font-weight:700}
+  .setup__desc{opacity:.85;font-size:.95em}
+</style>
+</head>
+
 <body class="layout">
 
 <header class="nav">
@@ -35,28 +46,62 @@
   を完了してください。
 </p>
 
-<% if (typeof connect !== 'undefined') { %>
-  <div class="row" style="margin:12px 0;">
-    <% if (!connect.hasAccount || !connect.payoutsEnabled) { %>
+<% if (typeof connect !== 'undefined') { 
+     const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
+     const lr = (typeof legalReady !== 'undefined') ? !!legalReady : false;
+%>
+  <section class="setup">
 
-<!-- 注意喚起 -->
-<div class="alert alert--error">
-  <strong>受取設定が未完了です。</strong><br>
-  売上を受け取るには、Stripe で振込口座の登録と本人確認を完了してください。
-</div>
+    <!-- ① 振込口座（Stripe） -->
+    <div class="setup__item">
+      <div class="setup__status"><%= connectReady ? '✅' : '⏳' %></div>
+      <div class="setup__body">
+        <div class="setup__title">振込口座</div>
+        <div class="setup__desc">
+          <%= connectReady
+              ? '振込口座の登録と本人確認が完了しています。'
+              : '売上を受け取るには、Stripeで振込口座の登録と本人確認が必要です。' %>
+        </div>
+      </div>
+      <a class="btn btn--primary" href="/connect/onboard">
+        <%= connectReady ? '確認/更新（Stripe）' : '振込口座を登録（Stripe）' %>
+      </a>
+    </div>
 
-<!-- Stripe オンボーディングボタン -->
-<a class="btn btn--primary" href="/connect/onboard">振込口座を登録（Stripe）</a>
+    <!-- ② 販売者情報（特商法） -->
+    <div class="setup__item">
+      <div class="setup__status"><%= lr ? '✅' : '⏳' %></div>
+      <div class="setup__body">
+        <div class="setup__title">販売者情報（特商法）</div>
+        <div class="setup__desc">
+          <%= lr
+              ? '氏名/名称・住所・メールが登録され、購入ページへの掲載に同意済みです。'
+              : '氏名/名称・住所・メールを入力し、購入ページへの掲載に同意してください。' %>
+        </div>
+      </div>
+      <a class="btn" href="/creator/legal">
+        <%= lr ? '確認/編集' : '販売者情報を登録' %>
+      </a>
+    </div>
 
-      <% } else { %>
+  </section>
+<% } %>
 
-<div class="alert alert--success">
-  振込口座の登録が完了しています。
-</div>
-        
+<% if (typeof connect !== 'undefined') {
+     const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
+     const lr = (typeof legalReady !== 'undefined') ? !!legalReady : false;
+     if (!connectReady || !lr) { %>
+  <div class="alert alert--error" role="status" aria-live="polite" style="margin-top:12px;">
+    <strong>受取設定が未完了です。</strong><br>
+    <% if (!connectReady) { %>
+      ・振込口座の登録（Stripe）と本人確認を完了してください。<br>
+    <% } %>
+    <% if (!lr) { %>
+      ・販売者情報（氏名/名称・住所・メール）を登録し、購入ページへの掲載に同意してください。<br>
     <% } %>
   </div>
-<% } %>
+<%   }
+   } %>
 
     <form class="card" action="/upload" method="post" enctype="multipart/form-data">
       <label>タイトル
