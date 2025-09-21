@@ -36,7 +36,9 @@
   <h1>事業者情報（特商法表記）</h1>
   <p class="muted">販売する場合は、必要事項を正確に入力してください。電話番号を公開したくない場合は、メール連絡を確実に受けられるようにし、電話は空欄でも構いません。</p>
 
-  <form class="grid" action="/creator/legal" method="post" id="legalForm">
+<form class="grid <%= (legal?.sellerType === 'business') ? 'form--business' : '' %>"
+      action="/creator/legal" method="post" id="legalForm">
+
     <div class="seg">
       <div class="field">
         <label><strong>販売者の種別</strong></label>
@@ -60,8 +62,7 @@
   </label>
 </div>
       
-<div class="field only-business" data-biz-only
-     style="<%= (legal?.sellerType === 'business') ? '' : 'display:none' %>">
+<div class="field only-business" data-biz-only>
   <label>運営責任者 <span class="help">（事業者の場合のみ・任意）</span>
     <input type="text" name="responsible" value="<%= legal?.responsible || '' %>" />
   </label>
@@ -93,8 +94,7 @@
           </label>
         </div>
 
-<div class="field only-business" data-biz-only
-     style="<%= (legal?.sellerType === 'business') ? '' : 'display:none' %>">
+<div class="field only-business" data-biz-only>
   <label>適格請求書番号（インボイス） <span class="help">事業者のみ・任意</span>
     <input type="text" name="invoiceRegNo" value="<%= legal?.invoiceRegNo || '' %>" />
   </label>
@@ -131,25 +131,25 @@
   var form = document.getElementById('legalForm');
   var radioIndividual = form.querySelector('input[name="sellerType"][value="individual"]');
   var radioBusiness   = form.querySelector('input[name="sellerType"][value="business"]');
-  var bizOnly = [].slice.call(form.querySelectorAll('.only-business'));
 
-  // ★ 追加：名前ラベル要素を取得
   var nameLabelIndividual = form.querySelector('[data-label-individual]');
   var nameLabelBusiness   = form.querySelector('[data-label-business]');
 
   function updateView() {
-    var isBiz = radioBusiness.checked;
+    var isBiz = !!radioBusiness.checked;
 
-    // 事業者向け項目の表示/非表示
-    bizOnly.forEach(function(el){ el.style.display = isBiz ? 'flex' : 'none'; });
+    // フォームにクラスをトグル → CSS（style.css）の
+    // .form--business .only-business { display:flex !important; }
+    // が効いて表示が切り替わる
+    form.classList.toggle('form--business', isBiz);
 
-    // ★ 追加：氏名/販売業者ラベルの切替
+    // ラベル文言の切替
     if (nameLabelIndividual && nameLabelBusiness) {
       nameLabelIndividual.style.display = isBiz ? 'none' : '';
       nameLabelBusiness.style.display   = isBiz ? '' : 'none';
     }
 
-    // 必須制御（現状は任意のまま）
+    // 必須制御（必要なら true に）
     var resp = form.querySelector('input[name="responsible"]');
     var inv  = form.querySelector('input[name="invoiceRegNo"]');
     if (resp) resp.required = false;
@@ -158,6 +158,8 @@
 
   radioIndividual.addEventListener('change', updateView);
   radioBusiness.addEventListener('change', updateView);
+
+  // 初期状態（保存済みの sellerType を反映）
   updateView();
 })();
 </script>

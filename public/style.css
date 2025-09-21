@@ -510,3 +510,6 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .nav__logo { filter: brightness(0) saturate(100%) invert(1); }
+
+/* 事業者モードのときだけ専用フィールドを表示（強制） */
+.form--business .only-business { display: flex !important; }
