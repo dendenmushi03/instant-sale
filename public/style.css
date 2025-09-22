@@ -275,11 +275,12 @@ body.layout main.container{
   text-decoration: none;
 }
 
-/* ロゴは高さだけ指定して自動比率に */
-.nav__logo {
-  display: block;
-  height: 28px;     /* ヘッダーの高さに揃える */
-  width: auto;
+:root { --logoH: 36px; }  /* ← 好みで 40px などにしてOK */
+
+.nav__logo{
+  display:block;
+  height: var(--logoH);
+  width:auto;
   object-fit: contain;
 }
 
