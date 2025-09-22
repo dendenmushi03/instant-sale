@@ -52,9 +52,10 @@
     <article class="product">
 
 <div class="product-imageWrap" id="openViewer">
-  <img class="product-image" src="<%= item.previewPath %>" alt="<%= item.title %>" />
+  <img class="product-image" src="<%= displayImagePath %>" alt="<%= item.title %>" />
 </div>
-<div class="hint">画像をタップすると、このページで等倍表示（スクロールで移動）します。</div>
+
+      <div class="hint">画像をタップすると、このページで等倍表示（スクロールで移動）します。</div>
 
 <!-- ライトボックス（ページ内等倍ビュー） -->
 <div id="viewer" class="lightbox" hidden aria-modal="true" role="dialog" aria-label="等倍表示">
@@ -153,8 +154,13 @@
   function show(){
     if (img.getAttribute('src') !== srcFull) img.setAttribute('src', srcFull);
     fitMode = false; applyMode();     // いつも等倍で開く
-    modal.hidden = false;
-    document.body.style.overflow = 'hidden';
+try {
+    var url = '/view/<%= item.slug %>?t=' + Date.now(); // キャッシュ回避
+    var img = modal.querySelector('.lightbox__img');
+    if (img && img.src !== url) img.src = url;
+  } catch(_) {}
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
 
     var inner = modal.querySelector('.lightbox__inner');
     if (inner) inner.scrollTo({left:0, top:0, behavior:'auto'}); // 左上から開始

@@ -552,14 +552,29 @@ app.get('/s/:slug', async (req, res) => {
       if (seller?.legal?.published) sellerLegal = seller.legal;
     }
 
+        // 本文で使う画像（OGPではなく“アップロード画像ベースのフル”を優先）
+    const fullRel = `/previews/${item.slug}-full.jpg`;
+    const fullAbs = path.join(__dirname, fullRel);
+
+    let displayImagePath = item.previewPath; // 既定は従来の OGP 画像
+    try {
+      await fsp.access(fullAbs);             // -full.jpg があれば本文はこれを出す
+      displayImagePath = fullRel;
+    } catch {
+      // -full が無い古いアイテムは動的ビューにフォールバック（透かし入り）
+      displayImagePath = `/view/${item.slug}`;
+    }
+
     return res.render('sale', {
       item,
       baseUrl: BASE_URL,
       og,
       connect,
-      seller,        // ← これを必ず渡す（テンプレが参照していても落ちない）
-      sellerLegal
+      seller,
+      sellerLegal,
+      displayImagePath   // ★ 追加
     });
+    
   } catch (e) {
     console.error('[sale] route error:', e);
     return res.status(500).render('error', { message: '販売ページの表示に失敗しました。' });
