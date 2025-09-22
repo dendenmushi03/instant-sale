@@ -2,41 +2,135 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Instant Sale | 即売リンク生成ツール</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Instant Sale | AI画像をすぐ販売</title>
+  <meta name="description" content="AI画像クリエイター向け。1枚アップ → 即販売リンク生成 → Stripeで安全に販売。" />
   <link rel="stylesheet" href="/public/style.css" />
 </head>
 <body class="layout">
-  <!-- Nav -->
 
-<header class="nav">
-  <a class="nav__brand" href="/">
-    <img class="nav__logo" src="/public/logo.png" srcset="/public/logo.png 1x" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
-    <span class="nav__brandText">Instant Sale</span>
-  </a>
-  <nav class="nav__right">
-    <% if (me) { %>
-      <span class="nav__user"><%= me.name || me.email %></span>
-      <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
-      </form>
-    <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
-    <% } %>
-  </nav>
-</header>
+  <!-- 共通ナビ -->
+  <header class="nav">
+    <a class="nav__brand" href="/" aria-label="Instant Sale">
+      <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
+    </a>
+    <nav class="nav__right">
+      <% if (me) { %>
+        <span class="nav__user"><%= me.name || me.email %></span>
+        <form method="post" action="/logout" class="inline">
+          <button class="btn btn--ghost">ログアウト</button>
+        </form>
+      <% } else { %>
+        <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+      <% } %>
+    </nav>
+  </header>
 
-  <!-- Hero -->
-  <main class="container hero">
-    <h1 class="hero__title">Instant Sale テストページ</h1>
-    <p class="hero__lead">AI画像クリエイター向けの「<strong>即販売リンク生成ツール</strong>」です。</p>
+  <main class="container">
+    <!-- ヒーロー -->
+    <section class="heroHome">
+      <h1 class="heroHome__title">AI画像を<span class="accent">3ステップ</span>で即販売</h1>
+      <p class="heroHome__lead">アップロード → 価格入力 → リンク完成。Stripeで安全決済、ダウンロードは自動発行。</p>
+      <div class="heroHome__actions">
+        <% if (me) { %>
+          <a class="btn btn--primary" href="/creator">アップロードして販売開始</a>
+        <% } else { %>
+          <a class="btn btn--primary" href="/auth/google">ログインして始める</a>
+        <% } %>
+        <a class="btn btn--soft" href="#how">使い方を見る</a>
+      </div>
+      <ul class="kpis">
+        <li><strong>最短1分</strong><span>で販売リンク</span></li>
+        <li><strong>透かし自動</strong><span>不正コピー対策</span></li>
+        <li><strong>Stripe</strong><span>で安全決済</span></li>
+      </ul>
+    </section>
 
-    <div class="hero__actions">
-      <a class="btn btn--primary" href="/creator">アップロードページへ（販売テスト）</a>
-    </div>
+    <!-- 使い方（3ステップ） -->
+    <section id="how" class="howto card">
+      <h2>使い方</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step__num">1</div>
+          <h3>画像をアップロード</h3>
+          <p>高解像度ファイルを選択。プレビュー/OGP/等倍透かし画像は自動生成されます。</p>
+        </div>
+        <div class="step">
+          <div class="step__num">2</div>
+          <h3>タイトルと価格を入力</h3>
+          <p>税込価格だけ決めればOK。<%= (process.env.CURRENCY || 'jpy').toUpperCase() %>・最低価格などは設定済み。</p>
+        </div>
+        <div class="step">
+          <div class="step__num">3</div>
+          <h3>リンクをシェア</h3>
+          <p>販売ページURLが発行され、購入者はStripeで決済→自動でダウンロードできます。</p>
+        </div>
+      </div>
+
+      <div class="howto__cta">
+        <% if (me) { %>
+          <a class="btn btn--primary" href="/creator">今すぐアップロード</a>
+        <% } else { %>
+          <a class="btn btn--primary" href="/auth/google">Googleでログイン</a>
+        <% } %>
+        <a class="btn" href="/terms">利用規約</a>
+      </div>
+    </section>
+
+    <!-- サンプルの見た目（ダミーカード） -->
+    <section class="sample card">
+      <h2>販売ページのイメージ</h2>
+      <div class="sample__grid">
+        <a class="sampleCard" href="/creator">
+          <div class="sampleCard__img">
+            <img src="/previews/demo-preview.jpg" alt="サンプルプレビュー" onerror="this.src='/public/sample-fallback.jpg'">
+          </div>
+          <div class="sampleCard__body">
+            <h3>タイトル例</h3>
+            <div class="muted">by クリエイター名</div>
+            <div class="price">500 JPY</div>
+            <div class="muted">透かし入り等倍ビュー／Stripe決済</div>
+          </div>
+        </a>
+        <ul class="sample__points">
+          <li>OGP画像は自動生成（SNSで綺麗に展開）</li>
+          <li>縦長でも切れないStripeサムネも自動</li>
+          <li>等倍ビューはページ内で拡大スクロール</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- よくある質問 -->
+    <section class="faq card">
+      <h2>よくある質問</h2>
+      <details>
+        <summary>画像に透かしは入りますか？</summary>
+        <p>販売ページのプレビューと等倍ビューには「Instant Sale」の透かしが自動で入ります。購入後にダウンロードできるのは透かしなしの元ファイルです。</p>
+      </details>
+      <details>
+        <summary>決済方法は？</summary>
+        <p>Stripeでカード決済（Apple Pay/Google Pay含む）に対応しています。将来的に対応拡張可能です。</p>
+      </details>
+      <details>
+        <summary>売上の受け取りは？</summary>
+        <p>Stripe Connectを有効化すると販売者の口座へ自動振替できます。<a href="/connect/onboard">こちら</a>から設定してください。</p>
+      </details>
+    </section>
+
+    <!-- もう一度CTA -->
+    <section class="ctaBand">
+      <h2>試しに1枚、出してみる？</h2>
+      <div class="heroHome__actions">
+        <% if (me) { %>
+          <a class="btn btn--primary" href="/creator">アップロードへ</a>
+        <% } else { %>
+          <a class="btn btn--primary" href="/auth/google">ログインして始める</a>
+        <% } %>
+        <a class="btn btn--soft" href="/privacy">プライバシーポリシー</a>
+      </div>
+    </section>
   </main>
 
-  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer__links">
       <a href="/terms">利用規約</a>

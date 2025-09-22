@@ -143,6 +143,11 @@ body.layout main.container{
   padding:14px 20px; border-bottom:1px solid var(--border);
   background:rgba(10,17,31,0.6); backdrop-filter:saturate(180%) blur(10px);
 }
+
+/* ブランド名テキストを非表示にして間隔を詰める */
+.nav__brandText { display: none !important; }
+.nav__brand { gap: 0; }  /* 画像だけになるので余白ゼロに */
+
 .nav__brand{
   font-weight:800; letter-spacing:.2px; color:var(--white); text-decoration:none;
 }
@@ -525,4 +530,83 @@ img { max-width: 100%; height: auto; display: block; }
   object-fit: contain;  /* トリミングしない */
   border: 0;
   border-radius: 0;
+}
+
+/* ================= Home page enhancement ================= */
+
+.heroHome{
+  padding: 48px 0 8px;
+}
+.heroHome__title{
+  font-size: clamp(28px, 5vw, 44px);
+  margin: 0 0 8px;
+  color: #e7efff;
+}
+.heroHome__lead{
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+.heroHome__actions{ display:flex; gap:12px; flex-wrap:wrap; }
+.accent{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+.kpis{
+  display:flex; gap:16px; flex-wrap:wrap; list-style:none; padding:0; margin:18px 0 0;
+}
+.kpis li{
+  display:flex; flex-direction:column; gap:2px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:12px;
+  padding:10px 12px; min-width:140px;
+}
+.kpis strong{ font-size:16px; color:#eaf0ff; }
+.kpis span{ color:var(--muted); font-size:13px; }
+
+.howto.card h2,
+.sample.card h2,
+.faq.card h2{ margin-top:0; }
+
+.steps{
+  display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr));
+}
+.step{
+  background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:12px; padding:14px;
+}
+.step__num{
+  width:28px; height:28px; border-radius:50%;
+  display:grid; place-items:center; font-weight:700;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#0b1220;
+  margin-bottom:8px;
+}
+.howto__cta{ margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; }
+
+.sample__grid{
+  display:grid; gap:16px; grid-template-columns: 1.2fr .8fr;
+  align-items:start;
+}
+.sampleCard{
+  display:grid; grid-template-rows: auto 1fr; gap:10px;
+  border:1px solid var(--border); border-radius:12px; overflow:hidden;
+  background:#0f111a; text-decoration:none;
+}
+.sampleCard__img img{ display:block; width:100%; height:auto; }
+.sampleCard__body{ padding:12px; }
+.sample__points{ margin:0; padding-left:18px; color:var(--muted); }
+
+.faq details{
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px; margin:8px 0;
+}
+.faq summary{ cursor:pointer; font-weight:600; }
+
+.ctaBand{
+  margin-top:16px; padding:20px; text-align:center;
+  border:1px dashed var(--border);
+  border-radius:14px; background:rgba(255,255,255,.03);
+}
+.ctaBand h2{ margin:0 0 8px; }
+
+@media (max-width: 960px){
+  .sample__grid{ grid-template-columns: 1fr; }
+  .steps{ grid-template-columns: 1fr; }
 }
