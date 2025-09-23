@@ -132,12 +132,15 @@ passport.deserializeUser(async (id, done) => {
 });
 
 if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
-  passport.use(new GoogleStrategy({
-    clientID: GOOGLE_CLIENT_ID,
-    clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: `${BASE_URL}/auth/google/callback`,
-  }, async (accessToken, refreshToken, profile, done) => {
-    try {
+passport.use(new GoogleStrategy({
+  clientID: GOOGLE_CLIENT_ID,
+  clientSecret: GOOGLE_CLIENT_SECRET,
+  // 相対パスにして、実際のホスト/プロトコルはリクエストから判定
+  callbackURL: '/auth/google/callback',
+  // 逆プロキシ配下でも https として扱う
+  proxy: true,
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
       const email = profile.emails && profile.emails[0]?.value;
       const avatar = profile.photos && profile.photos[0]?.value;
       let user = await User.findOne({ googleId: profile.id });
