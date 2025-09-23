@@ -61,7 +61,7 @@ app.set('trust proxy', 1);
 
 app.set('views', path.join(__dirname, 'views'));
 
-/* ====== Core middlewares ====== */
+// Core middlewares
 app.use(session({
   secret: SESSION_SECRET,
   resave: false,
@@ -86,20 +86,31 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginOpenerPolicy:   { policy: 'same-origin-allow-popups' },
-  crossOriginEmbedderPolicy: false,
-}));
+app.use(helmet());
 app.use(compression());
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
 }));
 
+// === 追加ここから: カノニカルホストへ 301 リダイレクト ===
+const CANON_HOST = new URL(BASE_URL).host;
+app.use((req, res, next) => {
+  if (!isProd) return next(); // 本番のみ
+
+  // Render配下では x-forwarded-host が入る。無ければ host を参照
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  if (host && host !== CANON_HOST) {
+    const url = `https://${CANON_HOST}${req.originalUrl}`;
+    return res.redirect(301, url);
+  }
+  next();
+});
+// === 追加ここまで ===
+
 // どちらのURLでも配信できるように二本立てにします
-app.use(express.static(path.join(__dirname, 'public')));      // /logo.png でもOK
-app.use('/public', express.static(path.join(__dirname, 'public'))); // /public/logo.png でもOK
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.use('/previews', express.static(path.join(__dirname, 'previews'))); // OGP用のみ公開
 
