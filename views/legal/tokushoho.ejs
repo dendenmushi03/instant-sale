@@ -25,15 +25,59 @@
     <% } %>
   </nav>
 </header>
-  
+
+<%
+  // ---- フォールバック文言（未設定時の置き換え） ----
+  const has = (v) => v && String(v).trim().length > 0;
+
+  const nameDisp = has(sellerName)
+    ? sellerName
+    : '個人で運営しているため、氏名（又は屋号＋代表者名）はご請求いただいた場合に遅滞なく開示します。';
+
+  const respDisp = has(responsibleName) ? responsibleName : '—';
+
+  const addressDisp = has(address)
+    ? address
+    : '個人で運営しているため、住所はご請求いただいた場合に遅滞なく開示します。';
+
+  const phoneDisp = has(phone)
+    ? phone
+    : '電話番号はご請求があれば遅滞なく開示いたします（通常のお問い合わせはメールでお願いします）。';
+
+  const websiteDisp = has(website) ? website : '';
+  const hoursDisp = has(businessHours) ? businessHours : '平日 10:00-18:00';
+%>
+
 <main class="container">
   <h1>特定商取引法に基づく表記</h1>
   <table class="legal-table">
-    <tr><th>販売事業者</th><td><%= sellerName %></td></tr>
-    <tr><th>運営責任者</th><td><%= responsibleName %></td></tr>
-    <tr><th>所在地</th><td><%= address %></td></tr>
-    <tr><th>連絡先</th><td>電話: <%= phone %><br>Email: <a href="mailto:<%= email %>"><%= email %></a></td></tr>
-    <tr><th>ウェブサイト</th><td><a href="<%= website %>"><%= website %></a></td></tr>
+    <tr><th>販売事業者</th><td><%= nameDisp %></td></tr>
+    <tr><th>運営責任者</th><td><%= respDisp %></td></tr>
+    <tr><th>所在地</th><td><%= addressDisp %></td></tr>
+
+    <tr>
+      <th>連絡先</th>
+      <td>
+        <% if (has(phone)) { %>
+          電話: <%= phoneDisp %><br>
+        <% } else { %>
+          <%= phoneDisp %><br>
+        <% } %>
+        Email: <a href="mailto:<%= email %>"><%= email %></a>
+      </td>
+    </tr>
+
+    <tr>
+      <th>ウェブサイト</th>
+      <td>
+        <% if (websiteDisp) { %>
+          <a href="<%= websiteDisp %>"><%= websiteDisp %></a>
+        <% } else { %>
+          —
+        <% } %>
+      </td>
+    </tr>
+
     <tr><th>販売価格</th><td>各商品ページに税込価格を表示しています。</td></tr>
     <tr><th>商品代金以外の必要料金</th><td>通信に係るインターネット接続料金、通信料、（銀行振込の場合は）振込手数料。</td></tr>
     <tr><th>お支払い方法</th><td>クレジットカード、その他Stripeが提供する手段（例：PayPay等・対応状況は商品ページ参照）。当社はStripeを通じて決済処理を行います。</td></tr>
@@ -42,7 +86,7 @@
     <tr><th>返品・キャンセル</th><td>デジタル商品の性質上、ダウンロード後の返品・キャンセルはお受けしておりません。二重決済・誤課金・データ欠陥等の場合は速やかに対応しますので上記連絡先へご連絡ください。</td></tr>
     <tr><th>動作環境</th><td>各商品ページに記載のファイル形式・解像度等をご確認ください。</td></tr>
     <tr><th>販売数量</th><td>特に制限はありません。</td></tr>
-    <tr><th>営業時間</th><td><%= businessHours %></td></tr>
+    <tr><th>営業時間</th><td><%= hoursDisp %></td></tr>
     <tr><th>特記事項</th><td>未成年の購入には保護者の同意が必要です。知的財産権を侵害する行為は禁止します。</td></tr>
   </table>
 </main>

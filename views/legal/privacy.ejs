@@ -13,9 +13,40 @@
     ul{padding-left:1.2em}
     small{opacity:.8}
     code{background:#0b1426;padding:2px 6px;border-radius:6px}
+    /* ヘッダー用 */
+    .topbar{position:sticky;top:0;background:#0c1425cc;backdrop-filter:blur(6px);border-bottom:1px solid #1b2740}
+    .topbar-inner{max-width:1100px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+    .brand{color:#e6eef8;text-decoration:none;display:flex;align-items:center;gap:10px;font-weight:700}
+    .brand-mark{display:inline-block;width:18px;height:18px;background:#9ddfff;border-radius:4px;transform:rotate(45deg)}
+    .btn{display:inline-block;padding:12px 22px;border:1px solid #2a3b5b;border-radius:16px;text-decoration:none;color:#e6eef8}
+    .btn:hover{background:#0f1a2f}
+    .btn-outline{background:transparent}
+    .logout{background:transparent;border:1px solid #2a3b5b;border-radius:16px;color:#e6eef8;padding:12px 22px;cursor:pointer}
+    .logout:hover{background:#0f1a2f}
   </style>
 </head>
 <body>
+
+<!-- ▼ ヘッダー（他ページと同等の見た目） -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark"></span>
+      <span>Instant Sale</span>
+    </a>
+    <div>
+      <% if (me) { %>
+        <form action="/logout" method="post" style="margin:0">
+          <button type="submit" class="logout">ログアウト</button>
+        </form>
+      <% } else { %>
+        <a class="btn btn-outline" href="/auth/google">Googleでログイン</a>
+      <% } %>
+    </div>
+  </div>
+</header>
+<!-- ▲ ヘッダー -->
+
 <main>
   <h1>プライバシーポリシー</h1>
   <p><small>最終更新日: <%= new Date().toISOString().slice(0,10) %></small></p>
@@ -35,8 +66,8 @@
     <ul>
       <li>アカウント情報（上記 Google 情報を当サービスのユーザーとして保存）</li>
       <li>アップロード時のIPアドレス（不正防止のため）</li>
-      <li>販売・決済に必要なStripe関連識別子（接続アカウントIDなど）※当サービスはカード情報を保有しません</li>
-      <li>セッション/クッキー（ログイン維持に使用）</li>
+      <li>Stripe関連識別子（接続アカウントID など）※当サービスはカード情報を保有しません</li>
+      <li>セッション/クッキー（ログイン維持）</li>
       <li>ダウンロードトークン（期限付きの購入ファイル配布用）</li>
       <li>ログ（障害対応・セキュリティ監査目的）</li>
     </ul>
@@ -47,7 +78,7 @@
     <ul>
       <li>Google アカウントによる認証（ログイン）</li>
       <li>ユーザー名・アイコンの表示、アカウント管理のためのメール連絡</li>
-      <li>商品の販売・決済処理（Stripe Connectの利用）</li>
+      <li>商品の販売・決済処理（Stripe Connect の利用）</li>
       <li>不正利用の防止、セキュリティ確保、法令遵守</li>
       <li>サービス改善のための統計的分析（個人を特定しない形で実施）</li>
     </ul>

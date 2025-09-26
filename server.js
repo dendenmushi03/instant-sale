@@ -170,33 +170,39 @@ const ensureAuthed = (req, res, next) => {
   return res.redirect('/login');
 };
 
-// ===== Legal pages (short URLs) =====
 app.get('/terms', (req, res) => {
   res.render('legal/terms', {
     site: process.env.SITE_NAME || 'Instant Sale',
     governingLaw: process.env.GOVERNING_LAW || '日本法',
     court: process.env.COURT || '東京地方裁判所',
-    contactEmail: process.env.CONTACT_EMAIL || 'support@example.com',
+    contactEmail: process.env.CONTACT_EMAIL || 'Instant-Sale.sup@outlook.jp',
   });
 });
 
 app.get('/privacy', (req, res) => {
   res.render('legal/privacy', {
     site: process.env.SITE_NAME || 'Instant Sale',
-    contactEmail: process.env.CONTACT_EMAIL || 'support@example.com',
-    website: process.env.WEBSITE_URL || 'https://example.com',
+    contactEmail: process.env.CONTACT_EMAIL || 'Instant-Sale.sup@outlook.jp',
+    website: process.env.WEBSITE_URL || (process.env.BASE_URL || ''),
   });
 });
 
 app.get('/tokushoho', (req, res) => {
+  const fallbackName =
+    '個人で運営しているため、氏名（又は屋号＋代表者名）はご請求いただいた場合に遅滞なく開示します。';
+  const fallbackAddress =
+    '個人で運営しているため、住所はご請求いただいた場合に遅滞なく開示します。';
+  const fallbackPhone =
+    '電話番号はご請求があれば遅滞なく開示いたします（通常のお問い合わせはメールでお願いします）。';
+
   res.render('legal/tokushoho', {
     site: process.env.SITE_NAME || 'Instant Sale',
-    sellerName: process.env.SELLER_NAME || '販売事業者名',
-    responsibleName: process.env.RESPONSIBLE_NAME || '運営責任者名',
-    address: process.env.SELLER_ADDRESS || '住所をここに記載',
-    phone: process.env.SELLER_PHONE || '012-345-6789',
-    email: process.env.CONTACT_EMAIL || 'support@example.com',
-    website: process.env.WEBSITE_URL || 'https://example.com',
+    sellerName: process.env.SELLER_NAME || fallbackName,
+    responsibleName: process.env.RESPONSIBLE_NAME || '—',
+    address: process.env.SELLER_ADDRESS || fallbackAddress,
+    phone: process.env.SELLER_PHONE || fallbackPhone,
+    email: process.env.CONTACT_EMAIL || 'Instant-Sale.sup@outlook.jp',
+    website: process.env.WEBSITE_URL || (process.env.BASE_URL || ''),
     businessHours: process.env.BUSINESS_HOURS || '平日 10:00-18:00',
   });
 });
@@ -992,7 +998,7 @@ app.get('/legal/tokushoho', (req, res) => {
 app.get('/legal/terms', (req, res) => {
   res.render('legal/terms', {
     site: process.env.SITE_NAME || 'Instant Sale',
-    contactEmail: process.env.LEGAL_EMAIL || '',
+    contactEmail: process.env.LEGAL_EMAIL || process.env.CONTACT_EMAIL || 'Instant-Sale.sup@outlook.jp',
     governingLaw: '日本法',
     court: '東京地方裁判所'
   });
@@ -1001,7 +1007,7 @@ app.get('/legal/terms', (req, res) => {
 app.get('/legal/privacy', (req, res) => {
   res.render('legal/privacy', {
     site: process.env.SITE_NAME || 'Instant Sale',
-    contactEmail: process.env.LEGAL_EMAIL || '',
+    contactEmail: process.env.LEGAL_EMAIL || process.env.CONTACT_EMAIL || 'Instant-Sale.sup@outlook.jp',
     website: process.env.LEGAL_WEBSITE || process.env.BASE_URL || '',
   });
 });
