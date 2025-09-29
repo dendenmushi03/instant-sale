@@ -120,6 +120,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// 各ページの canonical/robots を出せるように共通値を用意
+app.use((req, res, next) => {
+  // 既に BASE_URL は末尾スラ無し・https 化済み
+  res.locals.canonical = `${BASE_URL}${req.path}`;
+  res.locals.robots = 'index,follow'; // 法令・ポリシーは index でOK
+  next();
+});
+
 /* ====== Passport (Google) ====== */
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
@@ -171,6 +179,7 @@ const ensureAuthed = (req, res, next) => {
 };
 
 app.get('/terms', (req, res) => {
+  res.locals.canonical = `${BASE_URL}/terms`;
   res.render('legal/terms', {
     site: process.env.SITE_NAME || 'Instant Sale',
     governingLaw: process.env.GOVERNING_LAW || '日本法',
@@ -180,6 +189,7 @@ app.get('/terms', (req, res) => {
 });
 
 app.get('/privacy', (req, res) => {
+  res.locals.canonical = `${BASE_URL}/privacy`;
   res.render('legal/privacy', {
     site: process.env.SITE_NAME || 'Instant Sale',
     contactEmail: process.env.CONTACT_EMAIL || 'Instant-Sale.sup@outlook.jp',
@@ -188,6 +198,7 @@ app.get('/privacy', (req, res) => {
 });
 
 app.get('/tokushoho', (req, res) => {
+  res.locals.canonical = `${BASE_URL}/tokushoho`;
   const fallbackName =
     '個人で運営しているため、氏名（又は屋号＋代表者名）はご請求いただいた場合に遅滞なく開示します。';
   const fallbackAddress =
@@ -268,6 +279,28 @@ mongoose.connect(MONGODB_URI).then(() => {
 // index（EJS に変更）
 app.get('/', (req, res) => {
   res.render('home', { baseUrl: BASE_URL });
+});
+
+// robots.txt
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send(
+`User-agent: *
+Allow: /
+Sitemap: ${BASE_URL}/sitemap.xml`
+  );
+});
+
+// sitemap.xml（最小構成）
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml').send(
+`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${BASE_URL}/</loc></url>
+  <url><loc>${BASE_URL}/privacy</loc></url>
+  <url><loc>${BASE_URL}/terms</loc></url>
+  <url><loc>${BASE_URL}/tokushoho</loc></url>
+</urlset>`
+  );
 });
 
 // auth pages
@@ -981,36 +1014,10 @@ app.get('/download/:token', async (req, res) => {
 // 404
 app.use((req, res) => res.status(404).render('error', { message: 'ページが見つかりません。' }));
 
-// === Legal pages ===
-app.get('/legal/tokushoho', (req, res) => {
-  res.render('legal/tokushoho', {
-    site: process.env.SITE_NAME || 'Instant Sale',
-    sellerName: process.env.LEGAL_SELLER_NAME || '',
-    responsibleName: process.env.LEGAL_RESPONSIBLE_NAME || '',
-    address: process.env.LEGAL_ADDRESS || '',
-    phone: process.env.LEGAL_PHONE || '',
-    email: process.env.LEGAL_EMAIL || '',
-    website: process.env.LEGAL_WEBSITE || process.env.BASE_URL || '',
-    businessHours: process.env.LEGAL_BUSINESS_HOURS || '',
-  });
-});
-
-app.get('/legal/terms', (req, res) => {
-  res.render('legal/terms', {
-    site: process.env.SITE_NAME || 'Instant Sale',
-    contactEmail: process.env.LEGAL_EMAIL || process.env.CONTACT_EMAIL || 'Instant-Sale.sup@outlook.jp',
-    governingLaw: '日本法',
-    court: '東京地方裁判所'
-  });
-});
-
-app.get('/legal/privacy', (req, res) => {
-  res.render('legal/privacy', {
-    site: process.env.SITE_NAME || 'Instant Sale',
-    contactEmail: process.env.LEGAL_EMAIL || process.env.CONTACT_EMAIL || 'Instant-Sale.sup@outlook.jp',
-    website: process.env.LEGAL_WEBSITE || process.env.BASE_URL || '',
-  });
-});
+// === Legal pages (legacy path → 301 redirect) ===
+app.get('/legal/tokushoho', (req, res) => res.redirect(301, '/tokushoho'));
+app.get('/legal/terms',     (req, res) => res.redirect(301, '/terms'));
+app.get('/legal/privacy',   (req, res) => res.redirect(301, '/privacy'));
 
 // ▼▼▼ ここから追加：販売者ごとの特商法表示ページ ▼▼▼
 app.get('/legal/seller/:userId', async (req, res) => {

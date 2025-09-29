@@ -1,149 +1,110 @@
 <!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <title>プライバシーポリシー | <%= site %></title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    body{font:16px/1.8 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#e6eef8;background:#0b1220;margin:0}
-    main{max-width:900px;margin:40px auto;padding:0 20px}
-    h1,h2,h3{color:#fff;margin:.8em 0 .4em}
-    a{color:#7ab6ff}
-    section{background:#121a2b;border:1px solid #26324a;border-radius:12px;padding:20px;margin:18px 0}
-    ul{padding-left:1.2em}
-    small{opacity:.8}
-    code{background:#0b1426;padding:2px 6px;border-radius:6px}
-    /* ヘッダー用 */
-    .topbar{position:sticky;top:0;background:#0c1425cc;backdrop-filter:blur(6px);border-bottom:1px solid #1b2740}
-    .topbar-inner{max-width:1100px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
-    .brand{color:#e6eef8;text-decoration:none;display:flex;align-items:center;gap:10px;font-weight:700}
-    .brand-mark{display:inline-block;width:18px;height:18px;background:#9ddfff;border-radius:4px;transform:rotate(45deg)}
-    .btn{display:inline-block;padding:12px 22px;border:1px solid #2a3b5b;border-radius:16px;text-decoration:none;color:#e6eef8}
-    .btn:hover{background:#0f1a2f}
-    .btn-outline{background:transparent}
-    .logout{background:transparent;border:1px solid #2a3b5b;border-radius:16px;color:#e6eef8;padding:12px 22px;cursor:pointer}
-    .logout:hover{background:#0f1a2f}
-  </style>
-</head>
-<body>
+  <head>
+    <%- include('../partials/head', { title: 'プライバシーポリシー' }) %>
+  </head>
+  <body class="layout">
+    <%- include('../partials/header') %>
 
-<!-- ▼ ヘッダー（他ページと同等の見た目） -->
-<header class="topbar">
-  <div class="topbar-inner">
-    <a class="brand" href="/">
-      <span class="brand-mark"></span>
-      <span>Instant Sale</span>
-    </a>
-    <div>
-      <% if (me) { %>
-        <form action="/logout" method="post" style="margin:0">
-          <button type="submit" class="logout">ログアウト</button>
-        </form>
-      <% } else { %>
-        <a class="btn btn-outline" href="/auth/google">Googleでログイン</a>
-      <% } %>
-    </div>
-  </div>
-</header>
-<!-- ▲ ヘッダー -->
+    <main class="container legal">
+      <h1>プライバシーポリシー</h1>
+      <p><small>最終更新日: <%= new Date().toISOString().slice(0,10) %></small></p>
 
-<main>
-  <h1>プライバシーポリシー</h1>
-  <p><small>最終更新日: <%= new Date().toISOString().slice(0,10) %></small></p>
+      <section>
+        <p><%= site %>（以下「当サービス」）は、ユーザーの個人情報および Google ユーザーデータを適切に取り扱います。本ポリシーでは、当サービスが収集・利用・共有・保管・保護・保持・削除する情報について説明します。お問い合わせは
+          <a href="mailto:<%= contactEmail %>"><%= contactEmail %></a> までご連絡ください。</p>
+      </section>
 
-  <section>
-    <p><%= site %>（以下「当サービス」）は、ユーザーの個人情報および Google ユーザーデータを適切に取り扱います。本ポリシーでは、当サービスが収集・利用・共有・保管・保護・保持・削除する情報について説明します。お問い合わせは
-      <a href="mailto:<%= contactEmail %>"><%= contactEmail %></a> までご連絡ください。</p>
-  </section>
+      <section>
+        <h2>1. 収集するデータ（Data Accessed）</h2>
+        <h3>Google ユーザーデータ（Google OAuth 経由）</h3>
+        <ul>
+          <li>Google ID（サブ）、表示名、メールアドレス、プロフィール画像URL</li>
+        </ul>
+        <h3>サービス運営上のデータ</h3>
+        <ul>
+          <li>アカウント情報（上記 Google 情報を当サービスのユーザーとして保存）</li>
+          <li>アップロード時のIPアドレス（不正防止のため）</li>
+          <li>Stripe関連識別子（接続アカウントID など）※当サービスはカード情報を保有しません</li>
+          <li>セッション/クッキー（ログイン維持）</li>
+          <li>ダウンロードトークン（期限付きの購入ファイル配布用）</li>
+          <li>ログ（障害対応・セキュリティ監査目的）</li>
+        </ul>
+      </section>
 
-  <section>
-    <h2>1. 収集するデータ（Data Accessed）</h2>
-    <h3>Google ユーザーデータ（Google OAuth 経由）</h3>
-    <ul>
-      <li>Google ID（サブ）、表示名、メールアドレス、プロフィール画像URL</li>
-    </ul>
-    <h3>サービス運営上のデータ</h3>
-    <ul>
-      <li>アカウント情報（上記 Google 情報を当サービスのユーザーとして保存）</li>
-      <li>アップロード時のIPアドレス（不正防止のため）</li>
-      <li>Stripe関連識別子（接続アカウントID など）※当サービスはカード情報を保有しません</li>
-      <li>セッション/クッキー（ログイン維持）</li>
-      <li>ダウンロードトークン（期限付きの購入ファイル配布用）</li>
-      <li>ログ（障害対応・セキュリティ監査目的）</li>
-    </ul>
-  </section>
+      <section>
+        <h2>2. 利用目的（Data Usage）</h2>
+        <ul>
+          <li>Google アカウントによる認証（ログイン）</li>
+          <li>ユーザー名・アイコンの表示、アカウント管理のためのメール連絡</li>
+          <li>商品の販売・決済処理（Stripe Connect の利用）</li>
+          <li>不正利用の防止、セキュリティ確保、法令遵守</li>
+          <li>サービス改善のための統計的分析（個人を特定しない形で実施）</li>
+        </ul>
+      </section>
 
-  <section>
-    <h2>2. 利用目的（Data Usage）</h2>
-    <ul>
-      <li>Google アカウントによる認証（ログイン）</li>
-      <li>ユーザー名・アイコンの表示、アカウント管理のためのメール連絡</li>
-      <li>商品の販売・決済処理（Stripe Connect の利用）</li>
-      <li>不正利用の防止、セキュリティ確保、法令遵守</li>
-      <li>サービス改善のための統計的分析（個人を特定しない形で実施）</li>
-    </ul>
-  </section>
+      <section>
+        <h2>3. 第三者提供（Data Sharing）</h2>
+        <p>当サービスは、以下の場合を除き、Google ユーザーデータを第三者に販売または共有しません。</p>
+        <ul>
+          <li>決済処理のための Stripe への提供（必要最小限の情報のみ）</li>
+          <li>法令に基づく要請への対応、または権利保護のために必要な場合</li>
+          <li>ホスティング/ストレージ等の委託先による取り扱い（例: Render, データベース）</li>
+        </ul>
+        <p>これらの委託先とは、適切な契約や安全管理措置を講じます。</p>
+      </section>
 
-  <section>
-    <h2>3. 第三者提供（Data Sharing）</h2>
-    <p>当サービスは、以下の場合を除き、Google ユーザーデータを第三者に販売または共有しません。</p>
-    <ul>
-      <li>決済処理のための Stripe への提供（必要最小限の情報のみ）</li>
-      <li>法令に基づく要請への対応、または権利保護のために必要な場合</li>
-      <li>ホスティング/ストレージ等の委託先による取り扱い（例: Render, データベース）</li>
-    </ul>
-    <p>これらの委託先とは、適切な契約や安全管理措置を講じます。</p>
-  </section>
+      <section>
+        <h2>4. 保管・保護（Data Storage & Protection）</h2>
+        <ul>
+          <li>データはアクセス制御されたデータベースに保存し、通信は HTTPS で保護します。</li>
+          <li>セッションCookieは <code>HttpOnly</code> / <code>SameSite=Lax</code> で設定し、保存期間は通常7日です。</li>
+          <li>内部メンバーのみ最小限の権限でアクセスし、ログ監査を行います。</li>
+        </ul>
+      </section>
 
-  <section>
-    <h2>4. 保管・保護（Data Storage & Protection）</h2>
-    <ul>
-      <li>データはアクセス制御されたデータベースに保存し、通信は HTTPS で保護します。</li>
-      <li>セッションCookieは <code>HttpOnly</code> / <code>SameSite=Lax</code> で設定し、保存期間は通常7日です。</li>
-      <li>内部メンバーのみ最小限の権限でアクセスし、ログ監査を行います。</li>
-    </ul>
-  </section>
+      <section>
+        <h2>5. 保持期間・削除（Data Retention & Deletion）</h2>
+        <ul>
+          <li>Google ユーザーデータ：アカウントが存在する限り保持し、ユーザーからの削除依頼時に消去します。</li>
+          <li>セッションCookie：通常 7 日で自動失効します。</li>
+          <li>ダウンロードトークン：発行から通常 <code>120</code> 分で自動失効します。</li>
+          <li>ログ：障害解析・セキュリティ目的で一定期間保持後に削除または匿名化します。</li>
+        </ul>
+        <p>削除依頼は <a href="mailto:<%= contactEmail %>"><%= contactEmail %></a> までご連絡ください。合理的な期間内に対応します。</p>
+      </section>
 
-  <section>
-    <h2>5. 保持期間・削除（Data Retention & Deletion）</h2>
-    <ul>
-      <li>Google ユーザーデータ：アカウントが存在する限り保持し、ユーザーからの削除依頼時に消去します。</li>
-      <li>セッションCookie：通常 7 日で自動失効します。</li>
-      <li>ダウンロードトークン：発行から通常 <code>120</code> 分で自動失効します。</li>
-      <li>ログ：障害解析・セキュリティ目的で一定期間保持後に削除または匿名化します。</li>
-    </ul>
-    <p>削除依頼は <a href="mailto:<%= contactEmail %>"><%= contactEmail %></a> までご連絡ください。合理的な期間内に対応します。</p>
-  </section>
+      <section>
+        <h2>6. ユーザーの選択と権利</h2>
+        <ul>
+          <li>いつでも <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google アカウントのアクセス権限</a> から、当サービスへの連携を取り消せます。</li>
+          <li>ご自身のデータへのアクセス、訂正、削除の依頼は <a href="mailto:<%= contactEmail %>"><%= contactEmail %></a> までご連絡ください。</li>
+        </ul>
+      </section>
 
-  <section>
-    <h2>6. ユーザーの選択と権利</h2>
-    <ul>
-      <li>いつでも <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google アカウントのアクセス権限</a> から、当サービスへの連携を取り消せます。</li>
-      <li>ご自身のデータへのアクセス、訂正、削除の依頼は <a href="mailto:<%= contactEmail %>"><%= contactEmail %></a> までご連絡ください。</li>
-    </ul>
-  </section>
+      <section>
+        <h2>7. Cookie の利用</h2>
+        <p>当サービスはログイン維持等のために Cookie を使用します。ブラウザ設定から Cookie を無効化できますが、一部機能が動作しない場合があります。</p>
+      </section>
 
-  <section>
-    <h2>7. Cookie の利用</h2>
-    <p>当サービスはログイン維持等のために Cookie を使用します。ブラウザ設定から Cookie を無効化できますが、一部機能が動作しない場合があります。</p>
-  </section>
+      <section>
+        <h2>8. 児童のプライバシー</h2>
+        <p>当サービスは 13 歳未満を対象としていません。該当するデータが収集されたと判明した場合、速やかに削除します。</p>
+      </section>
 
-  <section>
-    <h2>8. 児童のプライバシー</h2>
-    <p>当サービスは 13 歳未満を対象としていません。該当するデータが収集されたと判明した場合、速やかに削除します。</p>
-  </section>
+      <section>
+        <h2>9. 変更</h2>
+        <p>本ポリシーの内容は予告なく更新されることがあります。重要な変更は本ページで通知します。</p>
+      </section>
 
-  <section>
-    <h2>9. 変更</h2>
-    <p>本ポリシーの内容は予告なく更新されることがあります。重要な変更は本ページで通知します。</p>
-  </section>
+      <section>
+        <h2>10. 連絡先</h2>
+        <p>運営者: <%= site %><br>
+           Web: <a href="<%= website %>" target="_blank" rel="noopener"><%= website %></a><br>
+           Email: <a href="mailto:<%= contactEmail %>"><%= contactEmail %></a></p>
+      </section>
+    </main>
 
-  <section>
-    <h2>10. 連絡先</h2>
-    <p>運営者: <%= site %><br>
-       Web: <a href="<%= website %>" target="_blank" rel="noopener"><%= website %></a><br>
-       Email: <a href="mailto:<%= contactEmail %>"><%= contactEmail %></a></p>
-  </section>
-</main>
-</body>
+    <%- include('../partials/footer') %>
+  </body>
 </html>

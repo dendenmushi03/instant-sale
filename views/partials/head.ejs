@@ -1,5 +1,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title><%= title %> | Instant Sale</title>
+
+<% if (typeof canonical !== 'undefined' && canonical) { %>
+<link rel="canonical" href="<%= canonical %>">
+<% } %>
+<% if (typeof robots !== 'undefined' && robots) { %>
+<meta name="robots" content="<%= robots %>">
+<% } %>
+
 <link rel="stylesheet" href="/public/style.css" />
 <link rel="icon" href="/public/logo.png" type="image/png" />
