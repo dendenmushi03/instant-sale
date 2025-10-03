@@ -757,45 +757,49 @@ try {
   // ない場合はそのまま previewPath を使う
 }
 
-    /** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
-    const params = {
-      mode: 'payment',
-      payment_method_types: paymentMethodTypes,
-      line_items: [{
-        price_data: {
-          currency: item.currency,
-          unit_amount: item.price,            // 最小通貨単位
-          tax_behavior: 'inclusive',
-          product_data: {
-            name: item.title,
-            images: [productImageUrl],
-          },
-        },
-        quantity: 1,
-      }],
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      metadata: commonMetadata,
-      billing_address_collection: 'required',
-      automatic_tax: { enabled: true },
-      customer_creation: 'always',  // ← セッション完了時にCustomerを自動作成
-      // どちらのルートでも PI に transfer_group & metadata を付与しておく
-      payment_intent_data: {
-        transfer_group: transferGroup,
-        metadata: commonMetadata
-      }
-    };
+// Automatic Tax の初期値（プラットフォーム名義＝self を既定に）
+const automaticTax = { enabled: true, liability: { type: 'self' } };
 
-    if (canChargeOnSeller) {
-      // ✅ 直接接続アカウントで決済（destination charge）
-      params.payment_intent_data = {
-        ...params.payment_intent_data,
-        application_fee_amount: platformFee,
-        transfer_data: { destination: destinationAccountId },
-        on_behalf_of: destinationAccountId
-      };
-    }
-    // それ以外（charges_enabled=false）はプラットフォーム受領 → Webhook で transfer 実施
+/** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
+const params = {
+  mode: 'payment',
+  payment_method_types: paymentMethodTypes,
+  line_items: [{
+    price_data: {
+      currency: item.currency,
+      unit_amount: item.price,
+      tax_behavior: 'inclusive',
+      product_data: {
+        name: item.title,
+        images: [productImageUrl],
+      },
+    },
+    quantity: 1,
+  }],
+  success_url: successUrl,
+  cancel_url: cancelUrl,
+  metadata: commonMetadata,
+  billing_address_collection: 'required',
+  automatic_tax: automaticTax,   // ← 変数を使う
+  customer_creation: 'always',
+  payment_intent_data: {
+    transfer_group: transferGroup,
+    metadata: commonMetadata
+  }
+};
+
+if (canChargeOnSeller) {
+  // ✅ 直接接続アカウントで決済（destination charge）
+  params.payment_intent_data = {
+    ...params.payment_intent_data,
+    application_fee_amount: platformFee,
+    transfer_data: { destination: destinationAccountId },
+    on_behalf_of: destinationAccountId
+  };
+
+  // on_behalf_of を使うときは automatic_tax.liability が必須
+  automaticTax.liability = { type: 'account', account: destinationAccountId };
+}
 
 const session = await stripe.checkout.sessions.create(params);
 console.log('[checkout] session created:', session.id, '→', session.url);
