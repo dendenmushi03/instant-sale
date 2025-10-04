@@ -49,6 +49,29 @@ const USE_STRIPE_CONNECT = process.env.USE_STRIPE_CONNECT === 'true';
 const PLATFORM_FEE_PERCENT = Number(process.env.PLATFORM_FEE_PERCENT || '0');
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+
+// ====== S3 (S3/R2 互換) ======
+const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+
+const S3_ENDPOINT = process.env.S3_ENDPOINT || undefined; // AWS の場合は undefined でOK
+const S3_REGION   = process.env.S3_REGION   || 'auto';
+const S3_BUCKET   = process.env.S3_BUCKET   || '';
+const S3_PUBLIC_BASE = (process.env.S3_PUBLIC_BASE || '').replace(/\/+$/,''); // 末尾スラ削除
+
+const s3 = (S3_BUCKET)
+  ? new S3Client({
+      region: S3_REGION,
+      endpoint: S3_ENDPOINT,
+      forcePathStyle: !!S3_ENDPOINT, // R2/MinIO向け
+      credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
+      },
+    })
+  : null;
+if (!S3_BUCKET) console.warn('[WARN] S3_BUCKET 未設定。オブジェクト保存は動きません。');
+
 if (!STRIPE_SECRET_KEY) {
   console.warn('[WARN] STRIPE_SECRET_KEY が未設定です。決済は動きません。');
 }
@@ -546,27 +569,103 @@ await sharp(fullBase)
   .jpeg({ quality: 90 })
   .toFile(fullPath);
 
-    const item = await Item.create({
+// ====== ここから S3 へアップロード ======
+if (!s3) {
+  // S3未設定なら既存挙動（ローカル保存）のまま
+  const item = await Item.create({
+    slug,
+    title,
+    price: priceNum,
+    currency: (currency || CURRENCY).toLowerCase(),
+    filePath: req.file.path,
+    previewPath: `/previews/${previewName}`,
+    mimeType,
+    creatorName: creatorName || '',
+    ownerUser: req.user?._id || null,
+    createdBySecret: creatorSecret || '',
+    ownerEmail: (req.user?.email || ownerEmail || ''),
+    attestOwner: !!attestOwner,
+    uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
+  });
+  const saleUrl = `${BASE_URL}/s/${item.slug}`;
+  return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
+}
+
+// 拡張子（例: .jpg）を推定
+const extFromMime = mime.extension(mimeType) ? ('.' + mime.extension(mimeType)) : path.extname(req.file.originalname) || '';
+
+// S3キーの決定（原本と各プレビュー）
+const s3KeyOriginal = `originals/${slug}${extFromMime}`;
+const s3KeyPreview  = `previews/${slug}-preview.jpg`;
+const s3KeyStripe   = `previews/${slug}-stripe.jpg`;
+const s3KeyFull     = `previews/${slug}-full.jpg`;
+
+// 原本をS3へアップロード
+await s3.send(new PutObjectCommand({
+  Bucket: S3_BUCKET,
+  Key: s3KeyOriginal,
+  Body: fs.createReadStream(req.file.path),
+  ContentType: mimeType || 'application/octet-stream'
+}));
+
+// 生成済みプレビュー3種をS3へアップロード
+await s3.send(new PutObjectCommand({
+  Bucket: S3_BUCKET,
+  Key: s3KeyPreview,
+  Body: fs.createReadStream(previewFull),
+  ContentType: 'image/jpeg'
+}));
+await s3.send(new PutObjectCommand({
+  Bucket: S3_BUCKET,
+  Key: s3KeyStripe,
+  Body: fs.createReadStream(stripeFull),
+  ContentType: 'image/jpeg'
+}));
+await s3.send(new PutObjectCommand({
+  Bucket: S3_BUCKET,
+  Key: s3KeyFull,
+  Body: fs.createReadStream(fullPath),
+  ContentType: 'image/jpeg'
+}));
+
+// ローカルの一時ファイルを削除
+await fsp.unlink(req.file.path).catch(()=>{});
+await fsp.unlink(previewFull).catch(()=>{});
+await fsp.unlink(stripeFull).catch(()=>{});
+await fsp.unlink(fullPath).catch(()=>{});
+
+// プレビューのURL（パブリック配信前提）
+const previewUrl = S3_PUBLIC_BASE
+  ? `${S3_PUBLIC_BASE}/${s3KeyPreview}`
+  : `/previews/${previewName}`; // フォールバック（S3_PUBLIC_BASE 未設定）
+
+// 本文表示に使う “full” 版（あるいはプレビューURL）
+const fullUrl = S3_PUBLIC_BASE
+  ? `${S3_PUBLIC_BASE}/${s3KeyFull}`
+  : previewUrl;
+
+// DB には「原本の S3 キー」＋「プレビューはURL」を保存
+const item = await Item.create({
   slug,
   title,
   price: priceNum,
   currency: (currency || CURRENCY).toLowerCase(),
-  filePath: req.file.path,
-  previewPath: `/previews/${previewName}`,
+  filePath: `s3://${S3_BUCKET}/${s3KeyOriginal}`,  // ← 互換のため既存フィールドを流用
+  s3Key: s3KeyOriginal,                             // （利用側が分かりやすいように追加推奨）
+  previewPath: previewUrl,
   mimeType,
   creatorName: creatorName || '',
-
-  // ログイン時はユーザー参照を保存
   ownerUser: req.user?._id || null,
-
-  // 旧シークレット運用の名残。未入力なら空文字で通す
   createdBySecret: creatorSecret || '',
-
   ownerEmail: (req.user?.email || ownerEmail || ''),
   attestOwner: !!attestOwner,
   uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
 });
 
+const saleUrl = `${BASE_URL}/s/${item.slug}`;
+return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
+
+  
     const saleUrl = `${BASE_URL}/s/${item.slug}`;
     return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
   } catch (e) {
@@ -605,18 +704,20 @@ app.get('/s/:slug', async (req, res) => {
       if (seller?.legal?.published) sellerLegal = seller.legal;
     }
 
-        // 本文で使う画像（OGPではなく“アップロード画像ベースのフル”を優先）
-    const fullRel = `/previews/${item.slug}-full.jpg`;
-    const fullAbs = path.join(__dirname, fullRel);
+// S3_PUBLIC_BASE がある＝S3にプレビューを載せている想定なら、そのURLを優先
+let displayImagePath = item.previewPath;
 
-    let displayImagePath = item.previewPath; // 既定は従来の OGP 画像
-    try {
-      await fsp.access(fullAbs);             // -full.jpg があれば本文はこれを出す
-      displayImagePath = fullRel;
-    } catch {
-      // -full が無い古いアイテムは動的ビューにフォールバック（透かし入り）
-      displayImagePath = `/view/${item.slug}`;
-    }
+// 互換：ローカルの -full.jpg が存在していればそれを使う（S3_PUBLIC_BASE 未設定のフォールバック）
+if (!S3_PUBLIC_BASE) {
+  const fullRel = `/previews/${item.slug}-full.jpg`;
+  const fullAbs = path.join(PREVIEW_DIR, `${item.slug}-full.jpg`);
+  try {
+    await fsp.access(fullAbs);
+    displayImagePath = fullRel;
+  } catch {
+    displayImagePath = `/view/${item.slug}`;
+  }
+}
 
     return res.render('sale', {
       item,
@@ -746,15 +847,14 @@ if (seller) {
       sellerId: seller?._id ? String(seller._id) : ''
     };
 
-    // 縦長でも切れない Stripe 用サムネが存在すればそれを優先、無ければ従来プレビューを使用
-const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
-const stripeImgAbs = path.join(__dirname, stripeImgRel);
-let productImageUrl = `${BASE_URL}${item.previewPath}`;
-try {
-  await fsp.access(stripeImgAbs);
-  productImageUrl = `${BASE_URL}${stripeImgRel}`;
-} catch (_) {
-  // ない場合はそのまま previewPath を使う
+let productImageUrl = item.previewPath; // S3_PUBLIC_BASE のURLを優先
+if (!S3_PUBLIC_BASE) {
+  const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
+  const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
+  try {
+    await fsp.access(stripeImgAbs);
+    productImageUrl = `${BASE_URL}${stripeImgRel}`;
+  } catch (_) {}
 }
 
 // Automatic Tax の初期値（プラットフォーム名義＝self を既定に）
@@ -1002,13 +1102,35 @@ app.get('/download/:token', async (req, res) => {
     const item = await Item.findById(doc.item);
     if (!item) return res.status(404).render('error', { message: 'ファイルが見つかりません。' });
 
-    const abs = path.resolve(item.filePath);
-    if (!fs.existsSync(abs)) return res.status(404).render('error', { message: 'ファイルが存在しません。' });
+// S3 から署名付きURLを発行してリダイレクト
+if (!s3 || !item.s3Key) {
+  // フォールバック：まだS3化していないレガシーアイテム向け（存在しない可能性あり）
+  const abs = path.resolve(item.filePath || '');
+  if (!fs.existsSync(abs)) return res.status(404).render('error', { message: 'ファイルが存在しません。' });
+  res.setHeader('Content-Type', item.mimeType || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(item.title)}${path.extname(abs) || ''}`);
+  return fs.createReadStream(abs).pipe(res);
+}
 
-    res.setHeader('Content-Type', item.mimeType || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(item.title)}${path.extname(abs) || ''}`);
-    const stream = fs.createReadStream(abs);
-    return stream.pipe(res);
+// 署名の有効期限（例：60秒）。必要なら環境変数で調整
+const signedTtlSec = Number(process.env.S3_SIGNED_TTL_SEC || '60');
+
+const cmd = new GetObjectCommand({
+  Bucket: S3_BUCKET,
+  Key: item.s3Key,
+  ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(item.title)}${extnameFromKey(item.s3Key)}`
+});
+const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
+
+// 302 でリダイレクト
+return res.redirect(signedUrl);
+
+// 補助: S3キーから拡張子取得
+function extnameFromKey(key) {
+  const m = /\.[a-z0-9]+$/i.exec(key);
+  return m ? m[0] : '';
+}
+
   } catch (e) {
     console.error(e);
     return res.status(500).render('error', { message: 'ダウンロード処理に失敗しました。' });
