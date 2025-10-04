@@ -121,20 +121,21 @@ app.use(rateLimit({
   max: 300,
 }));
 
-// === 追加ここから: カノニカルホストへ 301 リダイレクト ===
 const CANON_HOST = new URL(BASE_URL).host;
 app.use((req, res, next) => {
-  if (!isProd) return next(); // 本番のみ
+  if (!isProd) return next();
 
-  // Render配下では x-forwarded-host が入る。無ければ host を参照
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  // フォームやAPIを壊さない：安全なメソッドだけリダイレクト
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+
+  const host  = req.headers['x-forwarded-host'] || req.headers.host;
+  const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
+
   if (host && host !== CANON_HOST) {
-    const url = `https://${CANON_HOST}${req.originalUrl}`;
-    return res.redirect(301, url);
+    return res.redirect(301, `${proto}://${CANON_HOST}${req.originalUrl}`);
   }
   next();
 });
-// === 追加ここまで ===
 
 // どちらのURLでも配信できるように二本立てにします
 app.use(express.static(path.join(__dirname, 'public')));
