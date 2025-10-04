@@ -45,6 +45,15 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const CURRENCY = (process.env.CURRENCY || 'jpy').toLowerCase();
 // 最低価格（未設定なら JPY は 50）
 const MIN_PRICE = Number(process.env.MIN_PRICE || (CURRENCY === 'jpy' ? 50 : 50));
+
+// ─────────────────────────────────────────────
+// 相対→絶対URL変換（正規化済み BASE_URL を使う版）
+// ─────────────────────────────────────────────
+const toAbs = (u) => {
+  if (!u) return '';
+  return /^https?:\/\//i.test(u) ? u : `${BASE_URL}${u.startsWith('/') ? '' : '/'}${u}`;
+};
+
 const CREATOR_SECRET = process.env.CREATOR_SECRET || 'changeme';
 const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
@@ -139,6 +148,9 @@ app.use((req, res, next) => {
 
 // どちらのURLでも配信できるように二本立てにします
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.use('/previews', express.static(PREVIEW_DIR)); // OGP/プレビューを公開
@@ -856,15 +868,19 @@ if (seller) {
       sellerId: seller?._id ? String(seller._id) : ''
     };
 
-let productImageUrl = item.previewPath; // S3_PUBLIC_BASE のURLを優先
+// まずは “必ず絶対URL” へ
+let productImageUrl = toAbs(item.previewPath);
+
+// S3を使わず、かつローカルに Stripe 用の 1200x630 版があるなら、そちらを優先
 if (!S3_PUBLIC_BASE) {
-const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
-const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
-  
+  const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
+  const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
   try {
     await fsp.access(stripeImgAbs);
-    productImageUrl = `${BASE_URL}${stripeImgRel}`;
-  } catch (_) {}
+    productImageUrl = toAbs(stripeImgRel); // ← toAbs で https 化
+  } catch (_) {
+    // 何もしない（previewPath の絶対URLのまま）
+  }
 }
 
 // Automatic Tax の初期値（プラットフォーム名義＝self を既定に）
@@ -881,7 +897,7 @@ const params = {
       tax_behavior: 'inclusive',
       product_data: {
         name: item.title,
-        images: [productImageUrl],
+        images: productImageUrl ? [productImageUrl] : [],
       },
     },
     quantity: 1,
