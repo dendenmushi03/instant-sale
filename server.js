@@ -661,10 +661,6 @@ const item = await Item.create({
   attestOwner: !!attestOwner,
   uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
 });
-
-const saleUrl = `${BASE_URL}/s/${item.slug}`;
-return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
-
   
     const saleUrl = `${BASE_URL}/s/${item.slug}`;
     return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
