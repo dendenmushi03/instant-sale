@@ -21,6 +21,11 @@ const User = require('./models/User');
 
 const app = express();
 
+// === PATH CONSTANTS ===
+const ROOT_DIR    = __dirname;
+const UPLOAD_DIR  = path.join(ROOT_DIR, 'uploads');
+const PREVIEW_DIR = path.join(ROOT_DIR, 'previews');
+
 /* ====== ENV ====== */
 const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production';
@@ -135,7 +140,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-app.use('/previews', express.static(path.join(__dirname, 'previews'))); // OGP用のみ公開
+app.use('/previews', express.static(PREVIEW_DIR)); // OGP/プレビューを公開
 
 // EJS で user を使えるように
 app.use((req, res, next) => {
@@ -273,17 +278,18 @@ async function getConnectStatus(user) {
 const ensureDir = async (dir) => {
   try { await fsp.mkdir(dir, { recursive: true }); } catch {}
 };
-ensureDir(path.join(__dirname, 'uploads'));
-ensureDir(path.join(__dirname, 'previews'));
 
-/* ====== Multer（画像のみ） ====== */
+ensureDir(UPLOAD_DIR);
+ensureDir(PREVIEW_DIR);
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads')),
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
     const ext = mime.extension(file.mimetype) || 'bin';
     cb(null, `${Date.now()}-${nanoid(8)}.${ext}`);
   }
 });
+
 const fileFilter = (req, file, cb) => {
   if ((file.mimetype || '').startsWith('image/')) cb(null, true);
   else cb(new Error('画像ファイルのみアップロード可能です'));
@@ -504,7 +510,7 @@ if (!title || !priceNum || priceNum < MIN_PRICE) {
 
 // OGPプレビュー（1200x630）
 const previewName = `${slug}-preview.jpg`;
-const previewFull = path.join(__dirname, 'previews', previewName);
+const previewFull = path.join(PREVIEW_DIR, previewName);
 
 const previewBase = await sharp(req.file.path)
   .rotate()
@@ -527,7 +533,7 @@ await sharp(previewBase)
 
 // ★ Stripe用（縦長が切れない “contain” 版）
 const stripeName = `${slug}-stripe.jpg`;
-const stripeFull = path.join(__dirname, 'previews', stripeName);
+const stripeFull  = path.join(PREVIEW_DIR, stripeName);
 
 await sharp(req.file.path)
   .rotate()
@@ -541,7 +547,7 @@ await sharp(req.file.path)
 
 // ★ 等倍プレビュー（透かし入り・最大4096pxに内接）
 const fullName = `${slug}-full.jpg`;
-const fullPath = path.join(__dirname, 'previews', fullName);
+const fullPath    = path.join(PREVIEW_DIR, fullName);
 
 // まず「回転＋内接リサイズ」をバッファに作る
 const fullBase = await sharp(req.file.path)
@@ -680,12 +686,13 @@ app.get('/s/:slug', async (req, res) => {
       return res.status(404).render('error', { message: '販売ページが見つかりません。' });
     }
 
-    const og = {
-      title: `${item.title} | 即ダウンロード`,
-      desc: `高解像度をすぐ購入（${Number(item.price).toLocaleString()} ${String(item.currency).toUpperCase()}）`,
-      image: `${BASE_URL}${item.previewPath}`,
-      url: `${BASE_URL}/s/${item.slug}`
-    };
+const isAbs = typeof item.previewPath === 'string' && /^https?:\/\//i.test(item.previewPath);
+const og = {
+  title: `${item.title} | 即ダウンロード`,
+  desc: `高解像度をすぐ購入（${Number(item.price).toLocaleString()} ${String(item.currency).toUpperCase()}）`,
+  image: isAbs ? item.previewPath : `${BASE_URL}${item.previewPath}`,
+  url: `${BASE_URL}/s/${item.slug}`
+};
 
     // ログイン者がオーナーなら接続状態
     let connect = null;
@@ -706,18 +713,19 @@ app.get('/s/:slug', async (req, res) => {
       }
     }
 
-    // プレビューのフル版（先頭のスラッシュを外して join を安全に）
-    const fullRelNoSlash = `previews/${item.slug}-full.jpg`;
-    const fullAbs = path.join(__dirname, fullRelNoSlash);
+const fullRelNoSlash = `previews/${item.slug}-full.jpg`;
+const fullAbs = path.join(__dirname, fullRelNoSlash);
 
-    let displayImagePath = item.previewPath; // 既定は従来のOGPプレビュー
-    try {
-      await fsp.access(fullAbs);
-      displayImagePath = `/${fullRelNoSlash}`; // ブラウザ用はルート相対に
-    } catch {
-      displayImagePath = `/view/${item.slug}`; // 動的ウォーターマーク版
-    }
-
+// 既定は S3/R2 のプレビューURL（または相対パスのまま）
+// ローカルにフル画像があればそれを優先して差し替える
+let displayImagePath = item.previewPath;
+try {
+  await fsp.access(fullAbs);
+  displayImagePath = `/${fullRelNoSlash}`;
+} catch {
+  // 何もしない：ローカルが無ければ item.previewPath（S3/R2のURL等）をそのまま使う
+}
+    
     // EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
     return res.render('sale', {
       item,
@@ -849,8 +857,9 @@ if (seller) {
 
 let productImageUrl = item.previewPath; // S3_PUBLIC_BASE のURLを優先
 if (!S3_PUBLIC_BASE) {
-  const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
-  const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
+const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
+const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
+  
   try {
     await fsp.access(stripeImgAbs);
     productImageUrl = `${BASE_URL}${stripeImgRel}`;
