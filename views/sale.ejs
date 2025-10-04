@@ -89,13 +89,24 @@
 
         <div class="muted">※税込表示</div>
 
-<% if (seller) { %>
-  <div class="muted">
-    販売事業者：
-    <%= (seller.legal && seller.legal.name) ? seller.legal.name : (seller.name || seller.email) %>
+        <%
+// 販売者名の表示ロジック（null安全）
+// 1) sellerLegal.name（事業者名）
+// 2) seller.legal.name → seller.name → seller.email
+// 3) それも無ければ '—'
+const sellerDisplayName =
+  (sellerLegal && sellerLegal.name) ? sellerLegal.name :
+  (seller && seller.legal && seller.legal.name) ? seller.legal.name :
+  (seller && (seller.name || seller.email)) ? (seller.name || seller.email) :
+  '—';
+%>
+
+<div class="muted">
+  販売事業者： <%= sellerDisplayName %>
+  <% if (seller && seller._id) { %>
     （<a href="/legal/seller/<%= seller._id %>" target="_blank" rel="noopener">特定商取引法に基づく表示</a>）
-  </div>
-<% } %>
+  <% } %>
+</div>
 
 <div class="muted" style="margin-top:8px;">
   デジタル商品のため、購入後のキャンセルは原則できません。誤課金・ファイル不具合時はお問い合わせください。

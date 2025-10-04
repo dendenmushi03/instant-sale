@@ -670,11 +670,11 @@ const item = await Item.create({
   }
 });
 
+// /s/:slug
 app.get('/s/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
 
-    // lean にしてシリアライズ安全に
     const item = await Item.findOne({ slug }).lean();
     if (!item) {
       return res.status(404).render('error', { message: '販売ページが見つかりません。' });
@@ -687,44 +687,48 @@ app.get('/s/:slug', async (req, res) => {
       url: `${BASE_URL}/s/${item.slug}`
     };
 
+    // ログイン者がオーナーなら接続状態
     let connect = null;
     if (req.user && item.ownerUser && String(item.ownerUser) === String(req.user._id)) {
       connect = await getConnectStatus(req.user);
     }
 
-    // 販売者は一度だけ取得してテンプレに渡す
+    // 販売者情報の取得は「例外を潰して」null安全に
     let seller = null;
     let sellerLegal = null;
     if (item.ownerUser) {
-      seller = await User.findById(item.ownerUser).lean();
-      if (seller?.legal?.published) sellerLegal = seller.legal;
+      try {
+        seller = await User.findById(item.ownerUser).lean();
+        if (seller?.legal?.published) sellerLegal = seller.legal;
+      } catch (_) {
+        seller = null;
+        sellerLegal = null;
+      }
     }
 
-// S3_PUBLIC_BASE がある＝S3にプレビューを載せている想定なら、そのURLを優先
-let displayImagePath = item.previewPath;
+    // プレビューのフル版（先頭のスラッシュを外して join を安全に）
+    const fullRelNoSlash = `previews/${item.slug}-full.jpg`;
+    const fullAbs = path.join(__dirname, fullRelNoSlash);
 
-// 互換：ローカルの -full.jpg が存在していればそれを使う（S3_PUBLIC_BASE 未設定のフォールバック）
-if (!S3_PUBLIC_BASE) {
-  const fullRel = `/previews/${item.slug}-full.jpg`;
-  const fullAbs = path.join(PREVIEW_DIR, `${item.slug}-full.jpg`);
-  try {
-    await fsp.access(fullAbs);
-    displayImagePath = fullRel;
-  } catch {
-    displayImagePath = `/view/${item.slug}`;
-  }
-}
+    let displayImagePath = item.previewPath; // 既定は従来のOGPプレビュー
+    try {
+      await fsp.access(fullAbs);
+      displayImagePath = `/${fullRelNoSlash}`; // ブラウザ用はルート相対に
+    } catch {
+      displayImagePath = `/view/${item.slug}`; // 動的ウォーターマーク版
+    }
 
+    // EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
     return res.render('sale', {
       item,
       baseUrl: BASE_URL,
       og,
       connect,
-      seller,
-      sellerLegal,
-      displayImagePath   // ★ 追加
+      seller: seller || {},            // ← undefined ではなく {}
+      sellerLegal: sellerLegal || null,
+      displayImagePath
     });
-    
+
   } catch (e) {
     console.error('[sale] route error:', e);
     return res.status(500).render('error', { message: '販売ページの表示に失敗しました。' });
