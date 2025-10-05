@@ -119,11 +119,15 @@ app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
-app.use(helmet());
+// Stripe 等の別オリジンからの画像埋め込みを許可
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 app.use(compression());
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -154,6 +158,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.use('/previews', express.static(PREVIEW_DIR)); // OGP/プレビューを公開
+
+// Stripe/X(Twitter) など外部からの画像取得を明示許可（任意・上の Helmet だけでも可）
+app.use(['/previews', '/uploads'], (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
 
 // EJS で user を使えるように
 app.use((req, res, next) => {
