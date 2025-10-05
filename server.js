@@ -659,9 +659,14 @@ await s3.send(new PutObjectCommand({
 
 // ローカルの一時ファイルを削除
 await fsp.unlink(req.file.path).catch(()=>{});
-await fsp.unlink(previewFull).catch(()=>{});
-await fsp.unlink(stripeFull).catch(()=>{});
-await fsp.unlink(fullPath).catch(()=>{});
+
+// プレビュー3種は、S3_PUBLIC_BASE がある＝「公開URLで配信できる」時だけ削除。
+// 無い場合は /previews 配信に使うので残す（これが無いと 404 → 画像が「？」になる）
+if (S3_PUBLIC_BASE) {
+  await fsp.unlink(previewFull).catch(()=>{});
+  await fsp.unlink(stripeFull).catch(()=>{});
+  await fsp.unlink(fullPath).catch(()=>{});
+}
 
 // プレビューのURL（パブリック配信前提）
 const previewUrl = S3_PUBLIC_BASE
@@ -736,17 +741,25 @@ const og = {
       }
     }
 
-const fullRelNoSlash = `previews/${item.slug}-full.jpg`;
-const fullAbs = path.join(__dirname, fullRelNoSlash);
+const fullRelNoSlash   = `previews/${item.slug}-full.jpg`;
+const stripeRelNoSlash = `previews/${item.slug}-stripe.jpg`;
+const fullAbs   = path.join(__dirname, fullRelNoSlash);
+const stripeAbs = path.join(__dirname, stripeRelNoSlash);
 
-// 既定は S3/R2 のプレビューURL（または相対パスのまま）
-// ローカルにフル画像があればそれを優先して差し替える
+// 既定は DB の previewPath（S3_PUBLIC_BASE ありの場合は絶対URL、無ければ /previews/...）
 let displayImagePath = item.previewPath;
+
+// ローカルが残っている構成（S3_PUBLIC_BASE なし）では、存在する方を優先
 try {
   await fsp.access(fullAbs);
   displayImagePath = `/${fullRelNoSlash}`;
 } catch {
-  // 何もしない：ローカルが無ければ item.previewPath（S3/R2のURL等）をそのまま使う
+  try {
+    await fsp.access(stripeAbs);
+    displayImagePath = `/${stripeRelNoSlash}`;
+  } catch {
+    // 何もしない：どちらも無ければ DB の previewPath を使う
+  }
 }
     
     // EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
