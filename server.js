@@ -936,36 +936,33 @@ if (seller) {
       }
     }
 
-    // 決済手段：destination charge のときは card のみに（未対応のPMを避ける）
-    const paymentMethodTypes = ['card'];
+// 決済手段：プラットフォーム受領（常に card）
+const paymentMethodTypes = ['card'];
 
-    const successUrl = `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&slug=${item.slug}`;
-    const cancelUrl  = `${BASE_URL}/s/${item.slug}`;
+const successUrl = `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&slug=${item.slug}`;
+const cancelUrl  = `${BASE_URL}/s/${item.slug}`;
 
-    // 後続の transfer と突合するためのグループ & メタデータ
-    const transferGroup = `item_${item._id}`;
-    const commonMetadata = {
-      itemId: String(item._id),
-      slug: item.slug,
-      sellerId: seller?._id ? String(seller._id) : ''
-    };
+// 後続の transfer と突合するためのグループ & メタデータ
+const transferGroup = `item_${item._id}`;
+const commonMetadata = {
+  itemId: String(item._id),
+  slug: item.slug,
+  sellerId: seller?._id ? String(seller._id) : ''
+};
 
 // まずは “必ず絶対URL” へ
 let productImageUrl = toAbs(item.previewPath);
 
-// S3を使わず、かつローカルに Stripe 用の 1200x630 版があるなら、そちらを優先
 if (!S3_PUBLIC_BASE) {
   const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
   const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
   try {
     await fsp.access(stripeImgAbs);
-    productImageUrl = toAbs(stripeImgRel); // ← toAbs で https 化
-  } catch (_) {
-    // 何もしない（previewPath の絶対URLのまま）
-  }
+    productImageUrl = toAbs(stripeImgRel);
+  } catch (_) {}
 }
 
-// Automatic Tax の初期値（プラットフォーム名義＝self を既定に）
+// Automatic Tax はプラットフォーム名義（self）のまま
 const automaticTax = { enabled: true, liability: { type: 'self' } };
 
 /** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
@@ -988,7 +985,7 @@ const params = {
   cancel_url: cancelUrl,
   metadata: commonMetadata,
   billing_address_collection: 'required',
-  automatic_tax: automaticTax,   // ← 変数を使う
+  automatic_tax: automaticTax,
   customer_creation: 'always',
   payment_intent_data: {
     transfer_group: transferGroup,
@@ -996,21 +993,10 @@ const params = {
   }
 };
 
-if (canChargeOnSeller) {
-  // ✅ 直接接続アカウントで決済（destination charge）
-  params.payment_intent_data = {
-    ...params.payment_intent_data,
-    application_fee_amount: platformFee,
-    transfer_data: { destination: destinationAccountId },
-    on_behalf_of: destinationAccountId
-  };
-
-  // on_behalf_of を使うときは automatic_tax.liability が必須
-  automaticTax.liability = { type: 'account', account: destinationAccountId };
-}
-
+// ★ destination分岐はナシ（常にプラットフォーム受領）
 const session = await stripe.checkout.sessions.create(params);
-console.log('[checkout] session created:', session.id, '→', session.url);
+
+    console.log('[checkout] session created:', session.id, '→', session.url);
 
 // 303 リダイレクトを素直に採用しない環境向けフォールバック（JS + meta refresh）
 const to = session.url;
