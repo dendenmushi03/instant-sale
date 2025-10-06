@@ -386,51 +386,58 @@ app.get('/connect/onboard', ensureAuthed, async (req, res) => {
 let user = await User.findById(req.user._id);
 let acctId = user.stripeAccountId;
 
-// 現在のAPIキー（テスト/本番）でそのacctが有効かチェック。
-// 失敗したら新規作成して置き換える（モード切替の古いIDを自動修復）。
+/**
+ * transfers-only（card_paymentsなし）での軽いオンボーディングを強制。
+ * 既存アカウントが card_payments を要求していたり、website URL が currently_due に含まれている場合は作り直す。
+ */
 const ensureConnectedAccount = async () => {
   if (acctId) {
     try {
-      await stripe.accounts.retrieve(acctId); // 取得できればOK
-      return acctId;
+      const acct = await stripe.accounts.retrieve(acctId);
+
+      // 1) 以前に card_payments を要求しているか？
+      const requestedCardPayments =
+        !!acct?.capabilities?.card_payments &&
+        ['active', 'pending', 'inactive'].includes(acct.capabilities.card_payments);
+
+      // 2) website URL が現在必須として要求されているか？
+      const requiresWebsite =
+        (acct?.future_requirements?.currently_due || []).some(k =>
+          String(k).includes('business_profile.url')
+        );
+
+      // 上記のどちらかでも当たるなら重いフローが残っている → 作り直す
+      if (!requestedCardPayments && !requiresWebsite) {
+        return acctId; // 既存アカウントをそのまま利用
+      }
+      console.warn('[Stripe] recreate account to transfers-only onboarding');
+      acctId = null; // 作り直しへ
     } catch (err) {
-      console.warn('[Stripe] stale stripeAccountId; recreating. reason:', err?.raw?.message || err.message);
+      console.warn('[Stripe] retrieve failed; recreate. reason:', err?.raw?.message || err.message);
       acctId = null;
     }
   }
 
-const account = await stripe.accounts.create({
-  type: 'express',
-  country: 'JP',
-  email: user.email,
-
-  // クリエイターは「個人」前提に寄せる（必要なら後で編集可能）
-  business_type: 'individual',
-
-  // ★ 送金だけ使う（＝あなたが受領→クリエイターへ送金）
-  capabilities: {
-    transfers: { requested: true }
-    // card_payments は要求しない
-  },
-
-  // ★ WebサイトURLの入力を避けるため product_description を先に与える（どちらかがあればOK）
-  business_profile: {
-    product_description: 'Digital image downloads via Instant Sale marketplace',
-    // 任意：各クリエイターの販売者情報ページをURLとして渡すことも可能
-    // url: `${BASE_URL}/legal/seller/${user._id}`
-  },
-
-  // 任意：支払スケジュール（手動/日次/週次など）
-  settings: {
-    payouts: { schedule: { interval: 'manual' } }
-  }
-});
+  // 新規：transfers のみ要求（あなたが受領→クリエイターへ送金）
+  const account = await stripe.accounts.create({
+    type: 'express',
+    country: 'JP',
+    email: user.email,
+    business_type: 'individual',
+    capabilities: { transfers: { requested: true } },
+    business_profile: {
+      product_description: 'Digital image downloads via Instant Sale marketplace',
+      // ※ “URL必須” を避けたいが、審査上求められる場合は自サイトの販売者ページを渡すと通りやすい
+      // url: `${BASE_URL}/legal/seller/${user._id}`
+    },
+    settings: { payouts: { schedule: { interval: 'manual' } } }
+  });
 
   user.stripeAccountId = account.id;
   await user.save();
   return account.id;
 };
-
+    
 const connectedAccountId = await ensureConnectedAccount();
 
 const accountLink = await stripe.accountLinks.create({
@@ -496,6 +503,15 @@ app.get('/connect/return', ensureAuthed, async (req, res) => {
 // オンボーディングの中断→再開用
 app.get('/connect/refresh', ensureAuthed, (req, res) => {
   return res.render('error', { message: 'オンボーディングを再開してください。<br><a href="/connect/onboard">もう一度始める</a>' });
+});
+
+// （任意）接続アカウントIDを手動リセットして、軽いフローで作り直したい時に使う
+app.post('/connect/reset', ensureAuthed, async (req, res) => {
+  const u = await User.findById(req.user._id);
+  u.stripeAccountId = undefined;
+  u.payoutsEnabled = false;
+  await u.save();
+  return res.redirect('/connect/onboard');
 });
 
 // クリエイター：特商法（売主）情報の設定画面
