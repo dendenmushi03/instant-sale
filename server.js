@@ -19,6 +19,8 @@ const Item = require('./models/Item');
 const DownloadToken = require('./models/DownloadToken');
 const User = require('./models/User');
 
+const PendingTransfer = require('./models/PendingTransfer');
+
 const app = express();
 
 // === PATH CONSTANTS ===
@@ -431,7 +433,6 @@ return res.redirect(accountLink.url);
 
   });
 
-// オンボーディング完了後の戻り先（接続状態の同期）
 app.get('/connect/return', ensureAuthed, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -439,9 +440,30 @@ app.get('/connect/return', ensureAuthed, async (req, res) => {
       return res.status(400).render('error', { message: '接続アカウントが見つかりません。' });
     }
     const acct = await stripe.accounts.retrieve(user.stripeAccountId);
-    // payouts_enabled をDBにも反映（任意）
-    user.payoutsEnabled = !!acct.payouts_enabled;
+    const payoutsEnabled = !!acct.payouts_enabled;
+
+    user.payoutsEnabled = payoutsEnabled;
     await user.save();
+
+    // ★ 自動送金：payouts が有効になったら、そのユーザーの保留分を一括実行
+    if (payoutsEnabled) {
+      const pendings = await PendingTransfer.find({ seller: user._id }).lean();
+      for (const p of pendings) {
+        try {
+          await stripe.transfers.create({
+            amount: p.amount,
+            currency: p.currency,
+            destination: user.stripeAccountId,
+            transfer_group: p.transferGroup || undefined
+          });
+          await PendingTransfer.deleteOne({ _id: p._id });
+          console.log('[pending-transfer] sent', { seller: String(user._id), amount: p.amount, pi: p.paymentIntentId });
+        } catch (te) {
+          console.error('[pending-transfer] send failed', te?.raw?.message || te.message, { pendingId: p._id });
+          // 失敗した分は保留のまま（次回また試せる）
+        }
+      }
+    }
 
     return res.render('error', { message: '接続設定を受け付けました。<br><a href="/creator">アップロードへ戻る</a>' });
   } catch (e) {
@@ -1034,15 +1056,13 @@ app.post('/webhooks/stripe', async (req, res) => {
 
       // --------------------
       // 2) destination でなかった場合、販売者へ transfer を実施
+      //     送れない時は PendingTransfer に保留登録
       // --------------------
       try {
-        // Checkout Session → PaymentIntent を取得
         const piId = session.payment_intent;
         if (piId) {
           const pi = await stripe.paymentIntents.retrieve(piId);
-
-          // transfer_data が無ければ「プラットフォーム受領」= 要 transfer
-          const needTransfer = !pi.transfer_data;
+          const needTransfer = !pi.transfer_data; // destination でない = 要 transfer
 
           if (needTransfer && itemId) {
             const item = await Item.findById(itemId);
@@ -1050,13 +1070,41 @@ app.post('/webhooks/stripe', async (req, res) => {
               console.warn('[transfer] item/seller not found', { itemId });
             } else {
               const seller = await User.findById(item.ownerUser);
-              if (seller?.stripeAccountId) {
-                // 手数料と送金額
-                const feePercent = Number(process.env.PLATFORM_FEE_PERCENT || 0);
-                const fee = Math.floor(item.price * (feePercent / 100));
-                const sellerAmount = item.price - fee;
 
-                // 送金可否（payouts_enabled）を軽くチェック（厳密に capabilities でもOK）
+              // 金額計算
+              const feePercent = Number(process.env.PLATFORM_FEE_PERCENT || 0);
+              const fee = Math.floor(item.price * (feePercent / 100));
+              const sellerAmount = item.price - fee;
+              const transferGroup = pi.transfer_group || `item_${item._id}`;
+
+              // 送金すべきだが、前提が揃わない場合は保留登録
+              const markPending = async (reason) => {
+                try {
+                  await PendingTransfer.updateOne(
+                    { paymentIntentId: pi.id },
+                    {
+                      seller: item.ownerUser,
+                      item: item._id,
+                      amount: sellerAmount,
+                      currency: item.currency,
+                      paymentIntentId: pi.id,
+                      transferGroup,
+                      reason
+                    },
+                    { upsert: true }
+                  );
+                  console.warn('[transfer] pending queued:', { pi: pi.id, sellerAmount, reason });
+                } catch (qe) {
+                  console.error('[transfer] queue error:', qe?.message || qe);
+                }
+              };
+
+              if (!seller || !seller.stripeAccountId) {
+                await markPending('seller_no_stripe_account');
+              } else if (sellerAmount <= 0) {
+                await markPending('non_positive_amount');
+              } else {
+                // 送金可否（payouts_enabled）
                 let canTransfer = true;
                 try {
                   const acc = await stripe.accounts.retrieve(seller.stripeAccountId);
@@ -1065,33 +1113,58 @@ app.post('/webhooks/stripe', async (req, res) => {
                   console.warn('[transfer] retrieve account failed', accErr?.raw?.message || accErr.message);
                 }
 
-                if (sellerAmount > 0 && canTransfer) {
+                if (canTransfer) {
                   await stripe.transfers.create({
                     amount: sellerAmount,
                     currency: item.currency,
                     destination: seller.stripeAccountId,
-                    transfer_group: pi.transfer_group || `item_${item._id}`, // 念のため
+                    transfer_group: transferGroup,
                   });
                   console.log('[transfer] success', {
                     pi: pi.id,
                     dest: seller.stripeAccountId,
                     amount: sellerAmount
                   });
+
+                  // 念のため保留があれば削除（再入場対策）
+                  await PendingTransfer.deleteOne({ paymentIntentId: pi.id }).catch(()=>{});
                 } else {
-                  console.warn('[transfer] skipped (amount<=0 or cannot transfer)', {
-                    sellerAmount, canTransfer, sellerId: seller._id
-                  });
+                  await markPending('payouts_disabled');
                 }
-              } else {
-                console.warn('[transfer] seller has no stripeAccountId', { sellerId: seller?._id });
               }
             }
           }
         }
       } catch (tErr) {
         console.error('[transfer] error', tErr?.raw?.message || tErr.message, tErr?.raw || tErr);
-        // TODO: ここで保留キューに退避し、後で再送金する運用にしてもOK
+        // 例外時も保留に入れておく（idempotent）
+        try {
+          const piId = (tErr?.payment_intent && tErr.payment_intent.id) || null;
+          if (piId && itemId) {
+            const item = await Item.findById(itemId);
+            if (item) {
+              const feePercent = Number(process.env.PLATFORM_FEE_PERCENT || 0);
+              const fee = Math.floor(item.price * (feePercent / 100));
+              const sellerAmount = item.price - fee;
+              await PendingTransfer.updateOne(
+                { paymentIntentId: piId },
+                {
+                  seller: item.ownerUser,
+                  item: item._id,
+                  amount: sellerAmount,
+                  currency: item.currency,
+                  paymentIntentId: piId,
+                  transferGroup: `item_${item._id}`,
+                  reason: 'exception'
+                },
+                { upsert: true }
+              );
+              console.warn('[transfer] pending queued by exception:', { pi: piId, sellerAmount });
+            }
+          }
+        } catch (_) {}
       }
+
     } else if (event.type === 'checkout.session.async_payment_failed') {
       const session = event.data.object; // Stripe.Checkout.Session
       console.warn('[webhook] async payment failed:', session.id);
