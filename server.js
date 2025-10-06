@@ -398,15 +398,34 @@ const ensureConnectedAccount = async () => {
       acctId = null;
     }
   }
-  const account = await stripe.accounts.create({
-    type: 'express',
-    country: 'JP',
-    email: user.email,
-    capabilities: {
-      transfers: { requested: true },
-      card_payments: { requested: true },
-    },
-  });
+
+const account = await stripe.accounts.create({
+  type: 'express',
+  country: 'JP',
+  email: user.email,
+
+  // クリエイターは「個人」前提に寄せる（必要なら後で編集可能）
+  business_type: 'individual',
+
+  // ★ 送金だけ使う（＝あなたが受領→クリエイターへ送金）
+  capabilities: {
+    transfers: { requested: true }
+    // card_payments は要求しない
+  },
+
+  // ★ WebサイトURLの入力を避けるため product_description を先に与える（どちらかがあればOK）
+  business_profile: {
+    product_description: 'Digital image downloads via Instant Sale marketplace',
+    // 任意：各クリエイターの販売者情報ページをURLとして渡すことも可能
+    // url: `${BASE_URL}/legal/seller/${user._id}`
+  },
+
+  // 任意：支払スケジュール（手動/日次/週次など）
+  settings: {
+    payouts: { schedule: { interval: 'manual' } }
+  }
+});
+
   user.stripeAccountId = account.id;
   await user.save();
   return account.id;
@@ -414,12 +433,14 @@ const ensureConnectedAccount = async () => {
 
 const connectedAccountId = await ensureConnectedAccount();
 
-// オンボーディングリンクを発行
 const accountLink = await stripe.accountLinks.create({
   account: connectedAccountId,
   refresh_url: `${BASE_URL}/connect/refresh`,
   return_url:  `${BASE_URL}/connect/return`,
   type: 'account_onboarding',
+
+  // ★ まずは「今必要なものだけ」集める＝登録時の摩擦を減らす
+  collect: 'eventually_due'
 });
 
 return res.redirect(accountLink.url);
