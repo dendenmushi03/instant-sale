@@ -62,7 +62,8 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const USE_STRIPE_CONNECT = process.env.USE_STRIPE_CONNECT === 'true';
-const PLATFORM_FEE_PERCENT = Number(process.env.PLATFORM_FEE_PERCENT || '0');
+// プラットフォーム手数料の既定値を 20% に
+const PLATFORM_FEE_PERCENT = Number(process.env.PLATFORM_FEE_PERCENT || '20');
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
@@ -395,43 +396,46 @@ const ensureConnectedAccount = async () => {
     try {
       const acct = await stripe.accounts.retrieve(acctId);
 
-      // 1) 以前に card_payments を要求しているか？
-      const requestedCardPayments =
-        !!acct?.capabilities?.card_payments &&
-        ['active', 'pending', 'inactive'].includes(acct.capabilities.card_payments);
+// 両方の capability が既に（active/pending/inactive のいずれかで）存在すれば再利用
+const hasTransfers =
+  !!acct?.capabilities?.transfers &&
+  ['active','pending','inactive'].includes(acct.capabilities.transfers);
+const hasCardPayments =
+  !!acct?.capabilities?.card_payments &&
+  ['active','pending','inactive'].includes(acct.capabilities.card_payments);
 
-      // 2) website URL が現在必須として要求されているか？
-      const requiresWebsite =
-        (acct?.future_requirements?.currently_due || []).some(k =>
-          String(k).includes('business_profile.url')
-        );
+if (hasTransfers && hasCardPayments) {
+  return acctId; // 既存をそのまま使う
+}
 
-      // 上記のどちらかでも当たるなら重いフローが残っている → 作り直す
-      if (!requestedCardPayments && !requiresWebsite) {
-        return acctId; // 既存アカウントをそのまま利用
-      }
-      console.warn('[Stripe] recreate account to transfers-only onboarding');
-      acctId = null; // 作り直しへ
+// capability が足りない場合だけ作り直す
+console.warn('[Stripe] recreate account with transfers + card_payments');
+acctId = null;
+
     } catch (err) {
       console.warn('[Stripe] retrieve failed; recreate. reason:', err?.raw?.message || err.message);
       acctId = null;
     }
   }
 
-  // 新規：transfers のみ要求（あなたが受領→クリエイターへ送金）
-  const account = await stripe.accounts.create({
-    type: 'express',
-    country: 'JP',
-    email: user.email,
-    business_type: 'individual',
-    capabilities: { transfers: { requested: true } },
-    business_profile: {
-      product_description: 'Digital image downloads via Instant Sale marketplace',
-      // ※ “URL必須” を避けたいが、審査上求められる場合は自サイトの販売者ページを渡すと通りやすい
-      // url: `${BASE_URL}/legal/seller/${user._id}`
-    },
-    settings: { payouts: { schedule: { interval: 'manual' } } }
-  });
+const account = await stripe.accounts.create({
+  type: 'express',
+  country: 'JP',
+  email: user.email,
+  business_type: 'individual',
+  // ← card_payments も同時にリクエスト
+  capabilities: { 
+    transfers: { requested: true },
+    card_payments: { requested: true }
+  },
+  business_profile: {
+    mcc: '5399',
+    product_description: 'C2Cデジタルコンテンツ販売（個人間）',
+    // ここは後で Stripe 側で求められたら入力。もし事前に用意できるなら URL を渡してOK
+    // url: `${BASE_URL}/legal/seller/${user._id}`
+  },
+  settings: { payouts: { schedule: { interval: 'manual' } } }
+});
 
   user.stripeAccountId = account.id;
   await user.save();
@@ -445,9 +449,9 @@ const accountLink = await stripe.accountLinks.create({
   refresh_url: `${BASE_URL}/connect/refresh`,
   return_url:  `${BASE_URL}/connect/return`,
   type: 'account_onboarding',
-
-  // ★ まずは「今必要なものだけ」集める＝登録時の摩擦を減らす
-  collect: 'eventually_due'
+  // card_payments を含む通常の Express Onboarding に従う
+  // （指定を外す or 'currently_due' を明示）
+  collect: 'currently_due'
 });
 
 return res.redirect(accountLink.url);
@@ -503,6 +507,53 @@ app.get('/connect/return', ensureAuthed, async (req, res) => {
 // オンボーディングの中断→再開用
 app.get('/connect/refresh', ensureAuthed, (req, res) => {
   return res.render('error', { message: 'オンボーディングを再開してください。<br><a href="/connect/onboard">もう一度始める</a>' });
+});
+
+// ── Admin: 未送金の PendingTransfer を再実行（管理者専用） ──
+// 使い方: 環境変数 ADMIN_TOKEN を設定して、
+// POST /admin/retry-pending へ Authorization: Bearer <ADMIN_TOKEN> で呼ぶ。
+app.post('/admin/retry-pending', async (req, res) => {
+  try {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+      return res.status(403).json({ ok: false, error: 'forbidden' });
+    }
+    if (!stripe) return res.status(500).json({ ok: false, error: 'stripe_not_configured' });
+
+    const pendings = await PendingTransfer.find({}).lean();
+    const results = [];
+    for (const p of pendings) {
+      try {
+        const seller = await User.findById(p.seller);
+        if (!seller?.stripeAccountId) { results.push({ id: p._id, status: 'skip_no_account' }); continue; }
+
+        // payouts_enabled 確認
+        let enabled = true;
+        try {
+          const acc = await stripe.accounts.retrieve(seller.stripeAccountId);
+          enabled = !!acc?.payouts_enabled;
+        } catch (e) { enabled = false; }
+
+        if (!enabled) { results.push({ id: p._id, status: 'skip_payouts_disabled' }); continue; }
+
+        await stripe.transfers.create({
+          amount: p.amount,
+          currency: p.currency,
+          destination: seller.stripeAccountId,
+          transfer_group: p.transferGroup || undefined
+        });
+
+        await PendingTransfer.deleteOne({ _id: p._id });
+        results.push({ id: p._id, status: 'transferred', amount: p.amount });
+      } catch (e) {
+        results.push({ id: p._id, status: 'error', error: e?.raw?.message || e.message });
+      }
+    }
+    return res.json({ ok: true, count: results.length, results });
+  } catch (e) {
+    console.error('[admin/retry-pending] error', e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 // （任意）接続アカウントIDを手動リセットして、軽いフローで作り直したい時に使う
@@ -900,18 +951,15 @@ app.post('/checkout/:slug', async (req, res) => {
     const item = await Item.findOne({ slug });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
 
-    // 手数料
-    const platformFee = Math.max(0, Math.floor(item.price * (PLATFORM_FEE_PERCENT / 100)));
+// 手数料（20%など）
+const platformFee = Math.max(0, Math.floor(item.price * (PLATFORM_FEE_PERCENT / 100)));
 
-    // 販売者（オーナー）
-    let seller = null;
-    if (USE_STRIPE_CONNECT && item.ownerUser) {
-      seller = await User.findById(item.ownerUser);
-    }
-    const destinationAccountId = seller?.stripeAccountId || null;
-
-    // 販売者が destination charge を使えるか（charges_enabled）
-    let canChargeOnSeller = false;
+// 販売者（オーナー）
+let seller = null;
+if (USE_STRIPE_CONNECT && item.ownerUser) {
+  seller = await User.findById(item.ownerUser);
+}
+const destinationAccountId = seller?.stripeAccountId || null;
 
 // ★ 特商法の必須入力チェック（C2C化：事業者のみ）
 if (seller) {
@@ -923,20 +971,12 @@ if (seller) {
       return res.status(400).render('error', {
         message: '（事業者向け）販売者情報の必須項目が未設定です。<br><a href="/creator/legal">販売者情報の設定</a> を先に完了してください。'
       });
+      
     }
   }
 }
 
-    if (destinationAccountId) {
-      try {
-        const acct = await stripe.accounts.retrieve(destinationAccountId);
-        canChargeOnSeller = !!acct?.charges_enabled;
-      } catch (err) {
-        console.warn('[checkout] retrieve account failed:', err?.raw?.message || err.message);
-      }
-    }
-
-// 決済手段：プラットフォーム受領（常に card）
+// 決済手段
 const paymentMethodTypes = ['card'];
 
 const successUrl = `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}&slug=${item.slug}`;
@@ -950,22 +990,39 @@ const commonMetadata = {
   sellerId: seller?._id ? String(seller._id) : ''
 };
 
-// まずは “必ず絶対URL” へ
+// 画像URL（絶対URLへ）
 let productImageUrl = toAbs(item.previewPath);
 
-if (!S3_PUBLIC_BASE) {
-  const stripeImgRel = `/previews/${item.slug}-stripe.jpg`;
-  const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
-  try {
+// S3_PUBLIC_BASE が無い構成（＝ローカル /previews 配信）なら、Stripe用に生成した 1200x630 を優先
+// これが無い/読めない場合は DB の previewPath を絶対URL化したものを使う
+try {
+  if (!S3_PUBLIC_BASE) {
+    const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
     await fsp.access(stripeImgAbs);
-    productImageUrl = toAbs(stripeImgRel);
-  } catch (_) {}
+    productImageUrl = toAbs(`/previews/${item.slug}-stripe.jpg`);
+  }
+} catch (_) {
+  // 何もしない（productImageUrl は既に previewPath の絶対URLになっている）
 }
 
-// Automatic Tax はプラットフォーム名義（self）のまま
 const automaticTax = { enabled: true, liability: { type: 'self' } };
 
-/** @type {import('stripe').Stripe.Checkout.SessionCreateParams} */
+/** Destination Charges: 決済と同時に 80% を販売者に入れる */
+const paymentIntentData = {
+  transfer_group: transferGroup,
+  metadata: commonMetadata,
+};
+
+// Connect が有効で販売者アカウントがある場合は自動分配を有効に
+if (USE_STRIPE_CONNECT && destinationAccountId) {
+  paymentIntentData.application_fee_amount = platformFee;           // ← 20% 手数料
+  paymentIntentData.transfer_data = { destination: destinationAccountId }; // ← 80% を販売者へ
+  paymentIntentData.on_behalf_of = destinationAccountId;
+
+  // ★ Automatic Tax 利用時の責任先を販売者アカウントに切替
+  automaticTax.liability = { type: 'account', account: destinationAccountId };
+}
+
 const params = {
   mode: 'payment',
   payment_method_types: paymentMethodTypes,
@@ -987,13 +1044,9 @@ const params = {
   billing_address_collection: 'required',
   automatic_tax: automaticTax,
   customer_creation: 'always',
-  payment_intent_data: {
-    transfer_group: transferGroup,
-    metadata: commonMetadata
-  }
+  payment_intent_data: paymentIntentData
 };
 
-// ★ destination分岐はナシ（常にプラットフォーム受領）
 const session = await stripe.checkout.sessions.create(params);
 
     console.log('[checkout] session created:', session.id, '→', session.url);
@@ -1029,6 +1082,41 @@ return res
 }
 
   });
+
+app.get('/debug/session', async (req, res) => {
+  try {
+    // ★ 管理者トークンで保護
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+      return res.status(403).send('forbidden');
+    }
+
+    if (!stripe) return res.status(500).send('stripe_not_configured');
+    const sid = String(req.query.sid || '');
+    if (!sid) return res.status(400).send('sid required');
+
+    const s = await stripe.checkout.sessions.retrieve(sid, { expand: ['payment_intent.charges.data.balance_transaction'] });
+    const pi = s.payment_intent
+      ? await stripe.paymentIntents.retrieve(s.payment_intent, { expand: ['charges.data.transfer_data'] })
+      : null;
+
+    const summary = {
+      session: { id: s.id, status: s.payment_status, amount_total: s.amount_total, currency: s.currency },
+      payment_intent: pi ? {
+        id: pi.id,
+        amount: pi.amount,
+        application_fee_amount: pi.application_fee_amount,
+        transfer_group: pi.transfer_group,
+        has_transfer_data: !!pi.transfer_data,
+        destination: pi.transfer_data?.destination || null
+      } : null
+    };
+
+    res.type('json').send(JSON.stringify(summary, null, 2));
+  } catch (e) {
+    res.status(500).send(e?.raw?.message || e.message);
+  }
+});
 
 // ====== Stripe Webhook（決済確定→ダウンロード発行＋必要なら送金）======
 // 注意: このルートは raw が必要（署名検証のため）
