@@ -404,8 +404,16 @@ const hasCardPayments =
   !!acct?.capabilities?.card_payments &&
   ['active','pending','inactive'].includes(acct.capabilities.card_payments);
 
+// 既存アカウントを使うけど URL が未設定なら事前に入れておく
 if (hasTransfers && hasCardPayments) {
-  return acctId; // 既存をそのまま使う
+  try {
+    if (!acct?.business_profile?.url) {
+      await stripe.accounts.update(acctId, {
+        business_profile: { url: `${BASE_URL}` }
+      });
+    }
+  } catch (_) {}
+  return acctId;
 }
 
 // capability が足りない場合だけ作り直す
@@ -428,12 +436,12 @@ const account = await stripe.accounts.create({
     transfers: { requested: true },
     card_payments: { requested: true }
   },
-  business_profile: {
-    mcc: '5399',
-    product_description: 'C2Cデジタルコンテンツ販売（個人間）',
-    // ここは後で Stripe 側で求められたら入力。もし事前に用意できるなら URL を渡してOK
-    // url: `${BASE_URL}/legal/seller/${user._id}`
-  },
+business_profile: {
+  mcc: '5399',
+  product_description: 'C2Cデジタルコンテンツ販売（個人間）',
+  // ここを事前入力（プラットフォームのトップでOK）
+  url: `${BASE_URL}`
+},
   settings: { payouts: { schedule: { interval: 'manual' } } }
 });
 
