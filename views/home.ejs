@@ -3,92 +3,124 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Instant Sale | AI画像をすぐ販売</title>
-  <meta name="description" content="AI画像クリエイター向け。1枚アップ → 即販売リンク生成 → Stripeで安全に販売。" />
+  <title>Instant Sale | AI画像を3ステップで即販売</title>
   <link rel="stylesheet" href="/public/style.css" />
+  <link rel="icon" href="/public/logo.png" />
 </head>
+
 <body class="layout">
 
-  <!-- 共通ナビ -->
-  <header class="nav">
-    <a class="nav__brand" href="/" aria-label="Instant Sale">
-<img class="nav__logo" src="/public/logo.png" alt="Instant Sale"
-     loading="eager" decoding="async" />
-    </a>
-    <nav class="nav__right">
+<header class="nav">
+  <a class="nav__brand" href="/">
+    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
+    <span class="nav__brandText">Instant Sale</span>
+  </a>
+  <nav class="nav__right">
+    <% if (me) { %>
+      <span class="nav__user"><%= me.name || me.email %></span>
+      <form method="post" action="/logout" class="inline">
+        <button class="btn btn--ghost">ログアウト</button>
+      </form>
+    <% } else { %>
+      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+    <% } %>
+  </nav>
+</header>
+
+<main class="container">
+
+  <!-- ヒーロー -->
+  <section class="heroHome">
+    <h1 class="heroHome__title">
+      AI画像を<span class="accent">3ステップ</span>で即販売
+    </h1>
+    <p class="heroHome__lead">アップロード → 価格入力 → リンク完成。Stripeで安全決済、ダウンロードは自動発行。</p>
+
+    <div class="heroHome__actions">
       <% if (me) { %>
-        <span class="nav__user"><%= me.name || me.email %></span>
-        <form method="post" action="/logout" class="inline">
-          <button class="btn btn--ghost">ログアウト</button>
-        </form>
+        <a class="btn btn--primary" href="/creator">アップロードして販売開始</a>
       <% } else { %>
-        <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+        <a class="btn btn--primary" href="/auth/google">ログインして始める</a>
       <% } %>
-    </nav>
-  </header>
-
-  <main class="container">
-    <!-- ヒーロー -->
-    <section class="heroHome">
-      <h1 class="heroHome__title">AI画像を<span class="accent">3ステップ</span>で即販売</h1>
-      <p class="heroHome__lead">アップロード → 価格入力 → リンク完成。Stripeで安全決済、ダウンロードは自動発行。</p>
-      <div class="heroHome__actions">
-        <% if (me) { %>
-          <a class="btn btn--primary" href="/creator">アップロードして販売開始</a>
-        <% } else { %>
-          <a class="btn btn--primary" href="/auth/google">ログインして始める</a>
-        <% } %>
-        <a class="btn btn--soft" href="#how">使い方を見る</a>
-      </div>
-      <ul class="kpis">
-        <li><strong>最短1分</strong><span>で販売リンク</span></li>
-        <li><strong>透かし自動</strong><span>不正コピー対策</span></li>
-        <li><strong>Stripe</strong><span>で安全決済</span></li>
-      </ul>
-    </section>
-
-    <!-- 使い方（3ステップ） -->
-    <section id="how" class="howto card">
-      <h2>使い方</h2>
-      <div class="steps">
-        <div class="step">
-          <div class="step__num">1</div>
-          <h3>画像をアップロード</h3>
-          <p>高解像度ファイルを選択。プレビュー/OGP/等倍透かし画像は自動生成されます。</p>
-        </div>
-        <div class="step">
-          <div class="step__num">2</div>
-          <h3>タイトルと価格を入力</h3>
-          <p>税込価格だけ決めればOK。<%= (process.env.CURRENCY || 'jpy').toUpperCase() %>・最低価格などは設定済み。</p>
-        </div>
-        <div class="step">
-          <div class="step__num">3</div>
-          <h3>リンクをシェア</h3>
-          <p>販売ページURLが発行され、購入者はStripeで決済→自動でダウンロードできます。</p>
-        </div>
-      </div>
-
-      <div class="howto__cta">
-        <% if (me) { %>
-          <a class="btn btn--primary" href="/creator">今すぐアップロード</a>
-        <% } else { %>
-          <a class="btn btn--primary" href="/auth/google">Googleでログイン</a>
-        <% } %>
-        <a class="btn" href="/terms">利用規約</a>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="site-footer">
-    <div class="footer__links">
-      <a href="/terms">利用規約</a>
-      <span class="dot">•</span>
-      <a href="/privacy">プライバシーポリシー</a>
-      <span class="dot">•</span>
-      <a href="/tokushoho">特定商取引法に基づく表記</a>
+      <a class="btn btn--ghost" href="#howto">使い方を見る</a>
     </div>
-    <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
-  </footer>
+
+    <ul class="kpis">
+      <li>
+        <strong>最短1分</strong>
+        <span>で販売リンク</span>
+      </li>
+      <li>
+        <strong>透かし自動</strong>
+        <span>不正コピ―対策</span>
+      </li>
+      <li>
+        <strong>Stripe</strong>
+        <span>で安全決済</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 使い方 -->
+  <section id="howto" class="card howto">
+    <h2 style="margin-top:0">使い方</h2>
+
+    <div class="steps">
+      <!-- STEP 1 -->
+      <article class="step">
+        <div class="step__num">1</div>
+        <h3 style="margin:8px 0 6px;">画像をアップロード</h3>
+        <p class="muted" style="margin:0 0 10px;">
+          高解像度ファイルを選択。プレビュー/OGP/等倍透かし画像は自動生成されます。
+        </p>
+        <!-- 任意：スクショを置く場合は /public/howto/step1.png を用意 -->
+        <!-- <div class="shot"><img src="/public/howto/step1.png" alt="画像を選択" /></div> -->
+      </article>
+
+      <!-- STEP 2 -->
+      <article class="step">
+        <div class="step__num">2</div>
+        <h3 style="margin:8px 0 6px;">タイトルと価格を入力</h3>
+        <p class="muted" style="margin:0 0 10px;">
+          税込価格だけ決めればOK。JPY・最低価格などは既定済み。必要ならクリエイター名も表示可能。
+        </p>
+        <!-- <div class="shot"><img src="/public/howto/step2.png" alt="価格入力" /></div> -->
+      </article>
+
+      <!-- STEP 3 -->
+      <article class="step">
+        <div class="step__num">3</div>
+        <h3 style="margin:8px 0 6px;">リンクをシェア</h3>
+        <p class="muted" style="margin:0 0 10px;">
+          販売ページURLが発行され、購入者はStripeで決済 → 自動で原本ダウンロード。売上は自動/手動で振替。
+        </p>
+        <!-- <div class="shot"><img src="/public/howto/step3.png" alt="リンクをシェア" /></div> -->
+      </article>
+    </div>
+
+    <div class="howto__cta" style="margin-top:14px;">
+      <% if (me) { %>
+        <a class="btn btn--primary" href="/creator">いますぐアップロード</a>
+      <% } else { %>
+        <a class="btn btn--primary" href="/auth/google">Googleでログイン</a>
+      <% } %>
+      <a class="btn btn--ghost" href="/privacy">プライバシー</a>
+      <a class="btn btn--ghost" href="/terms">利用規約</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer__links">
+    <a href="/terms">利用規約</a>
+    <span class="dot">•</span>
+    <a href="/privacy">プライバシーポリシー</a>
+    <span class="dot">•</span>
+    <a href="/tokushoho">特定商取引法に基づく表記</a>
+  </div>
+  <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
+</footer>
+
 </body>
 </html>
