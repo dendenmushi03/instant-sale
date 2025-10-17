@@ -153,7 +153,12 @@
   if (!form) return;
 
   form.addEventListener('submit', function (ev) {
-    ev.preventDefault();
+    // ★ 先にネイティブバリデーションを実行。NGなら送信しない
+    if (!form.reportValidity()) {
+      return; // ブラウザがどの項目かハイライトしてくれる
+    }
+
+    ev.preventDefault(); // ← バリデーション通過後に抑止
 
     const modal = document.getElementById('progressModal');
     const bar   = document.getElementById('progressBar');
@@ -162,13 +167,11 @@
     const resultBox = document.getElementById('ajaxResultBox');
     const resultUrl = document.getElementById('ajaxResultUrl');
 
-    // 取得できなければ通常 submit にフォールバック
     if (!modal || !bar || !pct || !phase || !resultBox || !resultUrl) {
-      form.submit();
+      form.submit(); // フォールバック
       return;
     }
 
-    // リセット & 表示
     resultBox.style.display = 'none';
     bar.style.width = '0%';
     pct.textContent = '0%';
@@ -200,33 +203,39 @@
 
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return;
-      try {
-        const res = JSON.parse(xhr.responseText || '{}');
-        if (xhr.status >= 200 && xhr.status < 300 && res.ok && res.createdUrl) {
-          phase.textContent = '完了';
-          bar.style.width = '100%';
-          pct.textContent = '100%';
-          setTimeout(() => {
-            modal.style.display = 'none';
-            resultUrl.value = res.createdUrl;
-            resultBox.style.display = 'block';
-            const file = form.querySelector('input[type="file"]');
-            if (file) file.value = '';
-            const chk = form.querySelector('input[type="checkbox"]');
-            if (chk) chk.checked = false;
-          }, 350);
-        } else {
-          throw new Error(res.message || 'サーバーエラーが発生しました。');
-        }
-      } catch (err) {
+
+      // ★ JSON以外が返ってきた（認証リダイレクト/エラーページ）場合も安全に処理
+      let res = {};
+      try { res = JSON.parse(xhr.responseText || '{}'); } catch (_) { res = {}; }
+
+      if (xhr.status >= 200 && xhr.status < 300 && res.ok && res.createdUrl) {
+        phase.textContent = '完了';
+        bar.style.width = '100%';
+        pct.textContent = '100%';
+        setTimeout(() => {
+          modal.style.display = 'none';
+          resultUrl.value = res.createdUrl;
+          resultBox.style.display = 'block';
+          const file = form.querySelector('input[type="file"]');
+          if (file) file.value = '';
+          const chk = form.querySelector('input[type="checkbox"]');
+          if (chk) chk.checked = false;
+        }, 350);
+      } else {
         modal.style.display = 'none';
-        alert(err.message || 'アップロードに失敗しました。しばらくしてから再度お試しください。');
+        // 認証が切れていたときはアップロードページに戻す
+        if (xhr.status === 401 || /login/i.test(xhr.responseText || '')) {
+          alert('ログインが必要です。ログインページへ移動します。');
+          location.href = '/login';
+          return;
+        }
+        alert((res && res.message) || 'アップロードに失敗しました。しばらくして再度お試しください。');
       }
     };
 
     xhr.onerror = function () {
       modal.style.display = 'none';
-      alert('ネットワークエラーが発生しました。通信環境をご確認のうえ再度お試しください。');
+      alert('ネットワークエラーが発生しました。通信環境をご確認ください。');
     };
 
     xhr.send(fd);

@@ -226,9 +226,12 @@ passport.use(new GoogleStrategy({
   }));
 }
 
-// 認証必須ミドルウェア
 const ensureAuthed = (req, res, next) => {
   if (req.user) return next();
+  // ★ AJAX から来た場合は JSON 返却にする（フロントがアラート表示→/login遷移）
+  if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
+    return res.status(401).json({ ok: false, message: 'login_required' });
+  }
   return res.redirect('/login');
 };
 
@@ -1418,6 +1421,26 @@ app.get('/legal/seller/:userId', async (req, res) => {
   }
 });
 // ▲▲▲ 追加ここまで ▲▲▲
+
+// ★ ここからグローバルエラーハンドラ（ファイル容量/形式NGやその他の例外を拾う）
+app.use((err, req, res, next) => {
+  const isAjax = req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest';
+
+  // Multerの代表的エラー（容量/形式）
+  if (err && (err.name === 'MulterError' || /画像ファイルのみ|File too large/i.test(err.message || ''))) {
+    if (isAjax) {
+      return res.status(400).json({ ok: false, message: err.message || 'ファイルアップロードに失敗しました。' });
+    }
+    return res.status(400).render('error', { message: err.message || 'ファイルアップロードに失敗しました。' });
+  }
+
+  // それ以外
+  console.error('[ERROR]', err);
+  if (isAjax) {
+    return res.status(500).json({ ok: false, message: 'サーバーエラーが発生しました。' });
+  }
+  return res.status(500).render('error', { message: 'サーバーエラーが発生しました。' });
+});
 
 // start
 app.listen(PORT, () => {
