@@ -10,6 +10,7 @@ const sharp = require('sharp');
 const { nanoid } = require('nanoid');
 const mime = require('mime-types');
 const Stripe = require('stripe');
+const crypto = require('crypto'); // ★ 追加：CSP nonce 生成用
 
 const session = require('express-session');
 const passport = require('passport');
@@ -120,6 +121,12 @@ app.use(passport.session());
 // ★ Webhook は JSON パーサより前に raw を先適用
 app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
+// ★ 追加：各リクエスト毎に CSP 用の nonce を作ってビューへ渡す
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -127,10 +134,27 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
-// Stripe 等の別オリジンからの画像埋め込みを許可
+// CSP: インラインJSは nonce 付きだけ許可。Stripeの必要オリジンも許可。
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      "script-src": [
+        "'self'",
+        // ★ nonce を許可（各リクエストで異なる値）
+        (req, res) => `'nonce-${res.locals.cspNonce}'`,
+        "https://js.stripe.com"
+      ],
+      "img-src": ["'self'", "data:", "blob:", "https:", "http:"],
+      "connect-src": ["'self'", "https://api.stripe.com", "https://r.stripe.com"],
+      "frame-src": ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+      // スタイルは既にインラインを使っているので一旦許容（後で外部CSS化が理想）
+      "style-src": ["'self'", "'unsafe-inline'"]
+    }
+  }
 }));
+
 app.use(compression());
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -159,6 +183,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// ★ 追加：/favicon.ico への直リンクをロゴで返す（簡易対応）
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'logo.png'));
+});
 
 app.use('/previews', express.static(PREVIEW_DIR)); // OGP/プレビューを公開
 
