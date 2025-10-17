@@ -718,8 +718,8 @@ await sharp(fullBase)
 
 // ====== ここから S3 へアップロード ======
 if (!s3) {
-  // S3未設定なら既存挙動（ローカル保存）のまま
-  const item = await Item.create({
+
+    const item = await Item.create({
     slug,
     title,
     price: priceNum,
@@ -735,7 +735,11 @@ if (!s3) {
     uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
   });
   const saleUrl = `${BASE_URL}/s/${item.slug}`;
+  if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
+    return res.json({ ok: true, createdUrl: saleUrl });
+  }
   return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
+
 }
 
 // 拡張子（例: .jpg）を推定
@@ -797,13 +801,14 @@ const fullUrl = S3_PUBLIC_BASE
   : previewUrl;
 
 // DB には「原本の S3 キー」＋「プレビューはURL」を保存
+
 const item = await Item.create({
   slug,
   title,
   price: priceNum,
   currency: (currency || CURRENCY).toLowerCase(),
-  filePath: `s3://${S3_BUCKET}/${s3KeyOriginal}`,  // ← 互換のため既存フィールドを流用
-  s3Key: s3KeyOriginal,                             // （利用側が分かりやすいように追加推奨）
+  filePath: `s3://${S3_BUCKET}/${s3KeyOriginal}`,
+  s3Key: s3KeyOriginal,
   previewPath: previewUrl,
   mimeType,
   creatorName: creatorName || '',
@@ -813,13 +818,21 @@ const item = await Item.create({
   attestOwner: !!attestOwner,
   uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
 });
-  
-    const saleUrl = `${BASE_URL}/s/${item.slug}`;
-    return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).render('error', { message: 'アップロードに失敗しました。' });
+
+const saleUrl = `${BASE_URL}/s/${item.slug}`;
+if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
+  return res.json({ ok: true, createdUrl: saleUrl });
+}
+return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
+
+} catch (e) {
+  console.error(e);
+  if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
+    return res.status(500).json({ ok: false, message: e?.message || 'アップロードに失敗しました。' });
   }
+  return res.status(500).render('error', { message: 'アップロードに失敗しました。' });
+}
+
 });
 
 // /s/:slug
