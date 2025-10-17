@@ -149,6 +149,23 @@
   </div>
 </div>
 
+    <p id="progressPct" style="margin:8px 0 0;text-align:right;font-variant-numeric:tabular-nums">0%</p>
+
+    <!-- ★ 追加：完了時にURLを表示するエリア（初期は非表示） -->
+    <div id="resultInModal" style="display:none;margin-top:14px;">
+      <div style="font-weight:700;margin:0 0 8px;">販売ページができました！</div>
+      <input id="resultUrlInModal" type="text" readonly
+             style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button type="button" id="copyResultUrl" class="btn">URLをコピー</button>
+        <a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener">販売ページを開く</a>
+        <button type="button" id="closeModal" class="btn btn--ghost">閉じる</button>
+      </div>
+      <p style="margin:10px 0 0;">このURLをX/Instagramに貼ると、OGP付きで見栄えよく表示されます。</p>
+    </div>
+  </div>
+</div>
+
 <script nonce="<%= cspNonce %>">
 (function() {
   const form = document.querySelector('form[action="/upload"]');
@@ -223,22 +240,64 @@
         bar.style.width = '100%';
         pct.textContent = '100%';
 
-          setTimeout(() => {
-            modal.style.display = 'none';
-            resultUrl.value = res.createdUrl;
-            resultBox.style.display = 'block';
-            const file = form.querySelector('input[type="file"]');
-            if (file) file.value = '';
-            const chk = form.querySelector('input[type="checkbox"]');
-            if (chk) chk.checked = false;
+setTimeout(() => {
+  // モーダルは開いたまま、完了表示に切替
+  phase.textContent = '完了';
+  bar.style.width = '100%';
+  pct.textContent = '100%';
 
-            // ★ 追加：ボタンを復帰
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.textContent = submitBtn.dataset.origText || '販売ページを作成';
-            }
-          }, 350);
+  // 下部の緑ボックスは使わない（安全のため消しておく）
+  resultBox.style.display = 'none';
+
+  // ★ モーダル内に結果を表示
+  const resultWrap = document.getElementById('resultInModal');
+  const resultInput = document.getElementById('resultUrlInModal');
+  const openBtn = document.getElementById('openResultUrl');
+  const closeBtn = document.getElementById('closeModal');
+  const copyBtn  = document.getElementById('copyResultUrl');
+
+  if (resultWrap && resultInput && openBtn) {
+    resultInput.value = res.createdUrl;
+    openBtn.href = res.createdUrl;
+    resultWrap.style.display = 'block';
+
+    // コピーボタン（毎回多重にイベントが付かないよう一旦初期化）
+    if (copyBtn) {
+      copyBtn.onclick = null;
+      copyBtn.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(res.createdUrl);
+          copyBtn.textContent = 'コピーしました';
+          setTimeout(() => (copyBtn.textContent = 'URLをコピー'), 1200);
+        } catch (_) {
+          resultInput.select();
+          document.execCommand('copy');
+        }
+      };
+    }
+
+    // 閉じる → モーダル閉じてフォームだけ初期化
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        modal.style.display = 'none';
+        resultWrap.style.display = 'none';
+      };
+    }
+  }
+
+  // フォームの軽いリセット
+  const file = form.querySelector('input[type="file"]');
+  if (file) file.value = '';
+  const chk = form.querySelector('input[type="checkbox"]');
+  if (chk) chk.checked = false;
+
+  // 送信ボタンを復帰
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = submitBtn.dataset.origText || '販売ページを作成';
+  }
+}, 350);
 
       } else {
         modal.style.display = 'none';
