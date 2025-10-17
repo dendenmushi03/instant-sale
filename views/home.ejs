@@ -65,38 +65,44 @@
   <section id="howto" class="card howto">
     <h2 style="margin-top:0">使い方</h2>
 
-    <div class="steps">
-      <!-- STEP 1 -->
-      <article class="step">
-        <div class="step__num">1</div>
-        <h3 style="margin:8px 0 6px;">画像をアップロード</h3>
-        <p class="muted" style="margin:0 0 10px;">
-          高解像度ファイルを選択。プレビュー/OGP/等倍透かし画像は自動生成されます。
-        </p>
-        <!-- 任意：スクショを置く場合は /public/howto/step1.png を用意 -->
-        <!-- <div class="shot"><img src="/public/howto/step1.png" alt="画像を選択" /></div> -->
-      </article>
-
-      <!-- STEP 2 -->
-      <article class="step">
-        <div class="step__num">2</div>
-        <h3 style="margin:8px 0 6px;">タイトルと価格を入力</h3>
-        <p class="muted" style="margin:0 0 10px;">
-          税込価格だけ決めればOK。JPY・最低価格などは既定済み。必要ならクリエイター名も表示可能。
-        </p>
-        <!-- <div class="shot"><img src="/public/howto/step2.png" alt="価格入力" /></div> -->
-      </article>
-
-      <!-- STEP 3 -->
-      <article class="step">
-        <div class="step__num">3</div>
-        <h3 style="margin:8px 0 6px;">リンクをシェア</h3>
-        <p class="muted" style="margin:0 0 10px;">
-          販売ページURLが発行され、購入者はStripeで決済 → 自動で原本ダウンロード。売上は自動/手動で振替。
-        </p>
-        <!-- <div class="shot"><img src="/public/howto/step3.png" alt="リンクをシェア" /></div> -->
-      </article>
+<div class="steps">
+  <!-- STEP 1 -->
+  <article class="step">
+    <div class="step__head">
+      <div class="step__num">1</div>
+      <h3 class="step__title">画像をアップロード</h3>
     </div>
+    <p class="muted" style="margin:0 0 10px;">
+      高解像度ファイルを選択。プレビュー/OGP/等倍透かし画像は自動生成されます。
+    </p>
+    <!-- 任意：スクショを置く場合は /public/howto/step1.png を用意 -->
+    <!-- <div class="shot"><img src="/public/howto/step1.png" alt="画像を選択" /></div> -->
+  </article>
+
+  <!-- STEP 2 -->
+  <article class="step">
+    <div class="step__head">
+      <div class="step__num">2</div>
+      <h3 class="step__title">タイトルと価格を入力</h3>
+    </div>
+    <p class="muted" style="margin:0 0 10px;">
+      税込価格だけ決めればOK。JPY・最低価格などは既定済み。必要ならクリエイター名も表示可能。
+    </p>
+    <!-- <div class="shot"><img src="/public/howto/step2.png" alt="価格入力" /></div> -->
+  </article>
+
+  <!-- STEP 3 -->
+  <article class="step">
+    <div class="step__head">
+      <div class="step__num">3</div>
+      <h3 class="step__title">リンクをシェア</h3>
+    </div>
+    <p class="muted" style="margin:0 0 10px;">
+      販売ページURLが発行され、購入者はStripeで決済 → 自動で原本ダウンロード。売上は自動/手動で振替。
+    </p>
+    <!-- <div class="shot"><img src="/public/howto/step3.png" alt="リンクをシェア" /></div> -->
+  </article>
+</div>
 
     <div class="howto__cta" style="margin-top:14px;">
       <% if (me) { %>

@@ -611,3 +611,17 @@ img { max-width: 100%; height: auto; display: block; }
   .sample__grid{ grid-template-columns: 1fr; }
   .steps{ grid-template-columns: 1fr; }
 }
+
+/* --- Step header: number + title 横並び --- */
+.step__head{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+}
+.step__title{
+  margin: 0;                 /* h3の余白を打ち消し */
+  font-weight: 700;          /* 太字 */
+  font-size: 18px;           /* 見やすく */
+  line-height: 1.25;
+}
