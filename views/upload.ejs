@@ -108,13 +108,6 @@
       <button type="submit" class="btn primary">販売ページを作成</button>
     </form>
 
-    <% if (typeof createdUrl !== 'undefined') { %>
-      <div class="card success">
-        <p>販売ページができました！</p>
-        <p><a class="btn" href="<%= createdUrl %>" target="_blank"><%= createdUrl %></a></p>
-        <p>このURLをX/Instagramに貼ると、OGP付きで見栄えよく表示されます。</p>
-      </div>
-    <% } %>
   </main>
 
 <footer class="site-footer">
@@ -128,15 +121,6 @@
   <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
 </footer>
 
-<!-- 成功表示（AJAX時にここへ描画） -->
-<div id="ajaxResultBox" style="display:none;margin-top:16px;">
-  <div style="background:#0f2a1a;border:1px solid #2d6a3f;border-radius:12px;padding:16px;color:#dafbe1;">
-    <div style="font-weight:700;margin-bottom:8px;">販売ページができました！</div>
-    <input id="ajaxResultUrl" type="text" readonly style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
-    <p style="margin:10px 0 0;">このURLをX/Instagramに貼ると、OGP付きで見栄えよく表示されます。</p>
-  </div>
-</div>
-
 <!-- 作成中モーダル -->
 <div id="progressModal" aria-hidden="true" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;">
   <div style="width:min(520px,92vw);background:#0f1a2a;border:1px solid #314156;border-radius:12px;padding:20px 18px;box-shadow:0 8px 28px rgba(0,0,0,.35);color:#dbe7ff;">
@@ -146,12 +130,8 @@
       <div id="progressBar" style="height:100%;width:0%;transition:width .25s ease"></div>
     </div>
     <p id="progressPct" style="margin:8px 0 0;text-align:right;font-variant-numeric:tabular-nums">0%</p>
-  </div>
-</div>
 
-    <p id="progressPct" style="margin:8px 0 0;text-align:right;font-variant-numeric:tabular-nums">0%</p>
-
-    <!-- ★ 追加：完了時にURLを表示するエリア（初期は非表示） -->
+    <!-- ★ 完了時にURLを表示するエリア（モーダル内・初期は非表示） -->
     <div id="resultInModal" style="display:none;margin-top:14px;">
       <div style="font-weight:700;margin:0 0 8px;">販売ページができました！</div>
       <input id="resultUrlInModal" type="text" readonly
@@ -163,6 +143,7 @@
       </div>
       <p style="margin:10px 0 0;">このURLをX/Instagramに貼ると、OGP付きで見栄えよく表示されます。</p>
     </div>
+    <!-- /resultInModal -->
   </div>
 </div>
 
@@ -183,16 +164,17 @@
     const bar   = document.getElementById('progressBar');
     const pct   = document.getElementById('progressPct');
     const phase = document.getElementById('progressPhase');
-    const resultBox = document.getElementById('ajaxResultBox');
-    const resultUrl = document.getElementById('ajaxResultUrl');
 
-    if (!modal || !bar || !pct || !phase || !resultBox || !resultUrl) {
-      form.submit(); // フォールバック
-      return;
-    }
+const resultBox = document.getElementById('ajaxResultBox');      // あってもなくてもOK
+// const resultUrl = document.getElementById('ajaxResultUrl');   // 未使用なら削除でOK
 
-    resultBox.style.display = 'none';
-    bar.style.width = '0%';
+if (!modal || !bar || !pct || !phase) {
+  form.submit(); // モーダル要素が無いときだけフォールバック
+  return;
+}
+
+if (resultBox) resultBox.style.display = 'none';
+bar.style.width = '0%';
     pct.textContent = '0%';
     phase.textContent = 'アップロード中';
     modal.style.display = 'flex';
@@ -246,8 +228,7 @@ setTimeout(() => {
   bar.style.width = '100%';
   pct.textContent = '100%';
 
-  // 下部の緑ボックスは使わない（安全のため消しておく）
-  resultBox.style.display = 'none';
+if (resultBox) resultBox.style.display = 'none';
 
   // ★ モーダル内に結果を表示
   const resultWrap = document.getElementById('resultInModal');
