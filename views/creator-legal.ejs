@@ -3,36 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>事業者情報（特商法表記） | Instant Sale</title>
+  <title>事業者情報（特商法） | Instant Sale</title>
   <link rel="stylesheet" href="/public/style.css" />
-
+  <link rel="icon" href="/public/logo.png" />
   <style>
-    .muted{opacity:.8}
-    .grid{display:grid;gap:12px}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .help{font-size:.9em;opacity:.75}
-    .seg{padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:10px}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .row .field{flex:1}
-
-    /* ここから下は今回の並び替えでは使っていないが残してOK（後で掃除可） */
-    .dim { position: relative; }
-    .dim::after{ content:""; position:absolute; inset:0; background: rgba(0,0,0,.38); border-radius:10px; }
-    .dim *{ pointer-events:none; }
-    .dim input, .dim select, .dim textarea{ filter: grayscale(1) opacity(.75); }
+    .muted{opacity:.85}
+    .card + .card{margin-top:12px}
   </style>
 </head>
 
 <body class="layout">
 <header class="nav">
   <a class="nav__brand" href="/">
-    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" />
+    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
     <span class="nav__brandText">Instant Sale</span>
   </a>
   <nav class="nav__right">
     <% if (me) { %>
       <span class="nav__user"><%= me.name || me.email %></span>
-      <form method="post" action="/logout" class="inline"><button class="btn btn--ghost">ログアウト</button></form>
+      <form method="post" action="/logout" class="inline">
+        <button class="btn btn--ghost">ログアウト</button>
+      </form>
     <% } else { %>
       <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
     <% } %>
@@ -40,111 +31,44 @@
 </header>
 
 <main class="container">
-  <h1>事業者情報（特商法表記）</h1>
-  <p class="muted">販売する場合は、必要事項を正確に入力してください。電話番号を公開したくない場合は、メール連絡を確実に受けられるようにし、電話は空欄でも構いません。</p>
+  <section class="card">
+    <h1 style="margin:0 0 8px;">事業者情報（特定商取引法に基づく表記）</h1>
+    <p class="muted" style="margin:0 0 12px;">
+      Instant Sale は <strong>個人ユーザーによる販売専用</strong> のプラットフォームです。<br />
+      <strong>事業者（法人・屋号での継続的な商取引）はご利用いただけません。</strong>
+    </p>
 
-  <form class="grid" action="/creator/legal" method="post" id="legalForm">
-    <!-- 区分ラジオ（そのまま保持。今回は表示切替は行わない） -->
-    <div class="seg">
-      <div class="field">
-        <label><strong>販売者の種別</strong></label>
-        <div class="row">
-          <label><input type="radio" name="sellerType" value="individual"
-            <%= (legal?.sellerType !== 'business') ? 'checked' : '' %> /> 個人販売者</label>
-          <label><input type="radio" name="sellerType" value="business"
-            <%= (legal?.sellerType === 'business') ? 'checked' : '' %> /> 事業者（法人/屋号）</label>
-        </div>
-      </div>
+    <div class="alert alert--success" role="status" aria-live="polite" style="margin:12px 0;">
+      <strong>個人販売者の方へ</strong><br />
+      本ページでの出品者自身の特商法表記の登録は <strong>不要</strong> です。本人確認や振込に必要な手続きは
+      決済事業者である <span style="font-weight:700;">Stripe</span> の KYC にて行われます。
+      電話番号を公開したくない場合も、購入者との連絡手段としてメールが受信できる状態であれば問題ありません。
     </div>
 
-    <!-- ここから並び替え後の入力群 -->
-    <div class="seg grid">
-
-      <!-- 個人販売者の必須項目（上に集約） -->
-      <h3 class="muted" style="margin:0 0 8px;">個人販売者の必須項目</h3>
-
-      <div class="field">
-        <label>氏名（本名） <span class="help">※必須</span>
-          <input type="text" name="name" value="<%= legal?.name || '' %>" required />
-        </label>
-      </div>
-
-      <div class="field">
-        <label>所在地 <span class="help">※必須</span>
-          <input type="text" name="address" value="<%= legal?.address || '' %>" required />
-        </label>
-      </div>
-
-      <div class="field">
-        <label>メールアドレス <span class="help">※必須</span>
-          <input type="email" name="email" value="<%= legal?.email || '' %>" required />
-        </label>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label>電話番号 <span class="help">任意</span>
-            <input type="tel" name="phone" value="<%= legal?.phone || '' %>" />
-          </label>
-        </div>
-        <div class="field">
-          <label>サイトURL <span class="help">任意</span>
-            <input type="url" name="website" value="<%= legal?.website || '' %>" />
-          </label>
-        </div>
-      </div>
-
-      <!-- 事業者の必須項目（下にまとめ、ラベルに「事業者の場合必須」） -->
-      <h3 class="muted" style="margin:14px 0 8px;">事業者の必須項目</h3>
-
-      <!-- name は共通フィールドなので説明で誘導 -->
-      <div class="field">
-        <label>販売業者（屋号/法人名） <span class="help">（事業者の場合必須）</span></label>
-        <p class="help" style="margin:4px 0 0;">
-          ※ 事業者の方は、上の「氏名（本名）」欄に屋号/法人名を入力してください。
-        </p>
-      </div>
-
-      <div class="field">
-        <label>運営責任者 <span class="help">（事業者の場合必須）</span>
-          <input type="text" name="responsible" value="<%= legal?.responsible || '' %>" />
-        </label>
-      </div>
-
-      <div class="field">
-        <label>適格請求書番号（インボイス） <span class="help">（事業者の場合必須）</span>
-          <input type="text" name="invoiceRegNo" value="<%= legal?.invoiceRegNo || '' %>" />
-        </label>
-      </div>
-
-      <label class="field" style="margin-top:8px;">
-        <span>
-          <input type="checkbox" name="publish" <%= legal?.published ? 'checked' : '' %> />
-          この情報を購入ページに表示することに同意します
-        </span>
-      </label>
+    <div class="card">
+      <h2 style="margin:0 0 8px;font-size:18px;">運営者の特商法表記</h2>
+      <p class="muted" style="margin:0 0 10px;">
+        Instant Sale の運営者情報は、以下のページに掲載しています。
+      </p>
+      <a class="btn btn--primary" href="/tokushoho">運営者の特商法表記を見る</a>
     </div>
 
-    <div class="row">
-      <button type="submit" class="btn primary">保存する</button>
-      <a class="btn" href="/creator">アップロードへ戻る</a>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+      <a class="btn" href="/creator">アップロード画面に戻る</a>
+      <a class="btn btn--ghost" href="/">トップへ</a>
     </div>
-  </form>
+  </section>
 </main>
 
 <footer class="site-footer">
   <div class="footer__links">
-    <a href="/terms">利用規約</a><span class="dot">•</span>
-    <a href="/privacy">プライバシーポリシー</a><span class="dot">•</span>
+    <a href="/terms">利用規約</a>
+    <span class="dot">•</span>
+    <a href="/privacy">プライバシーポリシー</a>
+    <span class="dot">•</span>
     <a href="/tokushoho">特定商取引法に基づく表記</a>
   </div>
   <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
 </footer>
-
-<script>
-// 動的切替は一旦停止（常に全項目表示）
-// ※ 事業者時にサーバ側で必須判定を強化する場合は、server.js の POST /creator/legal でバリデーションを追加。
-</script>
-
 </body>
 </html>

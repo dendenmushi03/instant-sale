@@ -613,43 +613,19 @@ app.get('/creator/legal', ensureAuthed, async (req, res) => {
 });
 
 app.post('/creator/legal', ensureAuthed, async (req, res) => {
-  const {
-    sellerType, // ← 追加: 'business' or 'individual'
-    name, responsible, address, phone, email, website, invoiceRegNo, publish
-  } = req.body;
-
-  const type = (sellerType === 'business') ? 'business' : 'individual';
-
-  // 種別に応じたサニタイズ（個人なら責任者/インボイスは空で保存）
-  const safeResponsible = (type === 'business') ? (responsible || '').trim() : '';
-  const safeInvoice     = (type === 'business') ? (invoiceRegNo || '').trim() : '';
-
-  const u = await User.findById(req.user._id);
-  u.legal = {
-    sellerType: type,                        // ★ 追加
-    name: (name||'').trim(),
-    responsible: safeResponsible,
-    address: (address||'').trim(),
-    phone: (phone||'').trim(),
-    email: (email||'').trim(),
-    website: (website||'').trim(),
-    invoiceRegNo: safeInvoice,
-    published: publish === 'on',
-    updatedAt: new Date()
-  };
-  await u.save();
-
-  return res.render('error', { message: '事業者情報を保存しました。<br><a href="/creator">アップロードへ戻る</a>' });
+  return res.status(405).render('error', {
+    message: 'このページからの登録は不要です（本サービスは個人ユーザー専用です）。<br><a href="/creator">アップロードへ戻る</a>'
+  });
 });
 
 app.get('/creator', ensureAuthed, async (req, res) => {
   const connect = await getConnectStatus(req.user);
 
-  // C2C化：事業者（business）のときだけ販売者情報を必須にする
+  // 個人専用運用：常に個人扱い（＝特商法入力は不要）
   const me = await User.findById(req.user._id).lean();
   const L = me?.legal || {};
-  const isBiz = L.sellerType === 'business';
-  const legalReady = isBiz ? !!(L.published && L.name && L.address && L.email) : true;
+  const isBiz = false;
+  const legalReady = true;
 
   res.render('upload', { baseUrl: BASE_URL, connect, legal: L, legalReady, isBiz });
 });
@@ -1014,19 +990,11 @@ if (USE_STRIPE_CONNECT && item.ownerUser) {
 }
 const destinationAccountId = seller?.stripeAccountId || null;
 
-// ★ 特商法の必須入力チェック（C2C化：事業者のみ）
-if (seller) {
-  const L = seller.legal || {};
-  const isBiz = L.sellerType === 'business';
-  if (isBiz) {
-    const hasBizLegal = !!L.published && !!L.name && !!L.address && !!L.email;
-    if (!hasBizLegal) {
-      return res.status(400).render('error', {
-        message: '（事業者向け）販売者情報の必須項目が未設定です。<br><a href="/creator/legal">販売者情報の設定</a> を先に完了してください。'
-      });
-      
-    }
-  }
+// 個人専用運用：事業者（business）は利用不可
+if (seller?.legal?.sellerType === 'business') {
+  return res.status(403).render('error', {
+    message: '本サービスは個人ユーザー専用です。事業者（法人・屋号）としてのご利用はできません。'
+  });
 }
 
 // 決済手段
