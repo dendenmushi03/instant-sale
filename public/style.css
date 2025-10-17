@@ -1,78 +1,3 @@
-/* === Light theme tokens === */
-:root{
-  --bg: #f7f8fb;
-  --surface: #ffffff;
-  --surface-2: #f3f4f6;
-  --text: #0b1324;
-  --text-muted:#475569;
-  --border:#e5e7eb;
-
-  --primary:#2563eb;
-  --primary-600:#1d4ed8;
-  --primary-50:#eff6ff;
-
-  --success:#16a34a;
-  --success-50:#ecfdf5;
-
-  --danger:#dc2626;
-  --danger-50:#fef2f2;
-}
-
-/* ベース */
-html,body{background:var(--bg); color:var(--text);}
-
-/* コンテナ/カード */
-.container{max-width:980px;margin:24px auto;padding:0 16px;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.04);}
-.row{display:flex;gap:12px;flex-wrap:wrap}
-
-/* ナビ */
-.nav{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);}
-.nav__brand{display:flex;align-items:center;gap:8px;padding:12px 16px;}
-.nav__right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:12px 16px;}
-.nav__brandText{font-weight:700;color:var(--text);}
-
-/* ボタン */
-.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
-  padding:.6rem .9rem;border-radius:.75rem;border:1px solid var(--border);background:var(--surface);
-  color:var(--text);cursor:pointer;transition:.15s ease;}
-.btn:hover{background:var(--surface-2);}
-.btn--primary{background:var(--primary);border-color:var(--primary);color:#fff;}
-.btn--primary:hover{background:var(--primary-600);}
-.btn--ghost{background:transparent;border-color:var(--border);}
-
-/* 入力 */
-input,select,textarea{
-  width:100%;padding:.65rem .75rem;border-radius:.65rem;border:1px solid var(--border);
-  background:#fff;color:var(--text);outline:none;
-}
-input:focus,select:focus,textarea:focus{border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-50);}
-
-/* アラート */
-.alert{border-radius:12px;padding:12px 14px;border:1px solid var(--border);}
-.alert--error{background:var(--danger-50); border-color:#fecaca; color:#991b1b;}
-
-/* 成功カード（旧：濃緑のやつ） */
-.card.success{background:var(--success-50);border-color:#bbf7d0;color:#14532d}
-
-/* フッタ */
-.site-footer{margin:32px 0 24px;text-align:center;color:var(--text-muted);}
-.footer__links a{color:var(--text-muted);}
-.footer__links .dot{margin:0 .4rem}
-
-/* モーダル共通 */
-.modal{
-  position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;
-  background:rgba(0,0,0,.4);
-}
-.modal__panel{
-  width:min(560px,92vw);background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;padding:18px 16px;color:var(--text);box-shadow:0 12px 30px rgba(0,0,0,.15);
-}
-.progress{height:10px;border-radius:6px;background:var(--surface-2);overflow:hidden}
-.progress__bar{height:100%;width:0%;transition:width .25s ease;background:var(--primary);}
-.progress__pct{text-align:right;margin-top:8px;font-variant-numeric:tabular-nums;color:var(--text-muted);}
-
 *,
 *::before,
 *::after { box-sizing: border-box; }
@@ -124,8 +49,7 @@ input[type="text"], input[type="password"], input[type="number"], input[type="fi
 .btn {
   display: inline-block; padding: 10px 16px; border-radius: 10px; background: #e5e7eb; color: #111827; border: none; cursor: pointer; text-decoration: none;
 }
-
-.btn.primary { background: var(--primary); color: #fff; }
+.btn.primary { background: #111827; color: #fff; }
 .btn:hover { opacity: 0.92; }
 
 .muted { color: #6b7280; }
@@ -414,6 +338,17 @@ textarea::placeholder {
   opacity: 1;
 }
 
+/* インプットの枠とフォーカスを見えやすく */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="file"],
+select,
+textarea {
+  /* 背景は既存の白を活かす前提。白でないテーマでも視認性をキープ */
+  border: 1px solid #9db3d9;
+  box-shadow: none;
+}
 input:focus,
 select:focus,
 textarea:focus {
@@ -531,7 +466,7 @@ img { max-width: 100%; height: auto; display: block; }
   .price { font-size: 1.35rem; }
 }
 
-.nav__logo { filter: none; }
+.nav__logo { filter: brightness(0) saturate(100%) invert(1); }
 
 .form--business [data-biz-only] { display: flex !important; }
 
