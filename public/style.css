@@ -1,613 +1,134 @@
+/* === Light theme tokens === */
+:root{
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --surface-2: #f3f4f6;
+  --text: #0b1324;
+  --text-muted:#475569;
+  --border:#e5e7eb;
+
+  --primary:#2563eb;
+  --primary-600:#1d4ed8;
+  --primary-50:#eff6ff;
+
+  --success:#16a34a;
+  --success-50:#ecfdf5;
+
+  --danger:#dc2626;
+  --danger-50:#fef2f2;
+}
+
+/* ベース */
 *,
 *::before,
 *::after { box-sizing: border-box; }
-html, body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Noto Sans JP", sans-serif; color: #101828; background: #f6f7fb; }
-a { color: #2563eb; text-decoration: none; }
+
+html, body { 
+  margin: 0;
+  background: var(--bg); 
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Noto Sans JP", sans-serif;
+}
+
+a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* ライトテーマの既定（body に .layout が付かないページ） */
-body:not(.layout) .site-header,
-body:not(.layout) .site-footer {
-  background:#fff;
-  border-bottom:1px solid #e5e7eb;
-  padding:12px 18px;
+/* コンテナ/カード/行 */
+.container{max-width:980px;margin:24px auto;padding:0 16px;}
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04);
 }
-body:not(.layout) .site-footer{
-  border-top:1px solid #e5e7eb;
-  border-bottom:none;
-  margin-top:40px;
-  text-align:center;
-  color:#64748b;
-}
-
-/* ダークレイアウトのページでは透明＆ダーク枠色に */
-body.layout .site-header,
-body.layout .site-footer{
-  background:transparent;
-  border-bottom:1px solid var(--border);
-  color:var(--text);
-}
-
-.logo { font-weight: 700; color: #111827; text-decoration: none; }
-
-h1 { font-size: 28px; margin: 12px 0 20px; }
-.card {
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-bottom: 16px;
-  box-shadow: 0 1px 2px rgba(16,24,40,0.04);
-}
-.card.success { border-color: #22c55e33; background: #f0fdf4; }
-.card.error { border-color: #ef444433; background: #fef2f2; }
-
-label { display:block; margin: 10px 0; font-weight: 600; font-size: 14px; }
-input[type="text"], input[type="password"], input[type="number"], input[type="file"] {
-  width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #fff;
-}
-
-.row { display: flex; gap: 12px; }
+.row{display:flex;gap:12px;flex-wrap:wrap}
 @media (max-width:640px){ .row { flex-direction: column; } }
 
-.btn {
-  display: inline-block; padding: 10px 16px; border-radius: 10px; background: #e5e7eb; color: #111827; border: none; cursor: pointer; text-decoration: none;
+/* 見出し */
+h1 { font-size: 28px; margin: 12px 0 20px; }
+
+/* ナビ */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
 }
-.btn.primary { background: #111827; color: #fff; }
-.btn:hover { opacity: 0.92; }
+.nav__brand{display:flex;align-items:center;gap:8px;padding:12px 16px;text-decoration:none;}
+.nav__logo{height:28px;width:auto;display:block;filter:none;} /* 反転しない */
+.nav__brandText{font-weight:700;color:var(--text);}
+.nav__right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:12px 16px;}
+.nav__user{ color: var(--text-muted); font-size: 14px; }
 
-.muted { color: #6b7280; }
-
-/* ここが “ロゴをタイル状に敷く透かし” 本体 */
-.product-imageWrap::after{
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("/public/logo.png"); /* ここにサイトのロゴ */
-  background-repeat: repeat;
-  background-size: 160px auto;  /* ロゴの大きさ（好みに合わせて） */
-  opacity: .10;                 /* 透過度（0.08〜0.16 くらいが目安） */
-  transform: rotate(-18deg) scale(1.15); /* 斜めにして格好よく */
-  pointer-events: none;
-  /* 必要に応じて下を試して見栄え調整
-     mix-blend-mode: screen;  または  multiply;
-     filter: saturate(0.9) brightness(1.1);
-  */
+/* ボタン */
+.btn{
+  appearance:none;
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:.6rem .9rem;border-radius:.75rem;border:1px solid var(--border);
+  background:var(--surface); color:var(--text);
+  cursor:pointer; transition:.15s ease;
+  text-decoration:none;
 }
+.btn:hover{background:var(--surface-2);}
+.btn--primary,
+.btn.primary{ /* 互換: .primary でもOK */
+  background:var(--primary); border-color:var(--primary); color:#fff;
+}
+.btn--primary:hover,
+.btn.primary:hover{ background:var(--primary-600); }
+.btn--ghost{ background:transparent; border-color:var(--border); }
 
-.product-info { flex: 1; }
-.price { font-size: 22px; font-weight: 700; margin: 12px 0 16px; }
-.hint { color: #6b7280; font-size: 13px; margin-top: 8px; }
+/* 入力 */
+label { display:block; margin: 10px 0; font-weight: 600; font-size: 14px; }
+input,select,textarea{
+  width:100%;padding:.65rem .75rem;border-radius:.65rem;border:1px solid var(--border);
+  background:#fff;color:var(--text);outline:none;font-size:14px;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-50);}
 
-/* legal pages */
+/* アラート */
+.alert{border-radius:12px;padding:12px 14px;border:1px solid var(--border);}
+.alert--error{background:var(--danger-50); border-color:#fecaca; color:#991b1b;}
+.card.success{background:var(--success-50);border-color:#bbf7d0;color:#14532d}
+
+/* フッタ */
+.site-footer{margin:32px 0 24px;text-align:center;color:var(--text-muted);}
+.footer__links a{color:var(--text-muted);}
+.footer__links .dot{margin:0 .4rem}
+
+/* ===== モーダル（共通） ===== */
+.modal{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;
+  background:rgba(0,0,0,.4);
+}
+.modal__panel{
+  width:min(560px,92vw);background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:18px 16px;color:var(--text);
+  box-shadow:0 12px 30px rgba(0,0,0,.15);
+}
+.progress{height:10px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.progress__bar{height:100%;width:0%;transition:width .25s ease;background:var(--primary);}
+.progress__pct{text-align:right;margin-top:8px;font-variant-numeric:tabular-nums;color:var(--text-muted);}
+
+/* legal pages（他ページでも使う想定の共通） */
 .legal-table{width:100%;border-collapse:collapse;margin:16px 0}
-.legal-table th,.legal-table td{border:1px solid #e5e7eb;padding:8px;vertical-align:top}
+.legal-table th,.legal-table td{border:1px solid var(--border);padding:8px;vertical-align:top}
 .legal h1,.legal h2{margin-top:1.2em}
 .legal ul{padding-left:1.2em}
 
-/* ===== Polished UI additions ===== */
-:root{
-  --bg: #0b1220;
-  --card: #11182a;
-  --muted: #6b7a95;
-  --border: #1c2540;
-  --accent: #86b7ff;
-  --accent-2: #6aa9ff;
-  --text: #eaf0ff;
-  --white: #fff;
-}
-
-html,body{ height:100%; }
-body.layout{
-  margin:0;
-  color:var(--text);
-  background:
-    radial-gradient(1200px 600px at 80% -10%, #20304d 0%, transparent 60%),
-    radial-gradient(1000px 600px at 0% 10%, #16223a 0%, transparent 60%),
-    linear-gradient(180deg, #0a111f 0%, #0b1220 100%);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
-}
-
-/* 画面全高までダーク背景を敷く＋フッターを最下部へ */
-body.layout{
-  min-height: 100dvh;               /* モバイルのUI領域変動にも強い */
-  display: flex;                    /* 縦積みレイアウト */
-  flex-direction: column;
-  /* background-attachment は使わない（下端の途切れ対策） */
-}
-
-/* 背景は擬似要素で画面全面に固定配置（途切れ防止の決定版） */
-body.layout::before{
-  content: "";
-  position: fixed;
-  inset: 0;             /* top:0; right:0; bottom:0; left:0 と同義 */
-  z-index: -1;
-  pointer-events: none; /* 背景なので操作を邪魔しない */
-  background:
-    radial-gradient(1200px 600px at 80% -10%, #20304d 0%, transparent 60%),
-    radial-gradient(1000px 600px at 0% 10%, #16223a 0%, transparent 60%),
-    linear-gradient(180deg, #0a111f 0%, #0b1220 100%);
-}
-
-/* main（= .container）を広げてフッターを押し下げる */
-body.layout > .container,
-body.layout main.container{
-  flex: 1 0 auto;
-}
-
-/* フッターは一番下に張り付く */
-.site-footer{
-  margin-top: auto;                 /* ここを追加 */
-}
-
-/* ---------- Nav ---------- */
-.nav{
-  position:sticky; top:0; z-index:10;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 20px; border-bottom:1px solid var(--border);
-  background:rgba(10,17,31,0.6); backdrop-filter:saturate(180%) blur(10px);
-}
-
-/* ブランド名テキストを非表示にして間隔を詰める */
-.nav__brandText { display: none !important; }
-.nav__brand { gap: 0; }  /* 画像だけになるので余白ゼロに */
-
-.nav__brand{
-  font-weight:800; letter-spacing:.2px; color:var(--white); text-decoration:none;
-}
-.nav__right{ display:flex; gap:12px; align-items:center; }
-.nav__user{ color:var(--muted); font-size:14px; }
-.inline{ display:inline; }
-
-/* ---------- Container / hero ---------- */
-.hero{ text-align:left; padding-top:56px; padding-bottom:56px; }
-.hero__title{ font-size:32px; margin:0 0 8px; }
-.hero__lead{ color:var(--muted); margin:0 0 28px; }
-.hero__actions{ display:flex; gap:12px; flex-wrap:wrap; }
-
-/* ---------- Buttons ---------- */
-.btn{
-  display:inline-flex; align-items:center; justify-content:center;
-  height:42px; padding:0 18px; border-radius:12px;
-  border:1px solid var(--border); color:var(--white);
-  text-decoration:none; font-weight:600; font-size:14px;
-  background:transparent; cursor:pointer; transition:all .2s ease;
-}
-.btn:hover{ transform:translateY(-1px); }
-.btn:active{ transform:translateY(0); }
-
-.btn--primary{
-  border-color:transparent;
-  background:linear-gradient(135deg, var(--accent), var(--accent-2));
-  color:#0b1220;
-  box-shadow:0 8px 24px rgba(102,153,255,.35);
-}
-.btn--primary:hover{ box-shadow:0 12px 28px rgba(102,153,255,.45);}
-.btn--soft{
-  background:rgba(255,255,255,.05);
-}
-.btn--ghost{
-  background:transparent; color:var(--text);
-}
-.btn--ghost:hover{
-  background:rgba(255,255,255,.06);
-}
-
-/* ---------- Footer ---------- */
-.site-footer{
-  border-top:1px solid var(--border);
-  padding:28px 20px 40px; text-align:center; color:var(--muted);
-}
-.footer__links{
-  display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:6px;
-}
-.footer__links a{ color:var(--accent); text-decoration:none; }
-.footer__links a:hover{ text-decoration:underline; }
-.footer__copy{ font-size:13px; }
-.dot{ color:var(--muted); user-select:none; }
-
-/* ---------- Small ---------- */
-@media (max-width:640px){
-  .hero__title{ font-size:26px; }
-  .hero{ padding-top:40px; padding-bottom:40px; }
-}
-
-/* ロゴ画像 & ヘッダー右エリアの整列 */
-.site-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-/* クリック面積を確保 */
-.site-header .logo {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-  line-height: 1;
-}
-
-.logo-img {
-  display: block;
-  height: 32px;       /* ヘッダーの高さに合わせて微調整 */
-  width: auto;
-  filter: drop-shadow(0 1px 0 rgba(0,0,0,.2));
-  transition: transform .15s ease, opacity .15s ease;
-}
-
-.site-header .logo:hover .logo-img {
-  transform: translateY(-1px);
-  opacity: .95;
-}
-
-/* 右側のログイン/名前エリアの体裁 */
-.header-right {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.inline-form { display: inline; }
-.me-name { color: #cfd8e3; font-size: 14px; }
-
-/* スクリーンリーダー専用(視覚的に非表示) */
-.sr-only {
-  position: absolute !important;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0,0,0,0);
-  white-space: nowrap; border: 0;
-}
-
-/* ロゴ画像のサイズ調整（インラインstyleの代わりに使う場合） */
-.nav__brand img {
-  height: 28px;
-  display: block;
-}
-
-.logo {
-  height: 36px;  /* ナビバーに収まる高さ */
-  width: auto;
-  vertical-align: middle;
-}
-/* nav ロゴの最低限のレイアウト（念のため） */
-.nav__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-}
-
-:root { --logoH: 36px; }  /* ← 好みで 40px などにしてOK */
-
-.nav__logo{
-  display:block;
-  height: var(--logoH);
-  width:auto;
-  object-fit: contain;
-}
-
-.nav__brandText {
-  font-weight: 700;
-}
-
-/* ===== Readability fixes on dark theme ===== */
-
-/* --- Dark layout: card variants & readability --- */
-body.layout .card{
-  background:#11182a;              /* 暗めのカード */
-  border:1px solid var(--border);
-  color:var(--text);
-}
-body.layout .card h1,
-body.layout .card p,
-body.layout .card a{
-  color:inherit;                   /* カード内はカードの文字色に合わせる */
-}
-
-/* エラー/サクセスの見やすい配色（ダーク用） */
-body.layout .card.error{
-  background:#2b0e12;              /* 深い赤背景 */
-  border-color:#7f1d1d;
-  color:#fecaca;                   /* しっかり読める淡赤 */
-}
-body.layout .card.error a{ color:#ffd5d5; }
-
-body.layout .card.success{
-  background:#0b2a1b;              /* 深い緑背景 */
-  border-color:#166534;
-  color:#bbf7d0;
-}
-
-/* 見出しを少し明るく・はっきり */
-.hero__title,
-.container h1,
-.container h2 {
-  color: #e7efff;
-}
-
-/* フォームのラベル/説明テキストを読みやすく */
-label,
-.form label,
-.legal th {
-  color: #cfe0ff;
-  font-weight: 600;
-}
-
-/* プレースホルダのコントラストを上げる */
-input::placeholder,
-textarea::placeholder {
-  color: #8aa0c6;
-  opacity: 1;
-}
-
-/* インプットの枠とフォーカスを見えやすく */
-input[type="text"],
-input[type="number"],
-input[type="email"],
-input[type="file"],
-select,
-textarea {
-  /* 背景は既存の白を活かす前提。白でないテーマでも視認性をキープ */
-  border: 1px solid #9db3d9;
-  box-shadow: none;
-}
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96,165,250,.35);
-}
-
-/* チェックボックスのラベルが薄くなるのを防止 */
-label > input[type="checkbox"] + * {
-  color: #d6e6ff;
-}
-
-/* アラート（注意喚起）: ダークUIで読みやすい配色 */
-.alert {
-  padding: 12px 14px;
-  margin: 12px 0 8px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  line-height: 1.6;
-  font-weight: 500;
-}
-.alert--error {
-  background: #2b0e12;      /* 深い赤の背景 */
-  border-color: #7f1d1d;     /* 赤系の境界線 */
-  color: #fecaca;            /* 薄すぎない淡い文字色 */
-}
-.alert--success {
-  background: #0b2a1b;      /* 深い緑の背景 */
-  border-color: #166534;     /* 緑系の境界線 */
-  color: #bbf7d0;            /* 明るい緑文字 */
-}
-
-/* ボタンの見やすさ（クラス名を統一） */
-.btn--primary,
-.btn.primary {
-  background: #3b82f6;
-  border: 1px solid #60a5fa;
-  color: #fff;
-}
-.btn--primary:hover,
-.btn.primary:hover {
-  background: #2563eb;
-  border-color: #93c5fd;
-}
-
-/* 右上ユーザー名も読みやすく */
-.nav__user {
-  color: #cfe0ff;
-}
-
-.hint,
-.muted {
-  color: #a9c0e6;  /* 既存より少し濃く */
-}
-
-/* =========================================================
-   Mobile friendly layout for sale page
-   ========================================================= */
-
-html, body { overflow-x: hidden; }
-
-img { max-width: 100%; height: auto; display: block; }
-
-/* コンテナの余白を少し広めに（スマホで読みやすく） */
-.container {
-  width: 100%;
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 24px;
-}
-
-/* 商品レイアウト：PC は 2 カラム、スマホは 1 カラム */
-.product {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 28px;
-  align-items: start;
-}
-
-/* 価格やボタンのタップしやすさ向上 */
-.price { font-size: 1.8rem; font-weight: 700; }
-
-.product-info form .btn,
-.product-info .btn {
-  width: 100%;              /* スマホではボタンを横いっぱい */
-  padding: 14px 16px;
-  font-size: 1rem;
-}
-
-/* 細かい行間・余白調整 */
-.product-info h1 { margin: 0 0 8px; line-height: 1.2; }
-.product-info .muted { opacity: .8; margin-bottom: 12px; }
-.hint { font-size: .9rem; opacity: .8; }
-
-/* ヘッダが大きすぎる時の縮小 */
-.nav { position: sticky; top: 0; z-index: 50; }
-.nav__brandText { white-space: nowrap; }
-
-/* ---------- スマホ用 ---------- */
-@media (max-width: 768px) {
-  .container { padding: 16px; }
-  .product {
-    grid-template-columns: 1fr;  /* 1 カラムに */
-    gap: 16px;
-  }
-
-  .price { font-size: 1.5rem; }
-  .site-footer .footer__links { gap: 8px; }
-}
-
-/* さらに小さい端末向け */
-@media (max-width: 360px) {
-  .container { padding: 12px; }
-  .price { font-size: 1.35rem; }
-}
-
-.nav__logo { filter: brightness(0) saturate(100%) invert(1); }
-
-.form--business [data-biz-only] { display: flex !important; }
-
-/* ライトボックス */
-.lightbox{
-  position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0,0,0,.92);
-  display: grid; grid-template-rows: auto 1fr; gap: 8px;
-  padding: 12px;
-}
-
-/* ライトボックスをビューポートいっぱいに（iOSの縮み対策） */
-.lightbox{ width:100vw; height:100dvh; }
-
-/* 指でドラッグしやすい見た目＋慣性スクロール */
-.lightbox__inner{ cursor: grab; -webkit-overflow-scrolling: touch; }
-.lightbox__inner:active{ cursor: grabbing; }
-
-/* 等倍⇄フィット切替ボタン */
-.lightbox__fit{
-  position: absolute; top: 12px; right: 48px;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.25);
-  color:#fff; border-radius:8px; padding:6px 10px;
-  font-size:13px; line-height:1; cursor:pointer;
-}
-
+/* ライトボックス（saleページ等で利用するなら残す。不要なら削除可） */
+.lightbox{ position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.92);
+  display: grid; grid-template-rows: auto 1fr; gap: 8px; padding: 12px; width:100vw; height:100dvh; }
 .lightbox[hidden]{ display:none; }
-
-.lightbox__close{
-  justify-self: end;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.25);
-  color: #fff; border-radius: 8px; padding: 6px 10px;
-  font-size: 20px; line-height: 1; cursor: pointer;
+.lightbox__inner{ overflow:auto; display:flex; align-items:center; justify-content:center; cursor: grab; -webkit-overflow-scrolling: touch; }
+.lightbox__inner:active{ cursor: grabbing; }
+.lightbox__img{ display:block; max-width:none; height:auto; }
+.lightbox__close,
+.lightbox__fit{
+  background: rgba(255,255,255,.9);
+  border: 1px solid var(--border);
+  color: var(--text); border-radius: 8px; padding: 6px 10px; cursor: pointer;
 }
-.lightbox__inner{
-  overflow: auto;                  /* はみ出した分はスクロール */
-  display: flex; align-items: center; justify-content: center;
-}
-.lightbox__img{
-  display:block;
-  max-width: none;                 /* ← 等倍で表示（縮めない） */
-  height: auto;
-}
-
-.product-imageWrap{
-  position: relative;
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border, #223);
-  background: #0f1115;     /* 下地は統一（好みで #000 でもOK） */
-  cursor: zoom-in;         /* 重複は一つに */
-  text-decoration: none;
-}
-
-.product-image{
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: contain;  /* トリミングしない */
-  border: 0;
-  border-radius: 0;
-}
-
-/* ================= Home page enhancement ================= */
-
-.heroHome{
-  padding: 48px 0 8px;
-}
-.heroHome__title{
-  font-size: clamp(28px, 5vw, 44px);
-  margin: 0 0 8px;
-  color: #e7efff;
-}
-.heroHome__lead{
-  color: var(--muted);
-  margin: 0 0 20px;
-}
-.heroHome__actions{ display:flex; gap:12px; flex-wrap:wrap; }
-.accent{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-
-.kpis{
-  display:flex; gap:16px; flex-wrap:wrap; list-style:none; padding:0; margin:18px 0 0;
-}
-.kpis li{
-  display:flex; flex-direction:column; gap:2px;
-  background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:12px;
-  padding:10px 12px; min-width:140px;
-}
-.kpis strong{ font-size:16px; color:#eaf0ff; }
-.kpis span{ color:var(--muted); font-size:13px; }
-
-.howto.card h2,
-.sample.card h2,
-.faq.card h2{ margin-top:0; }
-
-.steps{
-  display:grid; gap:14px; grid-template-columns: repeat(3, minmax(0,1fr));
-}
-.step{
-  background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:12px; padding:14px;
-}
-.step__num{
-  width:28px; height:28px; border-radius:50%;
-  display:grid; place-items:center; font-weight:700;
-  background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#0b1220;
-  margin-bottom:8px;
-}
-.howto__cta{ margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; }
-
-.sample__grid{
-  display:grid; gap:16px; grid-template-columns: 1.2fr .8fr;
-  align-items:start;
-}
-.sampleCard{
-  display:grid; grid-template-rows: auto 1fr; gap:10px;
-  border:1px solid var(--border); border-radius:12px; overflow:hidden;
-  background:#0f111a; text-decoration:none;
-}
-.sampleCard__img img{ display:block; width:100%; height:auto; }
-.sampleCard__body{ padding:12px; }
-.sample__points{ margin:0; padding-left:18px; color:var(--muted); }
-
-.faq details{
-  background:rgba(255,255,255,.03);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px 12px; margin:8px 0;
-}
-.faq summary{ cursor:pointer; font-weight:600; }
-
-.ctaBand{
-  margin-top:16px; padding:20px; text-align:center;
-  border:1px dashed var(--border);
-  border-radius:14px; background:rgba(255,255,255,.03);
-}
-.ctaBand h2{ margin:0 0 8px; }
-
-@media (max-width: 960px){
-  .sample__grid{ grid-template-columns: 1fr; }
-  .steps{ grid-template-columns: 1fr; }
-}
+.lightbox__fit{ position:absolute; top:12px; right:48px; font-size:13px; }

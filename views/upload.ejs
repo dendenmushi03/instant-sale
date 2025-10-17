@@ -9,13 +9,14 @@
   <link rel="icon" href="/public/logo.png" />
 
   <style>
-    .setup{display:grid;gap:12px;margin:12px 0}
-    .setup__item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.03)}
-    .setup__status{font-size:20px;min-width:24px;text-align:center}
-    .setup__body{flex:1}
-    .setup__title{font-weight:700}
-    .setup__desc{opacity:.85;font-size:.95em}
-  </style>
+  .setup{display:grid;gap:12px;margin:12px 0}
+  .setup__item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+  .setup__status{font-size:20px;min-width:24px;text-align:center}
+  .setup__body{flex:1}
+  .setup__title{font-weight:700}
+  .setup__desc{opacity:.85;font-size:.95em}
+</style>
+
 </head>
 
 <body class="layout">
@@ -105,8 +106,8 @@
   <input type="checkbox" name="attestOwner" required />
   私はこの画像の権利者（または正当に販売可能な権利保有者）です
 </label>
-      <button type="submit" class="btn primary">販売ページを作成</button>
-    </form>
+<button type="submit" class="btn btn--primary">販売ページを作成</button>
+</form>
 
   </main>
 
@@ -121,29 +122,26 @@
   <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
 </footer>
 
-<!-- 作成中モーダル -->
-<div id="progressModal" aria-hidden="true" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;">
-  <div style="width:min(520px,92vw);background:#0f1a2a;border:1px solid #314156;border-radius:12px;padding:20px 18px;box-shadow:0 8px 28px rgba(0,0,0,.35);color:#dbe7ff;">
+<div id="progressModal" class="modal" aria-hidden="true" style="display:none;">
+  <div class="modal__panel">
     <h3 style="margin:0 0 8px;font-size:18px;">販売ページを作成しています…</h3>
-    <p id="progressPhase" style="margin:0 0 12px;opacity:.9">アップロード中</p>
-    <div style="height:10px;border-radius:6px;background:#18263a;overflow:hidden">
-      <div id="progressBar" style="height:100%;width:0%;transition:width .25s ease"></div>
+    <p id="progressPhase" style="margin:0 0 12px;color:var(--text-muted)">アップロード中</p>
+    <div class="progress">
+      <div id="progressBar" class="progress__bar"></div>
     </div>
-    <p id="progressPct" style="margin:8px 0 0;text-align:right;font-variant-numeric:tabular-nums">0%</p>
+    <p id="progressPct" class="progress__pct">0%</p>
 
     <!-- ★ 完了時にURLを表示するエリア（モーダル内・初期は非表示） -->
     <div id="resultInModal" style="display:none;margin-top:14px;">
       <div style="font-weight:700;margin:0 0 8px;">販売ページができました！</div>
-      <input id="resultUrlInModal" type="text" readonly
-             style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
+      <input id="resultUrlInModal" type="text" readonly>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
         <button type="button" id="copyResultUrl" class="btn">URLをコピー</button>
         <a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener">販売ページを開く</a>
         <button type="button" id="closeModal" class="btn btn--ghost">閉じる</button>
       </div>
-      <p style="margin:10px 0 0;">このURLをX/Instagramに貼ると、OGP付きで見栄えよく表示されます。</p>
+      <p style="margin:10px 0 0;color:var(--text-muted)">このURLをX/Instagramに貼ると、OGP付きで見栄えよく表示されます。</p>
     </div>
-    <!-- /resultInModal -->
   </div>
 </div>
 
