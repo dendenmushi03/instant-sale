@@ -1,20 +1,19 @@
 <!doctype html>
 <html lang="ja">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Upload | Instant Sale</title>
   <link rel="stylesheet" href="/public/style.css" />
-</head>
-
-<style>
-  .setup{display:grid;gap:12px;margin:12px 0}
-  .setup__item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.03)}
-  .setup__status{font-size:20px;min-width:24px;text-align:center}
-  .setup__body{flex:1}
-  .setup__title{font-weight:700}
-  .setup__desc{opacity:.85;font-size:.95em}
-</style>
+  <style>
+    .setup{display:grid;gap:12px;margin:12px 0}
+    .setup__item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.03)}
+    .setup__status{font-size:20px;min-width:24px;text-align:center}
+    .setup__body{flex:1}
+    .setup__title{font-weight:700}
+    .setup__desc{opacity:.85;font-size:.95em}
+  </style>
 </head>
 
 <body class="layout">
@@ -126,21 +125,6 @@
   </div>
   <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
 </footer>
-  
-</body>
-</html>
-
-<!-- 作成中モーダル -->
-<div id="progressModal" aria-hidden="true" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;">
-  <div style="width:min(520px,92vw);background:#0f1a2a;border:1px solid #314156;border-radius:12px;padding:20px 18px;box-shadow:0 8px 28px rgba(0,0,0,.35);color:#dbe7ff;">
-    <h3 style="margin:0 0 8px;font-size:18px;">販売ページを作成しています…</h3>
-    <p id="progressPhase" style="margin:0 0 12px;opacity:.9">アップロード中</p>
-    <div style="height:10px;border-radius:6px;background:#18263a;overflow:hidden">
-      <div id="progressBar" style="height:100%;width:0%;background:#3da6ff;transition:width .25s ease"></div>
-    </div>
-    <p id="progressPct" style="margin:8px 0 0;text-align:right;font-variant-numeric:tabular-nums">0%</p>
-  </div>
-</div>
 
 <!-- 成功表示（AJAX時にここへ描画） -->
 <div id="ajaxResultBox" style="display:none;margin-top:16px;">
@@ -151,99 +135,104 @@
   </div>
 </div>
 
+<!-- 作成中モーダル -->
+<div id="progressModal" aria-hidden="true" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;">
+  <div style="width:min(520px,92vw);background:#0f1a2a;border:1px solid #314156;border-radius:12px;padding:20px 18px;box-shadow:0 8px 28px rgba(0,0,0,.35);color:#dbe7ff;">
+    <h3 style="margin:0 0 8px;font-size:18px;">販売ページを作成しています…</h3>
+    <p id="progressPhase" style="margin:0 0 12px;opacity:.9">アップロード中</p>
+    <div style="height:10px;border-radius:6px;background:#18263a;overflow:hidden">
+      <div id="progressBar" style="height:100%;width:0%;transition:width .25s ease"></div>
+    </div>
+    <p id="progressPct" style="margin:8px 0 0;text-align:right;font-variant-numeric:tabular-nums">0%</p>
+  </div>
+</div>
+
 <script>
 (function() {
   const form = document.querySelector('form[action="/upload"]');
   if (!form) return;
 
-  // 既存サーバーレンダリングも残したいので、AJAXが使えない場合だけ通常submitへフォールバック
   form.addEventListener('submit', function (ev) {
-    try {
-      // ファイルがない等の早期バリデーションは既存に任せる
-      ev.preventDefault();
+    ev.preventDefault();
 
-      const modal = document.getElementById('progressModal');
-      const bar   = document.getElementById('progressBar');
-      const pct   = document.getElementById('progressPct');
-      const phase = document.getElementById('progressPhase');
-      const resultBox = document.getElementById('ajaxResultBox');
-      const resultUrl = document.getElementById('ajaxResultUrl');
+    const modal = document.getElementById('progressModal');
+    const bar   = document.getElementById('progressBar');
+    const pct   = document.getElementById('progressPct');
+    const phase = document.getElementById('progressPhase');
+    const resultBox = document.getElementById('ajaxResultBox');
+    const resultUrl = document.getElementById('ajaxResultUrl');
 
-      // リセット
-      resultBox.style.display = 'none';
-      bar.style.width = '0%';
-      pct.textContent = '0%';
-      phase.textContent = 'アップロード中';
-      modal.style.display = 'flex';
-
-      const fd = new FormData(form);
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', form.action);
-      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-
-      // ① アップロード進捗（～70%まで反映）
-      xhr.upload.onprogress = function (e) {
-        if (!e.lengthComputable) return;
-        const p = Math.min(70, Math.floor((e.loaded / e.total) * 70));
-        bar.style.width = p + '%';
-        pct.textContent = p + '%';
-      };
-
-      // ② 送信完了→サーバ処理中は疑似的に 95% までじわっと進める
-      xhr.upload.onload = function () {
-        phase.textContent = '画像処理・サムネ生成中';
-        let v = parseInt(bar.style.width) || 70;
-        const timer = setInterval(() => {
-          if (v >= 95) return clearInterval(timer);
-          v += 1;
-          bar.style.width = v + '%';
-          pct.textContent = v + '%';
-        }, 120);
-      };
-
-      // ③ 完了
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState !== 4) return;
-        try {
-          const res = JSON.parse(xhr.responseText || '{}');
-
-          if (xhr.status >= 200 && xhr.status < 300 && res.ok && res.createdUrl) {
-            phase.textContent = '完了';
-            bar.style.width = '100%';
-            pct.textContent = '100%';
-
-            // 少し待ってからモーダルを閉じ、成功カード表示
-            setTimeout(() => {
-              modal.style.display = 'none';
-              resultUrl.value = res.createdUrl;
-              resultBox.style.display = 'block';
-
-              // 入力の後処理（ファイルやチェックをクリア）
-              const file = form.querySelector('input[type="file"]');
-              if (file) file.value = '';
-              const chk = form.querySelector('input[type="checkbox"]');
-              if (chk) chk.checked = false;
-            }, 350);
-          } else {
-            throw new Error(res.message || 'サーバーエラーが発生しました。');
-          }
-        } catch (err) {
-          modal.style.display = 'none';
-          alert(err.message || 'アップロードに失敗しました。しばらくしてから再度お試しください。');
-          // フォールバック（失敗時は従来の同期POSTで再送してもらえるように）
-          // form.submit(); ← 自動再送は誤爆しやすいのでやらない
-        }
-      };
-
-      xhr.onerror = function () {
-        modal.style.display = 'none';
-        alert('ネットワークエラーが発生しました。通信環境をご確認のうえ再度お試しください。');
-      };
-
-      xhr.send(fd);
-    } catch (_) {
-      // 例外時は既存のデフォルト動作に任せる
+    // 取得できなければ通常 submit にフォールバック
+    if (!modal || !bar || !pct || !phase || !resultBox || !resultUrl) {
+      form.submit();
+      return;
     }
+
+    // リセット & 表示
+    resultBox.style.display = 'none';
+    bar.style.width = '0%';
+    pct.textContent = '0%';
+    phase.textContent = 'アップロード中';
+    modal.style.display = 'flex';
+
+    const fd = new FormData(form);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', form.action);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+    xhr.upload.onprogress = function (e) {
+      if (!e.lengthComputable) return;
+      const p = Math.min(70, Math.floor((e.loaded / e.total) * 70));
+      bar.style.width = p + '%';
+      pct.textContent = p + '%';
+    };
+
+    xhr.upload.onload = function () {
+      phase.textContent = '画像処理・サムネ生成中';
+      let v = parseInt(bar.style.width) || 70;
+      const timer = setInterval(() => {
+        if (v >= 95) return clearInterval(timer);
+        v += 1;
+        bar.style.width = v + '%';
+        pct.textContent = v + '%';
+      }, 120);
+    };
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      try {
+        const res = JSON.parse(xhr.responseText || '{}');
+        if (xhr.status >= 200 && xhr.status < 300 && res.ok && res.createdUrl) {
+          phase.textContent = '完了';
+          bar.style.width = '100%';
+          pct.textContent = '100%';
+          setTimeout(() => {
+            modal.style.display = 'none';
+            resultUrl.value = res.createdUrl;
+            resultBox.style.display = 'block';
+            const file = form.querySelector('input[type="file"]');
+            if (file) file.value = '';
+            const chk = form.querySelector('input[type="checkbox"]');
+            if (chk) chk.checked = false;
+          }, 350);
+        } else {
+          throw new Error(res.message || 'サーバーエラーが発生しました。');
+        }
+      } catch (err) {
+        modal.style.display = 'none';
+        alert(err.message || 'アップロードに失敗しました。しばらくしてから再度お試しください。');
+      }
+    };
+
+    xhr.onerror = function () {
+      modal.style.display = 'none';
+      alert('ネットワークエラーが発生しました。通信環境をご確認のうえ再度お試しください。');
+    };
+
+    xhr.send(fd);
   });
 })();
 </script>
+
+</body>
+</html>
