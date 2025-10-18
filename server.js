@@ -894,6 +894,12 @@ const og = {
       }
     }
 
+// ▼ 特商法リンクのフォールバック先を決める（販売者ページが公開されていなければ /tokushoho）
+let tokushohoUrl = '/tokushoho';
+if (seller && sellerLegal) {
+    tokushohoUrl = `/legal/seller/${seller._id}`;
+}
+
 const fullRelNoSlash   = `previews/${item.slug}-full.jpg`;
 const stripeRelNoSlash = `previews/${item.slug}-stripe.jpg`;
 const fullAbs   = path.join(__dirname, fullRelNoSlash);
@@ -923,7 +929,8 @@ try {
       connect,
       seller: seller || {},            // ← undefined ではなく {}
       sellerLegal: sellerLegal || null,
-      displayImagePath
+      displayImagePath,
+      tokushohoUrl
     });
 
   } catch (e) {

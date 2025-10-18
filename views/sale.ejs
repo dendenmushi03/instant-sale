@@ -103,9 +103,7 @@ const sellerDisplayName =
 
 <div class="muted">
   販売事業者： <%= sellerDisplayName %>
-  <% if (seller && seller._id) { %>
-    （<a href="/legal/seller/<%= seller._id %>" target="_blank" rel="noopener">特定商取引法に基づく表示</a>）
-  <% } %>
+  （<a href="<%= tokushohoUrl %>" rel="nofollow">特定商取引法に基づく表示</a>）
 </div>
 
 <div class="muted" style="margin-top:8px;">
