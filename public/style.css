@@ -62,7 +62,9 @@ input[type="text"], input[type="password"], input[type="number"], input[type="fi
   background-image: url("/public/logo.png"); /* ここにサイトのロゴ */
   background-repeat: repeat;
   background-size: 160px auto;  /* ロゴの大きさ（好みに合わせて） */
-  opacity: .10;                 /* 透過度（0.08〜0.16 くらいが目安） */
+opacity: .18;          /* ← 少し濃く */
+ /* 必要ならコントラストも少し上げる */
+ filter: saturate(1.05) brightness(1.05);
   transform: rotate(-18deg) scale(1.15); /* 斜めにして格好よく */
   pointer-events: none;
   /* 必要に応じて下を試して見栄え調整

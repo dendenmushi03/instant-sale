@@ -684,7 +684,7 @@ const previewBase = await sharp(req.file.path)
 const svg = Buffer.from(`
   <svg width="1200" height="630">
     <style>
-      .wmark { fill: rgba(255,255,255,0.25); font-size: 110px; font-weight: 700; }
+      .wmark { fill: rgba(255,255,255,0.35); font-size: 110px; font-weight: 700; }
     </style>
     <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="wmark">SAMPLE</text>
   </svg>
@@ -727,7 +727,8 @@ const fh = Math.max(1, fullMeta.height || 1200);
 const wmSize = Math.round(Math.min(fw, fh) * 0.14);
 const svgFull = Buffer.from(`
   <svg width="${fw}" height="${fh}" xmlns="http://www.w3.org/2000/svg">
-    <style>.wm{ fill: rgba(255,255,255,.25); font-size: ${wmSize}px; font-weight: 700; }</style>
+
+    <style>.wm{ fill: rgba(255,255,255,.38); font-size: ${wmSize}px; font-weight: 700; }</style>
     <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
       class="wm" transform="rotate(-18 ${fw/2} ${fh/2})">SAMPLE</text>
   </svg>
@@ -970,7 +971,7 @@ app.get('/view/:slug', async (req, res) => {
     const fontSize = Math.round(Math.min(w, h) * 0.14);
     const svg = Buffer.from(`
       <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-        <style>.wm{ fill: rgba(255,255,255,.25); font-size: ${fontSize}px; font-weight: 700; }</style>
+        <style>.wm{ fill: rgba(255,255,255,.38); font-size: ${fontSize}px; font-weight: 700; }</style>
         <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
               class="wm" transform="rotate(-18 ${w/2} ${h/2})">SAMPLE</text>
       </svg>
