@@ -33,6 +33,10 @@ const PREVIEW_DIR = path.join(ROOT_DIR, 'previews');
 const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production';
 
+// --- Asset version for cache-busting (prod: set ASSET_VER env) ---
+const PKG_VER  = (() => { try { return require('./package.json').version || ''; } catch { return ''; } })();
+const ASSET_VER = process.env.ASSET_VER || PKG_VER || 'v1';
+
 const RAW_BASE_URL = process.env.BASE_URL;
 if (isProd && !RAW_BASE_URL) {
   throw new Error('BASE_URL is required in production');
@@ -121,6 +125,12 @@ app.use(passport.session());
 // ★ Webhook は JSON パーサより前に raw を先適用
 app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
+// どのテンプレートからも使えるように
+app.use((req, res, next) => {
+  res.locals.assetVer = ASSET_VER;
+  next();
+});
+
 // ★ 追加：各リクエスト毎に CSP 用の nonce を作ってビューへ渡す
 app.use((req, res, next) => {
   res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
@@ -177,12 +187,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// どちらのURLでも配信できるように二本立てにします
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use('/public', express.static(path.join(__dirname, 'public')));
+// 本番は 1 年キャッシュ + immutable（URLに ?v=xxx を付けて破棄）
+app.use('/public', express.static(path.join(__dirname, 'public'), {
+  maxAge: isProd ? '365d' : 0,
+  immutable: !!isProd,
+  etag: true,
+  lastModified: true
+}));
 
 // ★ 追加：/favicon.ico への直リンクをロゴで返す（簡易対応）
 app.get('/favicon.ico', (req, res) => {

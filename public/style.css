@@ -628,3 +628,34 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* モーダル表示中は背景スクロールをロック */
 body.modal-open{ overflow:hidden; touch-action:none; overscroll-behavior:contain; height:100dvh; }
+
+/* ===== Modal (progress) ===== */
+.modal{
+  position: fixed;
+  inset: 0;                /* top/right/bottom/left:0 */
+  display: none;           /* JSで 'flex' に切替 */
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background: rgba(0,0,0,.45);  /* 背景を暗く */
+  padding: 16px;           /* 端末のノッチ等でも余白確保 */
+  width: 100vw;
+  height: 100dvh;          /* iOS Safari対策：画面高にフィット */
+}
+
+.modal__panel{
+  width: min(560px, 92vw);
+  max-height: 90dvh;       /* はみ出し防止（モバイル） */
+  overflow: auto;
+  background: #11182a;     /* ダークUIに合わせる */
+  color: var(--text, #eaf0ff);
+  border: 1px solid var(--border, #1c2540);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.45);
+}
+
+/* 進捗バーの見た目（任意だが入れておくと綺麗） */
+.progress{ height:10px; background:rgba(255,255,255,.08); border-radius:8px; overflow:hidden; }
+.progress__bar{ height:100%; width:0%; background:linear-gradient(135deg,var(--accent,#86b7ff),var(--accent-2,#6aa9ff)); }
+.progress__pct{ text-align:right; margin:6px 0 0; opacity:.85; }
