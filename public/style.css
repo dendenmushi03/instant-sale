@@ -625,3 +625,6 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: 18px;           /* 見やすく */
   line-height: 1.25;
 }
+
+/* モーダル表示中は背景スクロールをロック */
+body.modal-open{ overflow:hidden; touch-action:none; overscroll-behavior:contain; height:100dvh; }

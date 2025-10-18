@@ -106,25 +106,28 @@
   <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
 </footer>
 
-<div id="progressModal" class="modal" aria-hidden="true" style="display:none;">
-  <div class="modal__panel">
-    <h3 style="margin:0 0 8px;font-size:18px;">販売ページを作成しています…</h3>
-    <p id="progressPhase" style="margin:0 0 12px;color:var(--text-muted)">アップロード中</p>
+<!-- 作成中モーダル（共通クラス版：スマホでも確実に全画面） -->
+<div id="progressModal" class="modal" aria-hidden="true">
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="progressTitle">
+    <h3 id="progressTitle" style="margin:0 0 8px;font-size:18px;">販売ページを作成しています…</h3>
+    <p id="progressPhase" style="margin:0 0 12px;opacity:.9">アップロード中</p>
+
     <div class="progress">
       <div id="progressBar" class="progress__bar"></div>
     </div>
     <p id="progressPct" class="progress__pct">0%</p>
 
-    <!-- ★ 完了時にURLを表示するエリア（モーダル内・初期は非表示） -->
+    <!-- 完了エリア -->
     <div id="resultInModal" style="display:none;margin-top:14px;">
       <div style="font-weight:700;margin:0 0 8px;">販売ページができました！</div>
-      <input id="resultUrlInModal" type="text" readonly>
+      <input id="resultUrlInModal" type="text" readonly
+             style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
         <button type="button" id="copyResultUrl" class="btn">URLをコピー</button>
         <a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener">販売ページを開く</a>
         <button type="button" id="closeModal" class="btn btn--ghost">閉じる</button>
       </div>
-      <p style="margin:10px 0 0;color:var(--text-muted)">このURLをX/Instagramに貼ると、OGP付きで見栄えよく表示されます。</p>
+      <p style="margin:10px 0 0;">このURLをX/Instagramに貼ると、OGP付きで見栄えよく表示されます。</p>
     </div>
   </div>
 </div>
@@ -159,7 +162,9 @@ if (resultBox) resultBox.style.display = 'none';
 bar.style.width = '0%';
     pct.textContent = '0%';
     phase.textContent = 'アップロード中';
-    modal.style.display = 'flex';
+
+modal.style.display = 'flex';
+document.body.classList.add('modal-open');   // ← 追加（スマホで背景を止める）
 
     // ★ 追加：二重送信防止（送信ボタンの無効化と文言変更）
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -241,10 +246,11 @@ if (resultBox) resultBox.style.display = 'none';
 
     // 閉じる → モーダル閉じてフォームだけ初期化
     if (closeBtn) {
-      closeBtn.onclick = () => {
-        modal.style.display = 'none';
-        resultWrap.style.display = 'none';
-      };
+closeBtn.onclick = () => {
+  modal.style.display = 'none';
+  document.body.classList.remove('modal-open'); // 背景ロック解除
+  resultWrap.style.display = 'none';
+};
     }
   }
 
@@ -262,8 +268,9 @@ if (resultBox) resultBox.style.display = 'none';
   }
 }, 350);
 
-      } else {
-        modal.style.display = 'none';
+} else {
+  modal.style.display = 'none';
+  document.body.classList.remove('modal-open'); // 背景ロック解除
 
         // ★ 追加：ボタンを復帰
         (function restoreBtn() {
@@ -285,18 +292,19 @@ if (resultBox) resultBox.style.display = 'none';
       }
     };
 
-    xhr.onerror = function () {
-      modal.style.display = 'none';
+xhr.onerror = function () {
+  modal.style.display = 'none';
+  document.body.classList.remove('modal-open'); // 背景ロック解除
 
-      // ★ 追加：ボタンを復帰
-      const submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = submitBtn.dataset.origText || '販売ページを作成';
-      }
+  // ★ 追加：ボタンを復帰
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = submitBtn.dataset.origText || '販売ページを作成';
+  }
 
-      alert('ネットワークエラーが発生しました。通信環境をご確認ください。');
-    };
+  alert('ネットワークエラーが発生しました。通信環境をご確認ください。');
+};
 
     xhr.send(fd);
   });
