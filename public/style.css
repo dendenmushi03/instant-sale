@@ -661,3 +661,44 @@ body.modal-open{ overflow:hidden; touch-action:none; overscroll-behavior:contain
 .progress{ height:10px; background:rgba(255,255,255,.08); border-radius:8px; overflow:hidden; }
 .progress__bar{ height:100%; width:0%; background:linear-gradient(135deg,var(--accent,#86b7ff),var(--accent-2,#6aa9ff)); }
 .progress__pct{ text-align:right; margin:6px 0 0; opacity:.85; }
+
+/* Stripe接続カード */
+.connectRow{
+  display:flex; align-items:center; gap:16px;
+  padding:14px 16px; border:1px solid var(--border);
+  background:rgba(255,255,255,.03); border-radius:12px;
+}
+.connectRow__left{ flex:1; min-width:0; }
+.connectRow__head{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.connectRow__title{ margin:0; font-size:16px; font-weight:700; color:#eaf0ff; }
+.connectRow__desc{ margin:0; color:var(--muted); font-size:14px; }
+
+.chip{
+  display:inline-flex; align-items:center; gap:6px;
+  height:26px; padding:0 10px; border-radius:999px;
+  font-size:12px; font-weight:700; letter-spacing:.2px;
+  border:1px solid transparent;
+}
+.chip--ok{
+  color:#0b2015; background:#34d399; border-color:#10b981;
+  box-shadow:0 4px 14px rgba(16,185,129,.2);
+}
+.chip--warn{
+  color:#3b1a1a; background:#fecaca; border-color:#f87171;
+  box-shadow:0 4px 14px rgba(248,113,113,.18);
+}
+
+.btn--lg{ height:46px; padding:0 20px; font-size:15px; }
+
+/* 情報補足 */
+.hintBox{
+  margin-top:10px; padding:10px 12px;
+  border:1px dashed var(--border); border-radius:10px;
+  color:var(--muted); font-size:13px;
+}
+
+/* モバイル最適化 */
+@media (max-width:640px){
+  .connectRow{ flex-direction:column; align-items:stretch; }
+  .btn--lg{ width:100%; }
+}

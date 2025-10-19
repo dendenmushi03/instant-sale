@@ -55,19 +55,38 @@
 <% if (typeof connect !== 'undefined') { 
      const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
 %>
-  <section class="setup">
 
-    <!-- 振込口座（Stripe）のみ -->
-    <div class="setup__item">
-      <div class="setup__status"><%= connectReady ? '✅' : '⏳' %></div>
-      <div class="setup__body"></div>
-      <a class="btn btn--primary" href="/connect/onboard">
-        <%= connectReady ? '確認/更新（Stripe）' : '振込口座を登録（Stripe）' %>
-      </a>
+<section class="setup">
+  <div class="connectRow">
+    <div class="connectRow__left">
+      <div class="connectRow__head">
+        <% if (connectReady) { %>
+          <span class="chip chip--ok" aria-live="polite">受取設定 OK</span>
+        <% } else { %>
+          <span class="chip chip--warn" aria-live="polite">受取設定が未完了</span>
+        <% } %>
+        <h3 class="connectRow__title">Stripe 受取設定</h3>
+      </div>
+
+      <p class="connectRow__desc">
+        売上の入金先口座と本人確認を <strong>Stripe</strong> で設定します。
+        <%= connectReady ? '内容の確認・変更ができます。' : '未設定のままでは売上の受け取りができません。' %>
+      </p>
     </div>
 
-  </section>
-<% } %>
+    <a class="btn btn--primary btn--lg" href="/connect/onboard">
+      <%= connectReady ? '確認 / 更新（Stripe）' : 'はじめる（Stripe）' %>
+    </a>
+  </div>
+
+  <% if (!connectReady) { %>
+    <div class="hintBox" role="note">
+      本人確認書類（免許証 など）と、受取用の銀行口座が必要です。所要 5–10 分程度。
+    </div>
+  <% } %>
+</section>
+
+  <% } %>
    
     <form class="card" action="/upload" method="post" enctype="multipart/form-data">
       <label>タイトル
