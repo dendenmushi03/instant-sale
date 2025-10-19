@@ -720,3 +720,34 @@ body.modal-open{ overflow:hidden; touch-action:none; overscroll-behavior:contain
   .alert--with-cta{ flex-direction:column; align-items:stretch; }
   .alert--with-cta .btn{ width:100%; }
 }
+
+/* ===== Status chips ===== */
+.chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px;
+  line-height:1; border:1px solid transparent; user-select:none;
+}
+.chip--lg{ padding:8px 12px; font-size:13px; }
+.chip__icon{ font-weight:900; font-size:1.05em; line-height:1; }
+
+.chip--ok{
+  color:#065f46; background:#d1fae5; border-color:#a7f3d0;
+}
+body.layout .chip--ok{
+  color:#baffd5; background:rgba(16,185,129,.18); border-color:rgba(16,185,129,.45);
+}
+
+.chip--warn{
+  color:#7f1d1d; background:#fee2e2; border-color:#fecaca;
+}
+body.layout .chip--warn{
+  color:#ffdada; background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.35);
+}
+
+/* ===== Alert with icon (success banner) ===== */
+.alert--with-icon{
+  display:flex; align-items:flex-start; gap:10px;
+}
+.alert__icon{
+  font-size:18px; line-height:1; margin-top:2px;
+}
