@@ -744,6 +744,21 @@ body.layout .chip--warn{
   margin-top:0;         /* ずれ防止 */
 }
 
+/* 上段(アイコン+テキスト)だけを横並びで固定 */
+.alert__main{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:1 1 auto;
+  min-width:0;              /* 折返しバグ防止 */
+}
+
+/* モバイルでも上段だけは横並びのまま。CTAは下段(縦積み)でOK */
+@media (max-width:640px){
+  .alert--with-cta{ flex-direction:column; } /* 既存前提 */
+  .alert__main{ align-items:flex-start; }    /* 行頭揃えで自然に見せる */
+}
+
 /* ===== Prominent alerts (成功・警告の大きめカード) ===== */
 .alert--prominent{
   display:flex; align-items:flex-start; gap:12px;

@@ -59,13 +59,19 @@
 
 <% if (!connectReady) { %>
 
-  <div class="alert alert--error alert--prominent alert--with-icon alert--with-cta"
+<div class="alert alert--error alert--prominent alert--with-icon alert--with-cta"
      role="alert" aria-live="assertive" style="margin-top:12px;">
-  <span class="alert__icon" aria-hidden="true">⚠️</span>
-  <div class="alert__text">
-    <strong class="alert__title">受取設定が未完了です</strong>
-    <span class="alert__desc">売上の受け取りには、振込口座の登録（Stripe）と本人確認が必要です。</span>
+  <!-- ↑ バナー全体は縦積み（上段：本文、下段：ボタン） -->
+
+  <!-- 追加：上段を横並びで固定するラッパー -->
+  <div class="alert__main">
+    <span class="alert__icon" aria-hidden="true">⚠️</span>
+    <div class="alert__text">
+      <strong class="alert__title">受取設定が未完了です</strong>
+      <span class="alert__desc">売上の受け取りには、振込口座の登録（Stripe）と本人確認が必要です。</span>
+    </div>
   </div>
+
   <a class="btn btn--primary btn--compact" href="/connect/onboard">はじめる（Stripe）</a>
 </div>
 
