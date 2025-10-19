@@ -73,14 +73,27 @@
       <label>タイトル
         <input type="text" name="title" placeholder="作品タイトル" required />
       </label>
-      <div class="row">
-<label style="flex:1">価格（<%= (process.env.CURRENCY || 'jpy').toUpperCase() %>）
-  <input type="number" name="price" min="<%= process.env.MIN_PRICE || 50 %>" step="1" value="50" required />
-</label>
-        <label style="flex:1">通貨
-          <input type="text" name="currency" value="<%= (process.env.CURRENCY || 'jpy') %>" />
-        </label>
-      </div>
+      
+<div class="row">
+  <label style="flex:1">価格（円）
+
+<input type="number" name="price"
+       min="<%= process.env.MIN_PRICE || 100 %>"
+       step="1"
+       value="<%= process.env.MIN_PRICE || 100 %>"
+       required />
+
+  </label>
+
+  <!-- 表示だけ欲しければ下のブロックを残す -->
+  <label style="flex:1">通貨
+    <input type="text" value="JPY" readonly />
+  </label>
+
+  <!-- もしサーバに値を送りたいなら hidden を併用（どちらでもOK） -->
+  <input type="hidden" name="currency" value="jpy" />
+</div>
+
       <label>クリエイター名（任意）
         <input type="text" name="creatorName" placeholder="表示用の名前（任意）" />
       </label>

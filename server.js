@@ -647,7 +647,9 @@ app.get('/creator', ensureAuthed, async (req, res) => {
 // upload
 app.post('/upload', ensureAuthed, upload.single('image'), async (req, res) => {
   try {
-    const { title, price, currency, creatorName, creatorSecret, ownerEmail, attestOwner } = req.body;
+
+const { title, price, creatorName, creatorSecret, ownerEmail, attestOwner } = req.body;
+const currency = CURRENCY; // ← フォーム値は無視して固定
 
     // 旧シークレット（無ログイン運用に戻す場合のバックドア）
     if (!req.user && creatorSecret !== CREATOR_SECRET) {
@@ -746,7 +748,7 @@ if (!s3) {
     slug,
     title,
     price: priceNum,
-    currency: (currency || CURRENCY).toLowerCase(),
+    currency: (CURRENCY).toLowerCase(),
     filePath: req.file.path,
     previewPath: `/previews/${previewName}`,
     mimeType,
@@ -829,7 +831,7 @@ const item = await Item.create({
   slug,
   title,
   price: priceNum,
-  currency: (currency || CURRENCY).toLowerCase(),
+  currency: (CURRENCY).toLowerCase(),
   filePath: `s3://${S3_BUCKET}/${s3KeyOriginal}`,
   s3Key: s3KeyOriginal,
   previewPath: previewUrl,
@@ -869,10 +871,11 @@ app.get('/s/:slug', async (req, res) => {
     }
 
 const isAbs = typeof item.previewPath === 'string' && /^https?:\/\//i.test(item.previewPath);
+
 const og = {
   title: `${item.title} | 即ダウンロード`,
-  desc: `高解像度をすぐ購入（${Number(item.price).toLocaleString()} ${String(item.currency).toUpperCase()}）`,
-  image: isAbs ? item.previewPath : `${BASE_URL}${item.previewPath}`,
+  desc: `高解像度をすぐ購入（${Number(item.price).toLocaleString('ja-JP')} 円）`,
+image: isAbs ? item.previewPath : `${BASE_URL}${item.previewPath}`,
   url: `${BASE_URL}/s/${item.slug}`
 };
 

@@ -70,7 +70,7 @@
       <div class="product-info">
         <h1><%= item.title %></h1>
         <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
-        <div class="price"><%= item.price.toLocaleString() %> <%= item.currency.toUpperCase() %></div>
+<div class="price"><%= item.price.toLocaleString('ja-JP') %> 円</div>
 
         <% if (sellerLegal) { %>
   <div class="card" style="margin:12px 0;">
