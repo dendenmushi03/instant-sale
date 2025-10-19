@@ -702,3 +702,21 @@ body.modal-open{ overflow:hidden; touch-action:none; overscroll-behavior:contain
   .connectRow{ flex-direction:column; align-items:stretch; }
   .btn--lg{ width:100%; }
 }
+
+/* アラートの中にCTAを収めるレイアウト */
+.alert--with-cta{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 16px; border-radius:12px;
+}
+.alert__text{ display:flex; flex-direction:column; gap:4px; }
+.alert__title{ font-weight:800; }
+.alert__desc{ opacity:.95; }
+
+/* アラート内ボタンのサイズ */
+.btn--compact{ height:38px; padding:0 14px; white-space:nowrap; }
+
+/* モバイル：縦積み＋全幅ボタン */
+@media (max-width:640px){
+  .alert--with-cta{ flex-direction:column; align-items:stretch; }
+  .alert--with-cta .btn{ width:100%; }
+}

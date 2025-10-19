@@ -40,21 +40,21 @@
 </header>
   
   <main class="container">
-    <h1>即販売リンクを作る</h1>
 
-<% if (typeof connect !== 'undefined') {
-     const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
-     if (!connectReady) { %>
-  <div class="alert alert--error" role="status" aria-live="polite" style="margin-top:12px;">
-    <strong>受取設定が未完了です。</strong><br>
-    ・振込口座の登録（Stripe）と本人確認を完了してください。<br>
+<h1>即販売リンクを作る</h1>
+
+<% const connectReady =
+     (typeof connect !== 'undefined') && !!(connect.hasAccount && connect.payoutsEnabled); %>
+
+<% if (!connectReady) { %>
+  <div class="alert alert--error alert--with-cta" role="alert" aria-live="assertive" style="margin-top:12px;">
+    <div class="alert__text">
+      <strong class="alert__title">受取設定が未完了です。</strong>
+      <span class="alert__desc">・振込口座の登録（Stripe）と本人確認を完了してください。</span>
+    </div>
+    <a class="btn btn--primary btn--compact" href="/connect/onboard">はじめる（Stripe）</a>
   </div>
-<%   }
-   } %>
-
-<% if (typeof connect !== 'undefined') { 
-     const connectReady = !!(connect.hasAccount && connect.payoutsEnabled);
-%>
+<% } %>
 
 <section class="setup">
   <div class="connectRow">
@@ -74,9 +74,9 @@
       </p>
     </div>
 
-    <a class="btn btn--primary btn--lg" href="/connect/onboard">
-      <%= connectReady ? '確認 / 更新（Stripe）' : 'はじめる（Stripe）' %>
-    </a>
+    <% if (connectReady) { %>
+      <a class="btn btn--primary btn--lg" href="/connect/onboard">確認 / 更新（Stripe）</a>
+    <% } %>
   </div>
 
   <% if (!connectReady) { %>
@@ -84,9 +84,8 @@
       本人確認書類（免許証 など）と、受取用の銀行口座が必要です。所要 5–10 分程度。
     </div>
   <% } %>
-</section>
 
-  <% } %>
+</section>
    
     <form class="card" action="/upload" method="post" enctype="multipart/form-data">
       <label>タイトル
@@ -106,11 +105,9 @@
 
 <label style="flex:1">通貨
   <input type="text" value="円" disabled aria-disabled="true" />
-  <input type="hidden" name="currency" value="jpy">
+  <input type="hidden" name="currency" value="jpy" />
 </label>
 
-  <!-- もしサーバに値を送りたいなら hidden を併用（どちらでもOK） -->
-  <input type="hidden" name="currency" value="jpy" />
 </div>
 
       <label>クリエイター名（任意）
