@@ -69,6 +69,11 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const USE_STRIPE_CONNECT = process.env.USE_STRIPE_CONNECT === 'true';
 // プラットフォーム手数料の既定値を 20% に
 const PLATFORM_FEE_PERCENT = Number(process.env.PLATFORM_FEE_PERCENT || '20');
+// 業種(MCC) と 商品説明の既定値（必要なら .env で上書き）
+const DEFAULT_MCC  = process.env.DEFAULT_MCC || '5399'; // Misc. General Merchandise
+const DEFAULT_PRODUCT_DESC =
+  process.env.DEFAULT_PRODUCT_DESC || 'デジタルコンテンツの即時販売（個人間）';
+
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
@@ -450,15 +455,25 @@ const hasCardPayments =
   !!acct?.capabilities?.card_payments &&
   ['active','pending','inactive'].includes(acct.capabilities.card_payments);
 
-// 既存アカウントを使うけど URL が未設定なら事前に入れておく
+// 既存アカウントを使うが、URL / MCC / 商品説明が未設定なら事前に入れておく
 if (hasTransfers && hasCardPayments) {
   try {
-    if (!acct?.business_profile?.url) {
+    const needUrl  = !acct?.business_profile?.url;
+    const needMcc  = !acct?.business_profile?.mcc;
+    const needDesc = !acct?.business_profile?.product_description;
+
+    if (needUrl || needMcc || needDesc) {
       await stripe.accounts.update(acctId, {
-        business_profile: { url: `${BASE_URL}` }
+        business_profile: {
+          ...(needUrl  ? { url: `${BASE_URL}` } : {}),
+          ...(needMcc  ? { mcc: DEFAULT_MCC } : {}),
+          ...(needDesc ? { product_description: DEFAULT_PRODUCT_DESC } : {}),
+        }
       });
     }
-  } catch (_) {}
+  } catch (e) {
+    console.warn('[Stripe] preset business_profile failed:', e?.raw?.message || e.message);
+  }
   return acctId;
 }
 
@@ -477,17 +492,15 @@ const account = await stripe.accounts.create({
   country: 'JP',
   email: user.email,
   business_type: 'individual',
-  // ← card_payments も同時にリクエスト
   capabilities: { 
     transfers: { requested: true },
     card_payments: { requested: true }
   },
-business_profile: {
-  mcc: '5399',
-  product_description: 'C2Cデジタルコンテンツ販売（個人間）',
-  // ここを事前入力（プラットフォームのトップでOK）
-  url: `${BASE_URL}`
-},
+  business_profile: {
+    mcc: DEFAULT_MCC,
+    product_description: DEFAULT_PRODUCT_DESC,
+    url: `${BASE_URL}`,
+  },
   settings: { payouts: { schedule: { interval: 'manual' } } }
 });
 
