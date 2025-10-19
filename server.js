@@ -1013,7 +1013,20 @@ let seller = null;
 if (USE_STRIPE_CONNECT && item.ownerUser) {
   seller = await User.findById(item.ownerUser);
 }
-const destinationAccountId = seller?.stripeAccountId || null;
+
+// destination を安全に使えるかを確認（transfers=active かつ payouts_enabled）
+let destinationAccountId = null;
+if (USE_STRIPE_CONNECT && seller?.stripeAccountId) {
+  try {
+    const acc = await stripe.accounts.retrieve(seller.stripeAccountId);
+    const transfersCap = acc?.capabilities?.transfers;
+    const canUseDestination =
+      transfersCap === 'active' && !!acc?.payouts_enabled;
+    if (canUseDestination) destinationAccountId = seller.stripeAccountId;
+  } catch (e) {
+    console.warn('[checkout] could not retrieve account; fallback to platform charge:', e?.raw?.message || e.message);
+  }
+}
 
 // 個人専用運用：事業者（business）は利用不可
 if (seller?.legal?.sellerType === 'business') {
@@ -1052,20 +1065,18 @@ try {
 }
 
 const automaticTax = { enabled: true, liability: { type: 'self' } };
-
-/** Destination Charges: 決済と同時に 80% を販売者に入れる */
 const paymentIntentData = {
   transfer_group: transferGroup,
   metadata: commonMetadata,
 };
 
-// Connect が有効で販売者アカウントがある場合は自動分配を有効に
+// destination を使える時のみ、アプリ手数料・transfer・税務責任の移譲を行う
 if (USE_STRIPE_CONNECT && destinationAccountId) {
-  paymentIntentData.application_fee_amount = platformFee;           // ← 20% 手数料
-  paymentIntentData.transfer_data = { destination: destinationAccountId }; // ← 80% を販売者へ
+  paymentIntentData.application_fee_amount = platformFee;
+  paymentIntentData.transfer_data = { destination: destinationAccountId };
   paymentIntentData.on_behalf_of = destinationAccountId;
 
-  // ★ Automatic Tax 利用時の責任先を販売者アカウントに切替
+  // Automatic Tax を販売者責任に切替（destination 利用時のみ）
   automaticTax.liability = { type: 'account', account: destinationAccountId };
 }
 
