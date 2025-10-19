@@ -85,10 +85,10 @@
 
   </label>
 
-  <!-- 表示だけ欲しければ下のブロックを残す -->
-  <label style="flex:1">通貨
-    <input type="text" value="JPY" readonly />
-  </label>
+<label style="flex:1">通貨
+  <input type="text" value="円" disabled aria-disabled="true" />
+  <input type="hidden" name="currency" value="jpy">
+</label>
 
   <!-- もしサーバに値を送りたいなら hidden を併用（どちらでもOK） -->
   <input type="hidden" name="currency" value="jpy" />
