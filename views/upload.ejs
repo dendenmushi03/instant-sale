@@ -46,8 +46,9 @@
 <% const connectReady =
      (typeof connect !== 'undefined') && !!(connect.hasAccount && connect.payoutsEnabled); %>
 
-     <% if (connectReady) { %>
-  <div class="alert alert--success alert--with-icon" role="status" aria-live="polite" style="margin-top:12px;">
+<% if (connectReady) { %>
+  <div class="alert alert--success alert--prominent alert--with-icon"
+       role="status" aria-live="polite" style="margin-top:12px;">
     <span class="alert__icon" aria-hidden="true">✅</span>
     <div class="alert__text">
       <strong class="alert__title">受取設定は完了しています</strong>
@@ -57,10 +58,12 @@
 <% } %>
 
 <% if (!connectReady) { %>
-  <div class="alert alert--error alert--with-cta" role="alert" aria-live="assertive" style="margin-top:12px;">
+  <div class="alert alert--error alert--prominent alert--with-icon alert--with-cta"
+       role="alert" aria-live="assertive" style="margin-top:12px;">
+    <span class="alert__icon" aria-hidden="true">⚠️</span>
     <div class="alert__text">
-      <strong class="alert__title">受取設定が未完了です。</strong>
-      <span class="alert__desc">・振込口座の登録（Stripe）と本人確認を完了してください。</span>
+      <strong class="alert__title">受取設定が未完了です</strong>
+      <span class="alert__desc">売上の入金先口座の登録（Stripe）と本人確認を完了してください。設定が終わるまで受け取りはできません。</span>
     </div>
     <a class="btn btn--primary btn--compact" href="/connect/onboard">はじめる（Stripe）</a>
   </div>

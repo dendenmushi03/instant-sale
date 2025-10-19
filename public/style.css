@@ -46,11 +46,12 @@ input[type="text"], input[type="password"], input[type="number"], input[type="fi
 .row { display: flex; gap: 12px; }
 @media (max-width:640px){ .row { flex-direction: column; } }
 
-.btn {
+/* ライトテーマ（.layout が付かないページ）専用の基本ボタン */
+body:not(.layout) .btn {
   display: inline-block; padding: 10px 16px; border-radius: 10px; background: #e5e7eb; color: #111827; border: none; cursor: pointer; text-decoration: none;
 }
-.btn.primary { background: #111827; color: #fff; }
-.btn:hover { opacity: 0.92; }
+body:not(.layout) .btn.primary { background: #111827; color: #fff; }
+body:not(.layout) .btn:hover { opacity: 0.92; }
 
 .muted { color: #6b7280; }
 
@@ -673,21 +674,6 @@ body.modal-open{ overflow:hidden; touch-action:none; overscroll-behavior:contain
 .connectRow__title{ margin:0; font-size:16px; font-weight:700; color:#eaf0ff; }
 .connectRow__desc{ margin:0; color:var(--muted); font-size:14px; }
 
-.chip{
-  display:inline-flex; align-items:center; gap:6px;
-  height:26px; padding:0 10px; border-radius:999px;
-  font-size:12px; font-weight:700; letter-spacing:.2px;
-  border:1px solid transparent;
-}
-.chip--ok{
-  color:#0b2015; background:#34d399; border-color:#10b981;
-  box-shadow:0 4px 14px rgba(16,185,129,.2);
-}
-.chip--warn{
-  color:#3b1a1a; background:#fecaca; border-color:#f87171;
-  box-shadow:0 4px 14px rgba(248,113,113,.18);
-}
-
 .btn--lg{ height:46px; padding:0 20px; font-size:15px; }
 
 /* 情報補足 */
@@ -751,3 +737,23 @@ body.layout .chip--warn{
 .alert__icon{
   font-size:18px; line-height:1; margin-top:2px;
 }
+
+/* ===== Prominent alerts (成功・警告の大きめカード) ===== */
+.alert--prominent{
+  display:flex; align-items:flex-start; gap:12px;
+  padding:16px 18px; border-radius:16px; border:1px solid transparent;
+}
+.alert--with-icon .alert__icon{ font-size:20px; line-height:1; margin-top:2px; }
+.alert__title{ font-weight:800; font-size:18px; }
+.alert__desc{ display:block; margin-top:8px; opacity:.95; }
+
+/* ダークテーマ最適化：既存の色味を踏襲しつつコントラストUP */
+body.layout .alert--success.alert--prominent{
+  background:#0b2a1b; border-color:#166534; color:#bbf7d0;
+}
+body.layout .alert--error.alert--prominent{
+  background:#2b0e12; border-color:#7f1d1d; color:#fecaca;
+}
+
+/* CTAを右端に並べる時の余白最適化（既存の .btn--compact 想定） */
+.alert--with-cta .btn{ margin-left:auto; }
