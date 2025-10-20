@@ -1418,15 +1418,20 @@ if (!s3 || !item.s3Key) {
 // 署名の有効期限（例：60秒）。必要なら環境変数で調整
 const signedTtlSec = Number(process.env.S3_SIGNED_TTL_SEC || '60');
 
+// ★ ビューページに <img> で埋め込むため、Content-Disposition は付けない（= inline）
 const cmd = new GetObjectCommand({
   Bucket: S3_BUCKET,
-  Key: item.s3Key,
-  ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(item.title)}${extnameFromKey(item.s3Key)}`
+  Key: item.s3Key
 });
 const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
 
-// 302 でリダイレクト
-return res.redirect(signedUrl);
+// ★ 直接リダイレクトさせず、注意文付きのビューページを表示
+return res.render('download-view', {
+  imageUrl: signedUrl,
+  item,
+  expiresAt: doc.expiresAt,
+  ttlMin: DOWNLOAD_TOKEN_TTL_MIN
+});
 
 // 補助: S3キーから拡張子取得
 function extnameFromKey(key) {
