@@ -35,12 +35,11 @@
 <main class="dlWrap">
   <div class="dlNote" role="alert" aria-live="polite">
     <div style="font-weight:800;margin-bottom:4px;">⚠ 表示された画像を<strong>長押し</strong>して保存してください。</div>
-    このページを閉じるとダウンロードできなくなります（有効期限：<strong><%= ttlMin %>分</strong>、<%= expiresAt.toLocaleString() %> まで）。
+    <strong>このページを閉じるとダウンロードができなくなります。</strong>（有効期限：<%= ttlMin %>分、<%= expiresAt.toLocaleString() %> まで）
   </div>
 
   <img class="dlImage" src="<%= imageUrl %>" alt="<%= item.title %> のダウンロード画像">
 
-  <p class="dlMeta">※ 保存できない場合は、画像をタップで全画面表示し、共有メニューから「写真に保存」をお試しください。</p>
 </main>
 
 <footer class="site-footer">
