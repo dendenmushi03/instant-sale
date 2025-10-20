@@ -31,7 +31,31 @@
       <h1>ご購入ありがとうございます 🎉</h1>
       <p>以下のボタンから高解像度データをダウンロードできます。</p>
       <p>※ 有効期限：<strong><%= ttlMin %>分</strong>（<%= expiresAt.toLocaleString() %> まで）</p>
-      <p><a class="btn primary" href="<%= downloadUrl %>">ダウンロード</a></p>
+<p>
+  <a id="btnDownload"
+     class="btn primary"
+     href="<%= downloadUrl %>"
+     target="_blank" rel="noopener">
+    ダウンロード
+  </a>
+</p>
+
+<!-- 追記: もう一度ダウンロード / URLコピー -->
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+  <button id="btnReissue" class="btn">もう一度ダウンロード</button>
+  <button id="btnCopy" class="btn btn--ghost">URLをコピー</button>
+</div>
+
+<!-- 追記: 前回のDLリンクを再利用（localStorage） -->
+<div id="prevLinkWrap" style="margin-top:8px;display:none;">
+  <a id="prevLink" class="btn btn--ghost" target="_blank" rel="noopener">前回のDLリンクを開く</a>
+</div>
+
+<!-- 追記: 補足文（閉じてもこのページは残ります導線） -->
+<p class="muted" style="margin-top:8px;">
+  ※ ダウンロードは別タブで開きます。このページは残るので、誤って閉じた場合はここから「もう一度ダウンロード」できます。
+</p>
+
     </div>
   </main>
 
@@ -48,3 +72,79 @@
 
   </body>
 </html>
+
+<script nonce="<%= cspNonce %>">
+(function(){
+  const dlUrl = <%- JSON.stringify(downloadUrl) %>;
+  const sid   = new URL(location.href).searchParams.get('session_id') || '';
+  const key   = sid ? ('dl:' + sid) : null;
+
+  // DLボタン押下でローカル保存（復帰用）
+  const btn = document.getElementById('btnDownload');
+  if (btn && key) {
+    btn.addEventListener('click', ()=> {
+      try { localStorage.setItem(key, dlUrl); } catch(_) {}
+    });
+  }
+
+  // 前回のDLリンク（あれば案内を出す）
+  if (key) {
+    try {
+      const prev = localStorage.getItem(key);
+      if (prev) {
+        const wrap = document.getElementById('prevLinkWrap');
+        const a = document.getElementById('prevLink');
+        a.href = prev;
+        wrap.style.display = 'block';
+      }
+    } catch(_) {}
+  }
+
+  // URLコピー
+  const btnCopy = document.getElementById('btnCopy');
+  if (btnCopy) {
+    btnCopy.addEventListener('click', async ()=> {
+      try {
+        await navigator.clipboard.writeText(dlUrl);
+        btnCopy.textContent = 'コピーしました';
+        setTimeout(()=> btnCopy.textContent = 'URLをコピー', 1200);
+      } catch(_) {}
+    });
+  }
+
+  // もう一度ダウンロード（サーバで一時URLを再発行）
+  const btnRe = document.getElementById('btnReissue');
+  if (btnRe && sid) {
+    btnRe.addEventListener('click', async ()=>{
+      btnRe.disabled = true; btnRe.textContent = '発行中…';
+      try {
+        const res = await fetch('/api/reissue-download', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ session_id: sid })
+        });
+        const json = await res.json();
+        if (json.ok && json.url) {
+          if (key) { try { localStorage.setItem(key, json.url); } catch(_) {} }
+          window.open(json.url, '_blank', 'noopener');
+        } else {
+          alert(json.message || '再発行に失敗しました');
+        }
+      } catch(_) {
+        alert('通信エラーが発生しました');
+      } finally {
+        btnRe.disabled = false; btnRe.textContent = 'もう一度ダウンロード';
+      }
+    });
+  }
+
+  // （任意）DL未クリックのまま離脱しようとしたら軽く注意
+  let clicked = false;
+  if (btn) btn.addEventListener('click', ()=> { clicked = true; });
+  window.addEventListener('beforeunload', function (e) {
+    if (clicked) return; // 既に押していれば警告しない
+    e.preventDefault();
+    e.returnValue = '';
+  });
+})();
+</script>
