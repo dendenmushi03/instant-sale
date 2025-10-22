@@ -124,6 +124,53 @@ const sellerDisplayName =
           </button>
         </form>
 
+<section class="card" style="margin-top:16px">
+  <h2>利用許諾</h2>
+  <% 
+    const lp = (item.licensePreset || 'standard');
+    const presetLabel = {
+      'standard': '標準（推奨）',
+      'editorial': 'エディトリアル',
+      'commercial-lite': '商用ライト',
+      'exclusive': '独占ライセンス'
+    }[lp] || lp;
+
+    const presetDesc = {
+      'standard': '個人・商用利用可／再配布・再販売・AI学習は禁止',
+      'editorial': '報道・レビュー等の編集目的のみ',
+      'commercial-lite': '小規模商用OK（大量生産・ロゴ利用は不可）',
+      'exclusive': '購入者のみ利用可（出品者は以後販売不可）'
+    }[lp] || '';
+  %>
+
+  <ul class="plain">
+    <li>
+      <strong>種別</strong>：
+      <span class="badge"><%= presetLabel %></span>
+      <span class="muted" style="margin-left:6px"><%= presetDesc %></span>
+    </li>
+
+    <% if (item.requireCredit) { %>
+      <li><strong>クレジット表記</strong>：必須（例：© 出品者名 / Instant Sale）</li>
+    <% } %>
+
+    <% if (item.aiGenerated) { %>
+      <li><strong>AI生成</strong>：含む
+        <% if (item.aiModelName) { %>（<%= item.aiModelName %>）<% } %>
+      </li>
+    <% } %>
+
+    <% if (item.licenseNotes) { %>
+      <li><strong>追記事項</strong>：<%= item.licenseNotes %></li>
+    <% } %>
+  </ul>
+
+  <p class="muted" style="margin-top:8px">
+    共通ルールは <a href="/image-license" target="_blank" rel="noopener">画像ライセンスポリシー</a> を参照。
+    商品ごとの指定がある場合はそちらが優先されます。
+  </p>
+</section>
+
         <p class="hint">決済はStripe（カード）で安全に処理されます。</p>
       </div>
     </article>

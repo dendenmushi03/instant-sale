@@ -145,9 +145,74 @@
       <label>画像（高解像度ファイル）
         <input type="file" name="image" accept="image/*" required />
       </label>
+
       <label>
   <input type="checkbox" name="attestOwner" required />
   私はこの画像の権利者（または正当に販売可能な権利保有者）です
+    </label>
+
+<section class="card" style="margin-top:16px">
+
+  <h2>利用許諾</h2>
+
+  <div class="grid grid--2">
+    <label class="radioCard">
+      <input type="radio" name="licensePreset" value="standard" checked>
+      <div class="radioCard__body">
+        <strong>標準（推奨）</strong>
+        <div class="muted">個人・商用利用可／再配布・再販売・AI学習は禁止</div>
+      </div>
+
+    <label class="radioCard">
+      <input type="radio" name="licensePreset" value="editorial">
+      <div class="radioCard__body">
+        <strong>エディトリアル</strong>
+        <div class="muted">報道・レビュー等の編集目的のみ</div>
+      </div>
+    </label>
+
+    <label class="radioCard">
+      <input type="radio" name="licensePreset" value="commercial-lite">
+      <div class="radioCard__body">
+        <strong>商用ライト</strong>
+        <div class="muted">小規模商用OK（大量生産・ロゴ利用は不可）</div>
+      </div>
+    </label>
+
+    <label class="radioCard">
+      <input type="radio" name="licensePreset" value="exclusive">
+      <div class="radioCard__body">
+        <strong>独占ライセンス</strong>
+        <div class="muted">購入者のみ利用可（出品者は以後販売不可）</div>
+      </div>
+    </label>
+  </div>
+
+  <label class="check">
+    <input type="checkbox" name="requireCredit" value="1">
+    クレジット表記が必要（例：© 出品者名 / Instant Sale）
+  </label>
+
+  <details style="margin-top:8px">
+    <summary>AI生成に関する申告（任意）</summary>
+    <label class="check" style="margin-top:6px">
+      <input type="checkbox" name="aiGenerated" value="1">
+      この画像はAI生成を含む
+    </label>
+    <input type="text" name="aiModelName" placeholder="使用モデル名（任意）" class="input" />
+  </details>
+
+  <label style="display:block; margin-top:12px">
+    追記事項（任意）
+    <textarea name="licenseNotes" rows="3" class="input" placeholder="例）SNSアイコンはOK、LINEスタンプ不可 など"></textarea>
+  </label>
+
+  <p class="muted" style="margin-top:8px">
+    ※ 共通ルールは <a href="/image-license" target="_blank" rel="noopener">画像ライセンスポリシー</a> を参照。商品ごとの指定があればそちらが優先されます。
+  </p>
+</section>
+
+
 </label>
 <button type="submit" class="btn btn--primary">販売ページを作成</button>
 </form>

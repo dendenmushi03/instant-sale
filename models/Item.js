@@ -24,7 +24,19 @@ const ItemSchema = new mongoose.Schema(
     createdBySecret: { type: String, default: '' },
 
     // ログインユーザーの参照を保持
-    ownerUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    ownerUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
+    // ▼ 追加：商品ごとの利用許諾フィールド
+    licensePreset: {
+      type: String,
+      enum: ['standard', 'editorial', 'commercial-lite', 'exclusive'],
+      default: 'standard'
+    },
+    requireCredit: { type: Boolean, default: false },
+    licenseNotes:  { type: String, default: '' },
+    aiGenerated:   { type: Boolean, default: false },
+    aiModelName:   { type: String, default: '' }
+    // ▲ 追加ここまで
   },
   { timestamps: true }
 );

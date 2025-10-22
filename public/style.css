@@ -778,3 +778,12 @@ body.layout .alert--error.alert--prominent{
 
 /* CTAを右端に並べる時の余白最適化（既存の .btn--compact 想定） */
 .alert--with-cta .btn{ margin-left:auto; }
+
+.badge{
+  display:inline-block;padding:.25em .6em;border-radius:.5em;
+  background:#1e2b43;color:#dbe6ff;font-size:.85em;border:1px solid transparent
+}
+.badge--outline{background:transparent;color:#bcd3ff;border-color:#3b4d74}
+.radioCard{display:block;border:1px solid #2a3a57;border-radius:.6em;padding:.6em;margin:.4em 0;cursor:pointer}
+.radioCard__body{display:block}
+.radioCard input{margin-right:.5em}

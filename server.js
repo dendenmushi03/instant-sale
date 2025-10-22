@@ -661,7 +661,11 @@ app.get('/creator', ensureAuthed, async (req, res) => {
 app.post('/upload', ensureAuthed, upload.single('image'), async (req, res) => {
   try {
 
-const { title, price, creatorName, creatorSecret, ownerEmail, attestOwner } = req.body;
+const {
+  title, price, creatorName, creatorSecret, ownerEmail, attestOwner,
+  licensePreset, requireCredit, licenseNotes, aiGenerated, aiModelName
+} = req.body;
+
 const currency = CURRENCY; // ← フォーム値は無視して固定
 
     // 旧シークレット（無ログイン運用に戻す場合のバックドア）
@@ -682,6 +686,14 @@ if (!title || !priceNum || priceNum < MIN_PRICE) {
   await fsp.unlink(req.file.path).catch(() => {});
   return res.status(400).render('error', { message: `タイトルと価格（${MIN_PRICE}以上）は必須です。` });
 }
+
+// 追加：ライセンス入力の正規化
+const licensePresetSafe = (['standard','editorial','commercial-lite','exclusive'].includes(licensePreset))
+  ? licensePreset : 'standard';
+const requireCreditBool = !!requireCredit;
+const aiGeneratedBool   = !!aiGenerated;
+const licenseNotesSafe  = (licenseNotes || '').trim().slice(0, 1000);
+const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
 
     const slug = nanoid(10);
     const mimeType = req.file.mimetype;
@@ -757,21 +769,29 @@ await sharp(fullBase)
 // ====== ここから S3 へアップロード ======
 if (!s3) {
 
-    const item = await Item.create({
-    slug,
-    title,
-    price: priceNum,
-    currency: (CURRENCY).toLowerCase(),
-    filePath: req.file.path,
-    previewPath: `/previews/${previewName}`,
-    mimeType,
-    creatorName: creatorName || '',
-    ownerUser: req.user?._id || null,
-    createdBySecret: creatorSecret || '',
-    ownerEmail: (req.user?.email || ownerEmail || ''),
-    attestOwner: !!attestOwner,
-    uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
-  });
+  const item = await Item.create({
+  slug,
+  title,
+  price: priceNum,
+  currency: (CURRENCY).toLowerCase(),
+  filePath: req.file.path,
+  previewPath: `/previews/${previewName}`,
+  mimeType,
+  creatorName: creatorName || '',
+  ownerUser: req.user?._id || null,
+  createdBySecret: creatorSecret || '',
+  ownerEmail: (req.user?.email || ownerEmail || ''),
+  attestOwner: !!attestOwner,
+  uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
+
+  // 追加：ライセンス情報
+  licensePreset: licensePresetSafe,
+  requireCredit: requireCreditBool,
+  licenseNotes:  licenseNotesSafe,
+  aiGenerated:   aiGeneratedBool,
+  aiModelName:   aiModelNameSafe,
+});
+
   const saleUrl = `${BASE_URL}/s/${item.slug}`;
   if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
     return res.json({ ok: true, createdUrl: saleUrl });
@@ -845,9 +865,8 @@ const item = await Item.create({
   title,
   price: priceNum,
   currency: (CURRENCY).toLowerCase(),
-  filePath: `s3://${S3_BUCKET}/${s3KeyOriginal}`,
-  s3Key: s3KeyOriginal,
-  previewPath: previewUrl,
+  filePath: req.file.path,
+  previewPath: `/previews/${previewName}`,
   mimeType,
   creatorName: creatorName || '',
   ownerUser: req.user?._id || null,
@@ -855,6 +874,13 @@ const item = await Item.create({
   ownerEmail: (req.user?.email || ownerEmail || ''),
   attestOwner: !!attestOwner,
   uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
+
+  // 追加：ライセンス情報
+  licensePreset: licensePresetSafe,
+  requireCredit: requireCreditBool,
+  licenseNotes:  licenseNotesSafe,
+  aiGenerated:   aiGeneratedBool,
+  aiModelName:   aiModelNameSafe,
 });
 
 const saleUrl = `${BASE_URL}/s/${item.slug}`;
@@ -1472,6 +1498,12 @@ app.get('/legal/seller/:userId', async (req, res) => {
   }
 });
 // ▲▲▲ 追加ここまで ▲▲▲
+
+// 画像ライセンスポリシー（AI対応）
+app.get('/image-license', (req, res) => {
+  res.locals.canonical = `${BASE_URL}/image-license`;
+  res.render('legal/image-license');
+});
 
 // ★ ここからグローバルエラーハンドラ（ファイル容量/形式NGやその他の例外を拾う）
 app.use((err, req, res, next) => {
