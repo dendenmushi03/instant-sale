@@ -1498,9 +1498,10 @@ app.get('/legal/seller/:userId', async (req, res) => {
 });
 // ▲▲▲ 追加ここまで ▲▲▲
 
-// 画像ライセンスポリシー（AI対応）
-app.get('/image-license', (req, res) => {
+// どの表記でも拾えるようにエイリアスを用意
+app.get(['/image-license', '/image-license/', '/legal/image-license'], (req, res) => {
   res.locals.canonical = `${BASE_URL}/image-license`;
+  console.log('[route] GET /image-license hit');  // デバッグログ
   res.render('legal/image-license');
 });
 

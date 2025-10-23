@@ -26,12 +26,12 @@ const ItemSchema = new mongoose.Schema(
     // ログインユーザーの参照を保持
     ownerUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
-    // ▼ 追加：商品ごとの利用許諾フィールド
-    licensePreset: {
-      type: String,
-      enum: ['standard', 'editorial', 'commercial-lite', 'exclusive'],
-      default: 'standard'
-    },
+licensePreset: {
+  type: String,
+  enum: ['personal', 'standard', 'commercial-lite', 'exclusive'],
+  default: 'standard'
+},
+    
 // クレジット表記はプラットフォーム方針として常に不要
 requireCredit: {
   type: Boolean,

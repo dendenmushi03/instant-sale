@@ -694,11 +694,16 @@ body.modal-open{ overflow:hidden; touch-action:none; overscroll-behavior:contain
   .btn--lg{ width:100%; }
 }
 
-/* アラートの中にCTAを収めるレイアウト */
+/* CTA（ボタン）を本文の下、左下に配置 */
 .alert--with-cta{
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  padding:14px 16px; border-radius:12px;
+  display:flex;
+  flex-direction: column;   /* ← 縦積み */
+  align-items: flex-start;  /* ← 左寄せ */
+  gap:12px;
+  padding:14px 16px;
+  border-radius:12px;
 }
+
 .alert__text{ display:flex; flex-direction:column; gap:4px; }
 .alert__title{ font-weight:800; }
 .alert__desc{ opacity:.95; }
@@ -706,10 +711,9 @@ body.modal-open{ overflow:hidden; touch-action:none; overscroll-behavior:contain
 /* アラート内ボタンのサイズ */
 .btn--compact{ height:38px; padding:0 14px; white-space:nowrap; }
 
-/* モバイル：縦積み＋全幅ボタン */
 @media (max-width:640px){
-  .alert--with-cta{ flex-direction:column; align-items:stretch; }
-  .alert--with-cta .btn{ width:100%; }
+  .alert--with-cta{ flex-direction:column; align-items:flex-start; }
+  /* ボタン幅は自動（小さめのまま） */
 }
 
 /* ===== Status chips ===== */
@@ -781,8 +785,12 @@ body.layout .alert--error.alert--prominent{
   background:#2b0e12; border-color:#7f1d1d; color:#fecaca;
 }
 
-/* CTAを右端に並べる時の余白最適化（既存の .btn--compact 想定） */
-.alert--with-cta .btn{ margin-left:auto; }
+/* 左下に固定：自動右寄せをやめ、本文の下に少し余白 */
+.alert--with-cta .btn{
+  align-self: flex-start;
+  margin-left: 0;
+  margin-top: 6px;
+}
 
 .badge{
   display:inline-block;padding:.25em .6em;border-radius:.5em;
