@@ -868,8 +868,8 @@ const item = await Item.create({
   // 画像表示・OGP用には S3 の公開URLを保存（ローカル /previews は保存しない）
   previewPath: previewUrl,
 
-  // レガシー互換: filePath は残すが、S3 運用では基本使われない
-  filePath: req.file.path,
+// S3運用ではローカル原本は捨てるため空にしておく（将来の誤参照防止）
+filePath: '',
 
   mimeType,
   creatorName: creatorName || '',
@@ -947,42 +947,27 @@ if (seller && sellerLegal) {
     tokushohoUrl = `/legal/seller/${seller._id}`;
 }
 
-// --- 表示用画像の決定（同期チェックで確実にURLを返す） ---
-const fullName   = `${item.slug}-full.jpg`;
-const stripeName = `${item.slug}-stripe.jpg`;
-const prevName   = `${item.slug}-preview.jpg`;
-
-const fullAbs   = path.join(PREVIEW_DIR, fullName);
-const stripeAbs = path.join(PREVIEW_DIR, stripeName);
-const prevAbs   = path.join(PREVIEW_DIR, prevName);
-
-// 1) 等倍 → 2) Stripe → 3) 通常プレビュー → 4) DB の previewPath（絶対/相対補正）→ 5) 透明1px
+// --- 表示用画像の決定：DBの previewPath を最優先 ---
+//   ・https の絶対URLならそのまま
+//   ・相対なら先頭スラ付きに補正
+//   ・（本番 https 下で）http 絶対URLは使わない → 透明1pxへ
 let displayImagePath = '';
-
-if (fs.existsSync(fullAbs)) {
-  displayImagePath = `/previews/${fullName}`;
-} else if (fs.existsSync(stripeAbs)) {
-  displayImagePath = `/previews/${stripeName}`;
-} else if (fs.existsSync(prevAbs)) {
-  displayImagePath = `/previews/${prevName}`;
-
-} else if (item.previewPath) {
-  // 絶対URLならそのまま、相対なら先頭にスラッシュを補正
-  const abs = /^https?:\/\//i.test(item.previewPath);
+if (item.previewPath) {
+  const isAbs  = /^https?:\/\//i.test(item.previewPath);
   const isHttp = /^http:\/\//i.test(item.previewPath);
-  if (abs) {
-    // 本番 https 下で http 画像は混在コンテンツでブロックされるので使わない
+  if (isAbs) {
     displayImagePath = (isHttp && BASE_URL.startsWith('https://'))
-      ? '' // ここでは空。下の透明1pxに最終フォールバック
+      ? ''   // 混在コンテンツは使わない
       : item.previewPath;
   } else {
-    displayImagePath = item.previewPath.startsWith('/') ? item.previewPath : `/${item.previewPath}`;
+    displayImagePath = item.previewPath.startsWith('/')
+      ? item.previewPath
+      : `/${item.previewPath}`;
   }
-} else {
-
-  // 最後の保険（透明1px PNG データURI）
-  displayImagePath =
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
+}
+if (!displayImagePath) {
+  // 最後の保険（ほぼ来ない想定）
+  displayImagePath = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
 }
 
 // EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
@@ -1003,14 +988,39 @@ return res.render('sale', {
   }
 });
 
-// 等倍プレビュー（透かし付き、元画像サイズのまま）
 app.get('/view/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
     const item = await Item.findOne({ slug }).lean();
     if (!item) return res.status(404).send('Not found');
 
-    // 元画像が無い場合はフルプレビューにフォールバック
+    // ① S3 原本があるなら最優先（再デプロイ耐性）
+    if (s3 && item.s3Key) {
+      try {
+        const obj  = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: item.s3Key }));
+        const base = sharp(obj.Body).rotate();
+        const meta = await base.metadata();
+        const w = Math.max(1, meta.width  || 1200);
+        const h = Math.max(1, meta.height || 1200);
+        const fontSize = Math.round(Math.min(w, h) * 0.14);
+        const svg = Buffer.from(`
+          <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+            <style>.wm{ fill: rgba(255,255,255,.38); font-size: ${fontSize}px; font-weight: 700; }</style>
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+                  class="wm" transform="rotate(-18 ${w/2} ${h/2})">SAMPLE</text>
+          </svg>
+        `);
+
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+
+        return base.composite([{ input: svg, gravity: 'center' }]).jpeg({ quality: 90 }).pipe(res);
+      } catch (e) {
+        // S3 取得失敗時はローカルフォールバックへ
+      }
+    }
+
+    // ②（開発/フォールバック）ローカル原本 or /previews 等倍
     const srcPath = path.resolve(item.filePath || '');
     const fallbackFull = path.join(__dirname, 'previews', `${slug}-full.jpg`);
 
@@ -1024,13 +1034,10 @@ app.get('/view/:slug', async (req, res) => {
       return res.status(404).send('source image missing');
     }
 
-    // 回転補正した後のサイズを取得
     const base = sharp(usePath).rotate();
     const meta = await base.metadata();
     const w = Math.max(1, meta.width  || 1200);
     const h = Math.max(1, meta.height || 1200);
-
-    // 画像サイズに合わせたSVG（フォントサイズは辺の短い方の約14%）
     const fontSize = Math.round(Math.min(w, h) * 0.14);
     const svg = Buffer.from(`
       <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
@@ -1042,11 +1049,7 @@ app.get('/view/:slug', async (req, res) => {
 
     res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-
-    await base
-      .composite([{ input: svg, gravity: 'center' }])  // ← 同サイズなのでエラーにならない
-      .jpeg({ quality: 90 })
-      .pipe(res);
+    return base.composite([{ input: svg, gravity: 'center' }]).jpeg({ quality: 90 }).pipe(res);
 
   } catch (e) {
     console.error('[view-full]', e);
