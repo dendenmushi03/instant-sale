@@ -942,27 +942,35 @@ if (seller && sellerLegal) {
     tokushohoUrl = `/legal/seller/${seller._id}`;
 }
 
-const fullRelNoSlash   = `previews/${item.slug}-full.jpg`;
-const stripeRelNoSlash = `previews/${item.slug}-stripe.jpg`;
-const fullAbs   = path.join(__dirname, fullRelNoSlash);
-const stripeAbs = path.join(__dirname, stripeRelNoSlash);
+// --- 表示用画像の決定（必ず PREVIEW_DIR で存在判定する） ---
+const fullName   = `${item.slug}-full.jpg`;
+const stripeName = `${item.slug}-stripe.jpg`;
+const prevName   = `${item.slug}-preview.jpg`; // 既定のプレビュー名
 
-// 既定は DB の previewPath（S3_PUBLIC_BASE ありの場合は絶対URL、無ければ /previews/...）
-let displayImagePath = item.previewPath;
+const fullAbs   = path.join(PREVIEW_DIR, fullName);
+const stripeAbs = path.join(PREVIEW_DIR, stripeName);
+const prevAbs   = path.join(PREVIEW_DIR, prevName);
 
-// ローカルが残っている構成（S3_PUBLIC_BASE なし）では、存在する方を優先
+// クライアントへは URL を返す。存在するものを上から順に採用。
+let displayImagePath = item.previewPath || '';
 try {
   await fsp.access(fullAbs);
-  displayImagePath = `/${fullRelNoSlash}`;
-} catch {
+  displayImagePath = `/previews/${fullName}`;
+} catch (_) {
   try {
     await fsp.access(stripeAbs);
-    displayImagePath = `/${stripeRelNoSlash}`;
-  } catch {
-    // 何もしない：どちらも無ければ DB の previewPath を使う
+    displayImagePath = `/previews/${stripeName}`;
+  } catch (_) {
+    try {
+      await fsp.access(prevAbs);
+      displayImagePath = `/previews/${prevName}`;
+    } catch (_) {
+      // どれも無ければ DB に入っている値（絶対URL or /previews/...）をそのまま使う
+      displayImagePath = item.previewPath || '';
+    }
   }
 }
-    
+
     // EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
     return res.render('sale', {
       item,

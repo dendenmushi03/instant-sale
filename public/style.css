@@ -844,3 +844,22 @@ body.layout .alert--error.alert--prominent{
 .licenseRow input[type="radio"]:checked{
   /* label自体のボーダーは :has() が必要なので、安全に内側の見た目だけ強調 */
 }
+
+/* 表示専用（saleページ） */
+.licenseList--view .licenseRow{ cursor: default; }
+
+/* 丸印（ラジオの見た目を再現） */
+.licenseBullet{
+  flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+  border:2px solid #9db3d9; display:grid; place-items:center; margin-top:2px;
+}
+.licenseBullet::after{ content:""; width:10px; height:10px; border-radius:50%; background:transparent; display:block; }
+
+/* アクティブの強調 */
+.licenseRow.is-active{ border-color:#2a4070; box-shadow:0 0 0 2px rgba(96,165,250,.12) inset; }
+.licenseRow.is-active .licenseTitle{ color: var(--accent); }
+.licenseRow.is-active .licenseBullet{ border-color: var(--accent); }
+.licenseRow.is-active .licenseBullet::after{ background: var(--accent); }
+
+/* 非アクティブは少し弱く */
+.licenseRow.is-inactive{ opacity:.9; }

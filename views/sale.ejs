@@ -126,48 +126,68 @@ const sellerDisplayName =
 
 <section class="card" style="margin-top:16px">
   <h2>利用許諾</h2>
-  <% 
-    const lp = (item.licensePreset || 'standard');
-    const presetLabel = {
-      'standard': '標準（推奨）',
-      'editorial': 'エディトリアル',
-      'commercial-lite': '商用ライト',
-      'exclusive': '独占ライセンス'
-    }[lp] || lp;
 
-    const presetDesc = {
-      'standard': '個人・商用利用可／再配布・再販売・AI学習は禁止',
-      'editorial': '報道・レビュー等の編集目的のみ',
-      'commercial-lite': '小規模商用OK（大量生産・ロゴ利用は不可）',
-      'exclusive': '購入者のみ利用可（出品者は以後販売不可）'
-    }[lp] || '';
+  <% 
+    // 旧enum(editorial等)が残っていても安全に表示できるよう互換マッピング
+    const lpRaw = (item.licensePreset || 'standard');
+    const L = (['personal','standard','commercial-lite','exclusive'].includes(lpRaw))
+      ? lpRaw
+      : (lpRaw === 'editorial' ? 'personal' : 'standard'); // 互換: editorial→商用不可
+
+    // 表示用ヘルパ（行のクラスを返す）
+    const cls = (key) => (L === key ? 'licenseRow is-active' : 'licenseRow is-inactive');
   %>
 
-  <ul class="plain">
-    <li>
-      <strong>種別</strong>：
-      <span class="badge"><%= presetLabel %></span>
-      <span class="muted" style="margin-left:6px"><%= presetDesc %></span>
-    </li>
+  <div class="licenseList licenseList--view">
+    <!-- 商用不可（= personal） -->
+    <div class="<%= cls('personal') %>">
+      <div class="licenseBullet" aria-hidden="true"></div>
+      <div class="licenseMain">
+        <div class="licenseTitle">商用不可</div>
+        <div class="licenseDesc">個人利用のみ可。用途例：SNSアイコン、個人ブログ、壁紙など</div>
+      </div>
+    </div>
 
-    <% if (item.requireCredit) { %>
-      <li><strong>クレジット表記</strong>：必須（例：© 出品者名 / Instant Sale）</li>
-    <% } %>
+    <!-- 商用可（= standard） -->
+    <div class="<%= cls('standard') %>">
+      <div class="licenseBullet" aria-hidden="true"></div>
+      <div class="licenseMain">
+        <div class="licenseTitle">商用可</div>
+        <div class="licenseDesc">用途例：SNS投稿、企業SNS、HP素材など</div>
+      </div>
+    </div>
 
+    <!-- 一部商用可（= commercial-lite） -->
+    <div class="<%= cls('commercial-lite') %>">
+      <div class="licenseBullet" aria-hidden="true"></div>
+      <div class="licenseMain">
+        <div class="licenseTitle">一部商用可</div>
+        <div class="licenseDesc">用途例：同人誌・グッズ等の小規模販売（大量生産・ロゴ利用は不可）</div>
+      </div>
+    </div>
+
+    <!-- 完全商用可（= exclusive） -->
+    <div class="<%= cls('exclusive') %>">
+      <div class="licenseBullet" aria-hidden="true"></div>
+      <div class="licenseMain">
+        <div class="licenseTitle">完全商用可</div>
+        <div class="licenseDesc">用途例：広告素材、パッケージ販売</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 追加情報（AI/追記事項）は従来どおり表示 -->
+  <ul class="plain" style="margin-top:8px">
     <% if (item.aiGenerated) { %>
-      <li><strong>AI生成</strong>：含む
-        <% if (item.aiModelName) { %>（<%= item.aiModelName %>）<% } %>
-      </li>
+      <li><strong>AI生成</strong>：含む<% if (item.aiModelName) { %>（<%= item.aiModelName %>）<% } %></li>
     <% } %>
-
     <% if (item.licenseNotes) { %>
       <li><strong>追記事項</strong>：<%= item.licenseNotes %></li>
     <% } %>
   </ul>
 
-  <p class="muted" style="margin-top:8px">
-    共通ルールは <a href="/image-license" target="_blank" rel="noopener">画像ライセンスポリシー</a> を参照。
-    商品ごとの指定がある場合はそちらが優先されます。
+  <p class="muted" style="margin-top:8px;">
+    ※ 共通ルールは <a href="/image-license" target="_blank" rel="noopener">画像ライセンスポリシー</a> を参照。
   </p>
 </section>
 
