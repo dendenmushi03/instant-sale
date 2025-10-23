@@ -61,6 +61,30 @@ const toAbs = (u) => {
   return /^https?:\/\//i.test(u) ? u : `${BASE_URL}${u.startsWith('/') ? '' : '/'}${u}`;
 };
 
+// 出品時に選ばれた licensePreset を販売ページ表示用に整形
+function licenseViewOf(item) {
+  const key = item.licensePreset || 'standard';
+  const map = {
+    'editorial': {
+      key, label: '商用不可',
+      desc: '個人利用のみ可。用途例：SNSアイコン、個人ブログ、壁紙など'
+    },
+    'standard': {
+      key, label: '商用可',
+      desc: '用途例：SNS投稿、企業SNS、HP素材など'
+    },
+    'commercial-lite': {
+      key, label: '一部商用可',
+      desc: '用途例：同人誌・グッズ等の小規模販売（大量生産・ロゴ利用は不可）'
+    },
+    'exclusive': {
+      key, label: '完全商用可',
+      desc: '用途例：広告素材、パッケージ販売'
+    }
+  };
+  return map[key] || map['standard'];
+}
+
 const CREATOR_SECRET = process.env.CREATOR_SECRET || 'changeme';
 const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
@@ -972,7 +996,6 @@ if (!displayImagePath) {
     : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
 }
 
-// EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
 return res.render('sale', {
   item,
   baseUrl: BASE_URL,
@@ -981,7 +1004,8 @@ return res.render('sale', {
   seller: seller || {},
   sellerLegal: sellerLegal || null,
   displayImagePath,
-  tokushohoUrl
+  tokushohoUrl,
+  licenseView: licenseViewOf(item)   // ★ 追加
 });
 
   } catch (e) {
