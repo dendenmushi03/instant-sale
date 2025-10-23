@@ -990,90 +990,44 @@ return res.render('sale', {
   }
 });
 
+// /view/:slug（R2/CDN の透かし済み "full" を最優先で返す）
 app.get('/view/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
     const item = await Item.findOne({ slug }).lean();
     if (!item) return res.status(404).send('Not found');
 
-    // ① S3 原本があるなら最優先（再デプロイ耐性）
-    if (s3 && item.s3Key) {
-      try {
-        const obj  = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: item.s3Key }));
-        const base = sharp(obj.Body).rotate();
-        const meta = await base.metadata();
-        const w = Math.max(1, meta.width  || 1200);
-        const h = Math.max(1, meta.height || 1200);
-        const fontSize = Math.round(Math.min(w, h) * 0.14);
-        const svg = Buffer.from(`
-          <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-            <style>.wm{ fill: rgba(255,255,255,.38); font-size: ${fontSize}px; font-weight: 700; }</style>
-            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-                  class="wm" transform="rotate(-18 ${w/2} ${h/2})">SAMPLE</text>
-          </svg>
-        `);
-
-        res.setHeader('Content-Type', 'image/jpeg');
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-
-        return base.composite([{ input: svg, gravity: 'center' }]).jpeg({ quality: 90 }).pipe(res);
-      } catch (e) {
-        // S3 取得失敗時はローカルフォールバックへ
-      }
+    // 1) CDN（HTTPS）を最優先：/previews/<slug>-full.jpg
+    if (S3_PUBLIC_IS_HTTPS && S3_PUBLIC_BASE) {
+      const cdnFull = `${S3_PUBLIC_BASE}/previews/${slug}-full.jpg`;
+      // 画像タグは 302 を普通に辿るためリダイレクトで十分
+      return res.redirect(302, cdnFull);
     }
 
-// ②（開発/フォールバック）ローカル原本 or /previews 等倍
-const srcPathRaw = (item.filePath || '').trim();
-// filePath が「非空」かつ「存在」かつ「ファイル」のときだけ使う
-const hasLocalFile = !!srcPathRaw &&
-  fs.existsSync(srcPathRaw) &&
-  (() => { try { return fs.statSync(srcPathRaw).isFile(); } catch { return false; } })();
+    // 2) 次善：ローカルの等倍フル（開発/フォールバック用）
+    const localFull = path.join(PREVIEW_DIR, `${slug}-full.jpg`);
+    if (fs.existsSync(localFull)) {
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      return fs.createReadStream(localFull).pipe(res);
+    }
 
-const fallbackFull = path.join(__dirname, 'previews', `${slug}-full.jpg`);
+    // 3) 最後の保険：CDN のプレビュー、またはローカルのプレビュー
+    if (S3_PUBLIC_IS_HTTPS && S3_PUBLIC_BASE) {
+      const cdnPreview = `${S3_PUBLIC_BASE}/previews/${slug}-preview.jpg`;
+      return res.redirect(302, cdnPreview);
+    }
+    const localPreview = path.join(PREVIEW_DIR, `${slug}-preview.jpg`);
+    if (fs.existsSync(localPreview)) {
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      return fs.createReadStream(localPreview).pipe(res);
+    }
 
-if (!hasLocalFile) {
-  if (fs.existsSync(fallbackFull)) {
-    res.setHeader('Content-Type', 'image/jpeg');
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    return fs.createReadStream(fallbackFull).pipe(res);
-  }
-  return res.status(404).send('source image missing');
-}
-
-// ここまで来たら確実に「ファイル」
-let base;
-let meta; // ← 先に宣言してこの後でも使えるようにする
-try {
-  base = sharp(srcPathRaw).rotate();
-  meta = await base.metadata(); // メタデータを外側の変数へ
-} catch (e) {
-  // 万一未対応形式/破損でも /previews にフォールバック
-  if (fs.existsSync(fallbackFull)) {
-    res.setHeader('Content-Type', 'image/jpeg');
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    return fs.createReadStream(fallbackFull).pipe(res);
-  }
-  throw e; // 他のハンドラへ
-}
-
-const w = Math.max(1, meta.width  || 1200);
-const h = Math.max(1, meta.height || 1200);
-const fontSize = Math.round(Math.min(w, h) * 0.14);
-const svg = Buffer.from(`
-  <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-    <style>.wm{ fill: rgba(255,255,255,.38); font-size: ${fontSize}px; font-weight: 700; }</style>
-    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-          class="wm" transform="rotate(-18 ${w/2} ${h/2})">SAMPLE</text>
-  </svg>
-`);
-
-res.setHeader('Content-Type', 'image/jpeg');
-res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-return base.composite([{ input: svg, gravity: 'center' }]).jpeg({ quality: 90 }).pipe(res);
-
+    return res.status(404).send('source image missing');
   } catch (e) {
-    console.error('[view-full]', e);
-    res.status(500).send('viewer error');
+    console.error('[view]', e);
+    return res.status(500).send('viewer error');
   }
 });
 
