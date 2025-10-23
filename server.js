@@ -942,33 +942,33 @@ if (seller && sellerLegal) {
     tokushohoUrl = `/legal/seller/${seller._id}`;
 }
 
-// --- 表示用画像の決定（必ず PREVIEW_DIR で存在判定する） ---
+// --- 表示用画像の決定（同期チェックで確実にURLを返す） ---
 const fullName   = `${item.slug}-full.jpg`;
 const stripeName = `${item.slug}-stripe.jpg`;
-const prevName   = `${item.slug}-preview.jpg`; // 既定のプレビュー名
+const prevName   = `${item.slug}-preview.jpg`;
 
 const fullAbs   = path.join(PREVIEW_DIR, fullName);
 const stripeAbs = path.join(PREVIEW_DIR, stripeName);
 const prevAbs   = path.join(PREVIEW_DIR, prevName);
 
-// クライアントへは URL を返す。存在するものを上から順に採用。
-let displayImagePath = item.previewPath || '';
-try {
-  await fsp.access(fullAbs);
+// 1) 等倍 → 2) Stripe → 3) 通常プレビュー → 4) DB の previewPath（絶対/相対）→ 5) 透明1px
+let displayImagePath = '';
+
+if (fs.existsSync(fullAbs)) {
   displayImagePath = `/previews/${fullName}`;
-} catch (_) {
-  try {
-    await fsp.access(stripeAbs);
-    displayImagePath = `/previews/${stripeName}`;
-  } catch (_) {
-    try {
-      await fsp.access(prevAbs);
-      displayImagePath = `/previews/${prevName}`;
-    } catch (_) {
-      // どれも無ければ DB に入っている値（絶対URL or /previews/...）をそのまま使う
-      displayImagePath = item.previewPath || '';
-    }
-  }
+} else if (fs.existsSync(stripeAbs)) {
+  displayImagePath = `/previews/${stripeName}`;
+} else if (fs.existsSync(prevAbs)) {
+  displayImagePath = `/previews/${prevName}`;
+} else if (item.previewPath) {
+  // 絶対URLならそのまま、相対なら先頭にスラッシュを補正
+  displayImagePath = /^https?:\/\//i.test(item.previewPath)
+    ? item.previewPath
+    : (item.previewPath.startsWith('/') ? item.previewPath : `/${item.previewPath}`);
+} else {
+  // 最後の保険（透明1px PNG データURI）
+  displayImagePath =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
 }
 
     // EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
