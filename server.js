@@ -86,6 +86,9 @@ const S3_REGION   = process.env.S3_REGION   || 'auto';
 const S3_BUCKET   = process.env.S3_BUCKET   || '';
 const S3_PUBLIC_BASE = (process.env.S3_PUBLIC_BASE || '').replace(/\/+$/,''); // 末尾スラ削除
 
+// http の公開URLは本番(https)で混在コンテンツになるため “非公開扱い” にする
+const S3_PUBLIC_IS_HTTPS = /^https:\/\//i.test(S3_PUBLIC_BASE);
+
 const s3 = (S3_BUCKET)
   ? new S3Client({
       region: S3_REGION,
@@ -836,21 +839,19 @@ await s3.send(new PutObjectCommand({
 // ローカルの一時ファイルを削除
 await fsp.unlink(req.file.path).catch(()=>{});
 
-// プレビュー3種は、S3_PUBLIC_BASE がある＝「公開URLで配信できる」時だけ削除。
-// 無い場合は /previews 配信に使うので残す（これが無いと 404 → 画像が「？」になる）
-if (S3_PUBLIC_BASE) {
+// https の公開URLで配信できる場合のみローカルを削除。
+// http 公開URLは混在コンテンツで弾かれるためローカルを残す。
+if (S3_PUBLIC_IS_HTTPS) {
   await fsp.unlink(previewFull).catch(()=>{});
   await fsp.unlink(stripeFull).catch(()=>{});
   await fsp.unlink(fullPath).catch(()=>{});
 }
 
-// プレビューのURL（パブリック配信前提）
-const previewUrl = S3_PUBLIC_BASE
+const previewUrl = S3_PUBLIC_IS_HTTPS
   ? `${S3_PUBLIC_BASE}/${s3KeyPreview}`
-  : `/previews/${previewName}`; // フォールバック（S3_PUBLIC_BASE 未設定）
+  : `/previews/${previewName}`; // http公開URLや未設定時はローカルを使う
 
-// 本文表示に使う “full” 版（あるいはプレビューURL）
-const fullUrl = S3_PUBLIC_BASE
+const fullUrl = S3_PUBLIC_IS_HTTPS
   ? `${S3_PUBLIC_BASE}/${s3KeyFull}`
   : previewUrl;
 
@@ -964,12 +965,21 @@ if (fs.existsSync(fullAbs)) {
   displayImagePath = `/previews/${stripeName}`;
 } else if (fs.existsSync(prevAbs)) {
   displayImagePath = `/previews/${prevName}`;
+
 } else if (item.previewPath) {
   // 絶対URLならそのまま、相対なら先頭にスラッシュを補正
-  displayImagePath = /^https?:\/\//i.test(item.previewPath)
-    ? item.previewPath
-    : (item.previewPath.startsWith('/') ? item.previewPath : `/${item.previewPath}`);
+  const abs = /^https?:\/\//i.test(item.previewPath);
+  const isHttp = /^http:\/\//i.test(item.previewPath);
+  if (abs) {
+    // 本番 https 下で http 画像は混在コンテンツでブロックされるので使わない
+    displayImagePath = (isHttp && BASE_URL.startsWith('https://'))
+      ? '' // ここでは空。下の透明1pxに最終フォールバック
+      : item.previewPath;
+  } else {
+    displayImagePath = item.previewPath.startsWith('/') ? item.previewPath : `/${item.previewPath}`;
+  }
 } else {
+
   // 最後の保険（透明1px PNG データURI）
   displayImagePath =
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
@@ -1510,6 +1520,33 @@ app.get(['/image-license', '/image-license/', '/legal/image-license'], (req, res
   res.locals.canonical = `${BASE_URL}/image-license`;
   console.log('[route] GET /image-license hit');  // デバッグログ
   res.render('legal/image-license');
+});
+
+// ★ 管理者用：レガシー previewPath(http外部URL) をローカル /previews に補正
+// 実行: curl -XPOST -H "Authorization: Bearer $ADMIN_TOKEN" https://<host>/admin/fix-legacy-previews
+app.post('/admin/fix-legacy-previews', async (req, res) => {
+  try {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+      return res.status(403).json({ ok: false, error: 'forbidden' });
+    }
+    const items = await Item.find({ previewPath: /^http:\/\//i }).lean();
+    let fixed = 0;
+    for (const it of items) {
+      const prev = path.join(PREVIEW_DIR, `${it.slug}-preview.jpg`);
+      const full = path.join(PREVIEW_DIR, `${it.slug}-full.jpg`);
+      const stripe = path.join(PREVIEW_DIR, `${it.slug}-stripe.jpg`);
+      const hasLocal = [prev, full, stripe].some(p => fs.existsSync(p));
+      if (hasLocal) {
+        await Item.updateOne({ _id: it._id }, { previewPath: `/previews/${path.basename(prev)}` });
+        fixed++;
+      }
+    }
+    return res.json({ ok: true, count: items.length, fixed });
+  } catch (e) {
+    console.error('[fix-legacy-previews]', e);
+    return res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 // ★ ここからグローバルエラーハンドラ（ファイル容量/形式NGやその他の例外を拾う）
