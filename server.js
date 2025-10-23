@@ -948,26 +948,28 @@ if (seller && sellerLegal) {
 }
 
 // --- 表示用画像の決定：DBの previewPath を最優先 ---
-//   ・https の絶対URLならそのまま
-//   ・相対なら先頭スラ付きに補正
-//   ・（本番 https 下で）http 絶対URLは使わない → 透明1pxへ
 let displayImagePath = '';
+
 if (item.previewPath) {
   const isAbs  = /^https?:\/\//i.test(item.previewPath);
   const isHttp = /^http:\/\//i.test(item.previewPath);
+
   if (isAbs) {
-    displayImagePath = (isHttp && BASE_URL.startsWith('https://'))
-      ? ''   // 混在コンテンツは使わない
-      : item.previewPath;
+    // HTTPSページ上でHTTP画像は混在コンテンツになるため空に
+    displayImagePath = (isHttp && BASE_URL.startsWith('https://')) ? '' : item.previewPath;
   } else {
-    displayImagePath = item.previewPath.startsWith('/')
-      ? item.previewPath
-      : `/${item.previewPath}`;
+    // 相対パスは必ず先頭スラ付きに正規化
+    displayImagePath = item.previewPath.startsWith('/') ? item.previewPath : `/${item.previewPath}`;
   }
 }
+
+// 最後の保険：空ならローカルの preview を指す（存在確認して無ければ1px）
 if (!displayImagePath) {
-  // 最後の保険（ほぼ来ない想定）
-  displayImagePath = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
+  const fallback = `/previews/${item.slug}-preview.jpg`;
+  const abs = path.join(PREVIEW_DIR, `${item.slug}-preview.jpg`);
+  displayImagePath = fs.existsSync(abs)
+    ? fallback
+    : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
 }
 
 // EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す

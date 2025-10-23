@@ -53,7 +53,13 @@
     <article class="product">
 
 <div class="product-imageWrap" id="openViewer">
-  <img class="product-image" src="<%= displayImagePath %>" alt="<%= item.title %>" />
+  <img class="product-image"
+       src="<%= displayImagePath %>"
+       alt="<%= item.title %>"
+       loading="lazy"
+       decoding="async"
+       onerror="this.style.display='none'"
+  />
 </div>
 
 <!-- ライトボックス（ページ内等倍ビュー） -->
