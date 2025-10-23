@@ -1022,36 +1022,54 @@ app.get('/view/:slug', async (req, res) => {
       }
     }
 
-    // ②（開発/フォールバック）ローカル原本 or /previews 等倍
-    const srcPath = path.resolve(item.filePath || '');
-    const fallbackFull = path.join(__dirname, 'previews', `${slug}-full.jpg`);
+// ②（開発/フォールバック）ローカル原本 or /previews 等倍
+const srcPathRaw = (item.filePath || '').trim();
+// filePath が「非空」かつ「存在」かつ「ファイル」のときだけ使う
+const hasLocalFile = !!srcPathRaw &&
+  fs.existsSync(srcPathRaw) &&
+  (() => { try { return fs.statSync(srcPathRaw).isFile(); } catch { return false; } })();
 
-    let usePath = srcPath;
-    if (!fs.existsSync(usePath)) {
-      if (fs.existsSync(fallbackFull)) {
-        res.setHeader('Content-Type', 'image/jpeg');
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        return fs.createReadStream(fallbackFull).pipe(res);
-      }
-      return res.status(404).send('source image missing');
-    }
+const fallbackFull = path.join(__dirname, 'previews', `${slug}-full.jpg`);
 
-    const base = sharp(usePath).rotate();
-    const meta = await base.metadata();
-    const w = Math.max(1, meta.width  || 1200);
-    const h = Math.max(1, meta.height || 1200);
-    const fontSize = Math.round(Math.min(w, h) * 0.14);
-    const svg = Buffer.from(`
-      <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-        <style>.wm{ fill: rgba(255,255,255,.38); font-size: ${fontSize}px; font-weight: 700; }</style>
-        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-              class="wm" transform="rotate(-18 ${w/2} ${h/2})">SAMPLE</text>
-      </svg>
-    `);
-
+if (!hasLocalFile) {
+  if (fs.existsSync(fallbackFull)) {
     res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    return base.composite([{ input: svg, gravity: 'center' }]).jpeg({ quality: 90 }).pipe(res);
+    return fs.createReadStream(fallbackFull).pipe(res);
+  }
+  return res.status(404).send('source image missing');
+}
+
+// ここまで来たら確実に「ファイル」
+let base;
+let meta; // ← 先に宣言してこの後でも使えるようにする
+try {
+  base = sharp(srcPathRaw).rotate();
+  meta = await base.metadata(); // メタデータを外側の変数へ
+} catch (e) {
+  // 万一未対応形式/破損でも /previews にフォールバック
+  if (fs.existsSync(fallbackFull)) {
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return fs.createReadStream(fallbackFull).pipe(res);
+  }
+  throw e; // 他のハンドラへ
+}
+
+const w = Math.max(1, meta.width  || 1200);
+const h = Math.max(1, meta.height || 1200);
+const fontSize = Math.round(Math.min(w, h) * 0.14);
+const svg = Buffer.from(`
+  <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <style>.wm{ fill: rgba(255,255,255,.38); font-size: ${fontSize}px; font-weight: 700; }</style>
+    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+          class="wm" transform="rotate(-18 ${w/2} ${h/2})">SAMPLE</text>
+  </svg>
+`);
+
+res.setHeader('Content-Type', 'image/jpeg');
+res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+return base.composite([{ input: svg, gravity: 'center' }]).jpeg({ quality: 90 }).pipe(res);
 
   } catch (e) {
     console.error('[view-full]', e);
@@ -1452,14 +1470,19 @@ app.get('/download/:token', async (req, res) => {
     const item = await Item.findById(doc.item);
     if (!item) return res.status(404).render('error', { message: 'ファイルが見つかりません。' });
 
-// S3 から署名付きURLを発行してリダイレクト
 if (!s3 || !item.s3Key) {
-  // フォールバック：まだS3化していないレガシーアイテム向け（存在しない可能性あり）
-  const abs = path.resolve(item.filePath || '');
-  if (!fs.existsSync(abs)) return res.status(404).render('error', { message: 'ファイルが存在しません。' });
+  // フォールバック：まだS3化していないレガシーアイテム向け
+  const absRaw = (item.filePath || '').trim();
+  const hasLocalFile = !!absRaw &&
+    fs.existsSync(absRaw) &&
+    (() => { try { return fs.statSync(absRaw).isFile(); } catch { return false; } })();
+
+  if (!hasLocalFile) {
+    return res.status(404).render('error', { message: 'ファイルが存在しません。' });
+  }
   res.setHeader('Content-Type', item.mimeType || 'application/octet-stream');
-  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(item.title)}${path.extname(abs) || ''}`);
-  return fs.createReadStream(abs).pipe(res);
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(item.title)}${path.extname(absRaw) || ''}`);
+  return fs.createReadStream(absRaw).pipe(res);
 }
 
 // 署名の有効期限（例：60秒）。必要なら環境変数で調整
