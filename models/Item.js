@@ -32,7 +32,13 @@ const ItemSchema = new mongoose.Schema(
       enum: ['standard', 'editorial', 'commercial-lite', 'exclusive'],
       default: 'standard'
     },
-    requireCredit: { type: Boolean, default: false },
+// クレジット表記はプラットフォーム方針として常に不要
+requireCredit: {
+  type: Boolean,
+  default: false,
+  set: () => false,   // ← どんな値が来ても false に矯正
+  select: false       // ← 通常の find では返さない（任意）
+},
     licenseNotes:  { type: String, default: '' },
     aiGenerated:   { type: Boolean, default: false },
     aiModelName:   { type: String, default: '' }

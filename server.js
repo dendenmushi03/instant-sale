@@ -663,7 +663,7 @@ app.post('/upload', ensureAuthed, upload.single('image'), async (req, res) => {
 
 const {
   title, price, creatorName, creatorSecret, ownerEmail, attestOwner,
-  licensePreset, requireCredit, licenseNotes, aiGenerated, aiModelName
+  licensePreset,            licenseNotes, aiGenerated, aiModelName
 } = req.body;
 
 const currency = CURRENCY; // ← フォーム値は無視して固定
@@ -687,10 +687,9 @@ if (!title || !priceNum || priceNum < MIN_PRICE) {
   return res.status(400).render('error', { message: `タイトルと価格（${MIN_PRICE}以上）は必須です。` });
 }
 
-// 追加：ライセンス入力の正規化
 const licensePresetSafe = (['standard','editorial','commercial-lite','exclusive'].includes(licensePreset))
   ? licensePreset : 'standard';
-const requireCreditBool = !!requireCredit;
+const requireCreditBool = false; // ← プラットフォーム方針：常に不要
 const aiGeneratedBool   = !!aiGenerated;
 const licenseNotesSafe  = (licenseNotes || '').trim().slice(0, 1000);
 const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
@@ -786,7 +785,7 @@ if (!s3) {
 
   // 追加：ライセンス情報
   licensePreset: licensePresetSafe,
-  requireCredit: requireCreditBool,
+  requireCredit: false, 
   licenseNotes:  licenseNotesSafe,
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
@@ -877,7 +876,7 @@ const item = await Item.create({
 
   // 追加：ライセンス情報
   licensePreset: licensePresetSafe,
-  requireCredit: requireCreditBool,
+  requireCredit: false, 
   licenseNotes:  licenseNotesSafe,
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
