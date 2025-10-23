@@ -77,35 +77,30 @@
 
   <% } %>
 
+<% if (connectReady) { %>
 <section class="setup">
   <div class="connectRow">
     <div class="connectRow__left">
 
 <div class="connectRow__head">
-  <% if (connectReady) { %>
     <span class="chip chip--ok chip--lg" aria-live="polite">
       <span class="chip__icon" aria-hidden="true">✔</span> 受取設定 OK
     </span>
-  <% } %>
   <h3 class="connectRow__title">Stripe 受取設定</h3>
 </div>
 
       <p class="connectRow__desc">
-        売上の入金先口座と本人確認を <strong>Stripe</strong> で設定します。
-        <%= connectReady ? '内容の確認・変更ができます。' : '未設定のままでは売上の受け取りができません。' %>
+        売上の入金先口座と本人確認を <strong>Stripe</strong> で設定します。内容の確認・変更ができます。
       </p>
     </div>
 
-<% if (connectReady) { %>
-  <a class="btn btn--primary btn--lg" href="/connect/onboard" aria-label="Stripeで受取設定を確認・更新する">
-    確認 / 更新（Stripe）
-  </a>
+    <a class="btn btn--primary btn--lg" href="/connect/onboard" aria-label="Stripeで受取設定を確認・更新する">
+      確認 / 更新（Stripe）
+    </a>
+  </div>
+</section>
 <% } %>
 
-  </div>
-
-</section>
-   
     <form class="card" action="/upload" method="post" enctype="multipart/form-data">
       <label>タイトル
         <input type="text" name="title" placeholder="作品タイトル" required />
