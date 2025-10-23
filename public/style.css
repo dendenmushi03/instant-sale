@@ -96,6 +96,11 @@ opacity: .18;          /* ← 少し濃く */
   --white: #fff;
 }
 
+:root{
+  /* ← 既存の変数群のすぐ下でOK */
+  --surface: rgba(255,255,255,.03); /* カードより一段浅い面色 */
+}
+
 html,body{ height:100%; }
 body.layout{
   margin:0;
@@ -744,13 +749,13 @@ body.layout .chip--warn{
   margin-top:0;         /* ずれ防止 */
 }
 
-/* 上段(アイコン+テキスト)だけを横並びで固定 */
+/* 上段(アイコン+テキスト)だけを横並びで固定 ─ タイトル行と上端を揃える */
 .alert__main{
   display:flex;
-  align-items:center;
+  align-items:flex-start;   /* ← ここを center から変更 */
   gap:10px;
   flex:1 1 auto;
-  min-width:0;              /* 折返しバグ防止 */
+  min-width:0;
 }
 
 /* モバイルでも上段だけは横並びのまま。CTAは下段(縦積み)でOK */
@@ -787,3 +792,47 @@ body.layout .alert--error.alert--prominent{
 .radioCard{display:block;border:1px solid #2a3a57;border-radius:.6em;padding:.6em;margin:.4em 0;cursor:pointer}
 .radioCard__body{display:block}
 .radioCard input{margin-right:.5em}
+
+/* 利用許諾の行レイアウト（ラジオ丸の右にタイトル→その下に説明） */
+.licenseList{
+  display:grid;
+  gap:10px;
+}
+@media (min-width: 720px){
+  .licenseList{
+    grid-template-columns: 1fr 1fr; /* 2列表示（従来のgrid--2に相当） */
+  }
+}
+.licenseRow{
+  display:flex;
+  gap:12px;
+  align-items:flex-start; /* ラジオ丸の上端と見出しを揃える */
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--surface);
+  cursor:pointer;
+}
+.licenseRow input[type="radio"]{
+  inline-size:18px; block-size:18px;
+  margin-top:2px; /* タイトル行と縦位置を合わせる微調整 */
+}
+.licenseMain{flex:1; min-width:0}
+.licenseTitle{font-weight:700; line-height:1.25}
+.licenseDesc{opacity:.85; font-size:.95em; margin-top:4px}
+
+/* ラジオのブランド色＆選択状態の視認性 */
+.licenseRow input[type="radio"]{ accent-color: var(--accent); }
+.licenseRow:hover{ border-color: #2a4070; }
+.licenseRow:focus-within{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(96,165,250,.25);
+}
+
+/* 選択中はタイトルを少し強調（＋ボーダー色UP） */
+.licenseRow input[type="radio"]:checked + .licenseMain .licenseTitle{
+  color: var(--accent);
+}
+.licenseRow input[type="radio"]:checked{
+  /* label自体のボーダーは :has() が必要なので、安全に内側の見た目だけ強調 */
+}

@@ -66,13 +66,12 @@
     <div class="alert__text">
       <strong class="alert__title">受取設定が未完了です</strong>
       <span class="alert__desc">
-        売上の受け取りには、振込口座の登録（Stripe）と本人確認が必要です。<br>
-        本人確認書類（免許証 など）と、受取用の銀行口座が必要です。所要 5–10 分程度。
+        売上の受け取りには、振込口座の登録と本人確認が必要です。（所要時間：5分）<br>
       </span>
     </div>
   </div>
 
-  <a class="btn btn--primary btn--compact" href="/connect/onboard">はじめる（Stripe）</a>
+  <a class="btn btn--primary btn--compact" href="/connect/onboard">銀行口座を登録する</a>
 </div>
 
   <% } %>
@@ -140,41 +139,44 @@
 
   <h2>利用許諾</h2>
 
-  <div class="grid grid--2">
-    <label class="radioCard">
-      <input type="radio" name="licensePreset" value="standard" checked>
-      <div class="radioCard__body">
-        <strong>標準（推奨）</strong>
-        <div class="muted">個人・商用利用可／再配布・再販売・AI学習は禁止</div>
-      </div>
+<div class="licenseList">
+  <label class="licenseRow">
+    <input type="radio" name="licensePreset" value="standard" checked>
+    <div class="licenseMain">
+      <div class="licenseTitle">標準（推奨）</div>
+      <div class="licenseDesc">個人・商用利用可／再配布・再販売・AI学習は禁止</div>
+    </div>
+  </label>
 
-    <label class="radioCard">
-      <input type="radio" name="licensePreset" value="editorial">
-      <div class="radioCard__body">
-        <strong>エディトリアル</strong>
-        <div class="muted">報道・レビュー等の編集目的のみ</div>
-      </div>
-    </label>
+  <label class="licenseRow">
+    <input type="radio" name="licensePreset" value="editorial">
+    <div class="licenseMain">
+      <div class="licenseTitle">エディトリアル</div>
+      <div class="licenseDesc">報道・レビュー等の編集目的のみ</div>
+    </div>
+  </label>
 
-    <label class="radioCard">
-      <input type="radio" name="licensePreset" value="commercial-lite">
-      <div class="radioCard__body">
-        <strong>商用ライト</strong>
-        <div class="muted">小規模商用OK（大量生産・ロゴ利用は不可）</div>
-      </div>
-    </label>
+  <label class="licenseRow">
+    <input type="radio" name="licensePreset" value="commercial-lite">
+    <div class="licenseMain">
+      <div class="licenseTitle">商用ライト</div>
+      <div class="licenseDesc">小規模商用OK（大量生産・ロゴ利用は不可）</div>
+    </div>
+  </label>
 
-    <label class="radioCard">
-      <input type="radio" name="licensePreset" value="exclusive">
-      <div class="radioCard__body">
-        <strong>独占ライセンス</strong>
-        <div class="muted">購入者のみ利用可（出品者は以後販売不可）</div>
-      </div>
-    </label>
-  </div>
+  <label class="licenseRow">
+    <input type="radio" name="licensePreset" value="exclusive">
+    <div class="licenseMain">
+      <div class="licenseTitle">独占ライセンス</div>
+      <div class="licenseDesc">購入者のみ利用可（出品者は以後販売不可）</div>
+    </div>
+  </label>
+</div>
+
+  <p></p>
 
   <p class="muted" style="margin-top:8px">
-    ※ 共通ルールは <a href="/image-license" target="_blank" rel="noopener">画像ライセンスポリシー</a> を参照。商品ごとの指定があればそちらが優先されます。
+    ※ 共通ルールは <a href="/image-license" target="_blank" rel="noopener">画像ライセンスポリシー</a> を参照。
   </p>
 </section>
 
