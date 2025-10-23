@@ -53,12 +53,13 @@
     <article class="product">
 
 <div class="product-imageWrap" id="openViewer">
-  <img class="product-image"
-       src="<%= displayImagePath %>"
-       alt="<%= item.title %>"
-       loading="lazy"
-       decoding="async"
-       onerror="this.style.display='none'"
+  <img
+    class="product-image"
+    src="/view/<%= item.slug %>"
+    alt="<%= item.title %>"
+    loading="lazy"
+    decoding="async"
+    onerror="this.src='/previews/<%= item.slug %>-preview.jpg'"
   />
 </div>
 
