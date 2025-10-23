@@ -196,7 +196,7 @@ const sellerDisplayName =
     </article>
   </main>
 
-<script>
+<script nonce="<%= cspNonce %>">
 
 (function(){
   var opener = document.getElementById('openViewer');
@@ -276,7 +276,7 @@ try {
   <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
 </footer>
 
-<script>
+<script nonce="<%= cspNonce %>">
   (function () {
     var form = document.getElementById('checkoutForm');
     var btn  = document.getElementById('checkoutBtn');

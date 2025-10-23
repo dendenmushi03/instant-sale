@@ -149,7 +149,6 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
-// CSP: インラインJSは nonce 付きだけ許可。Stripeの必要オリジンも許可。
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
@@ -157,14 +156,12 @@ app.use(helmet({
     directives: {
       "script-src": [
         "'self'",
-        // ★ nonce を許可（各リクエストで異なる値）
         (req, res) => `'nonce-${res.locals.cspNonce}'`,
         "https://js.stripe.com"
       ],
       "img-src": ["'self'", "data:", "blob:", "https:", "http:"],
       "connect-src": ["'self'", "https://api.stripe.com", "https://r.stripe.com"],
       "frame-src": ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
-      // スタイルは既にインラインを使っているので一旦許容（後で外部CSS化が理想）
       "style-src": ["'self'", "'unsafe-inline'"]
     }
   }
@@ -210,7 +207,7 @@ app.get('/favicon.ico', (req, res) => {
 
 app.use('/previews', express.static(PREVIEW_DIR)); // OGP/プレビューを公開
 
-// Stripe/X(Twitter) など外部からの画像取得を明示許可（任意・上の Helmet だけでも可）
+// Stripe/X(Twitter) など外部からの画像取得を明示許可
 app.use(['/previews', '/uploads'], (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
@@ -857,15 +854,22 @@ const fullUrl = S3_PUBLIC_BASE
   ? `${S3_PUBLIC_BASE}/${s3KeyFull}`
   : previewUrl;
 
-// DB には「原本の S3 キー」＋「プレビューはURL」を保存
-
+// DB には S3 の「原本キー」と「公開URL（プレビュー）」を保存
 const item = await Item.create({
   slug,
   title,
   price: priceNum,
   currency: (CURRENCY).toLowerCase(),
+
+  // 原本キーはダウンロード時の署名URL発行に必要
+  s3Key: s3KeyOriginal,
+
+  // 画像表示・OGP用には S3 の公開URLを保存（ローカル /previews は保存しない）
+  previewPath: previewUrl,
+
+  // レガシー互換: filePath は残すが、S3 運用では基本使われない
   filePath: req.file.path,
-  previewPath: `/previews/${previewName}`,
+
   mimeType,
   creatorName: creatorName || '',
   ownerUser: req.user?._id || null,
@@ -874,9 +878,9 @@ const item = await Item.create({
   attestOwner: !!attestOwner,
   uploaderIp: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '',
 
-  // 追加：ライセンス情報
+  // ライセンス情報
   licensePreset: licensePresetSafe,
-  requireCredit: false, 
+  requireCredit: false,
   licenseNotes:  licenseNotesSafe,
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
@@ -913,7 +917,7 @@ const isAbs = typeof item.previewPath === 'string' && /^https?:\/\//i.test(item.
 const og = {
   title: `${item.title} | 即ダウンロード`,
   desc: `高解像度をすぐ購入（${Number(item.price).toLocaleString('ja-JP')} 円）`,
-image: isAbs ? item.previewPath : `${BASE_URL}${item.previewPath}`,
+  image: isAbs ? item.previewPath : `${BASE_URL}${item.previewPath}`,
   url: `${BASE_URL}/s/${item.slug}`
 };
 
@@ -951,7 +955,7 @@ const fullAbs   = path.join(PREVIEW_DIR, fullName);
 const stripeAbs = path.join(PREVIEW_DIR, stripeName);
 const prevAbs   = path.join(PREVIEW_DIR, prevName);
 
-// 1) 等倍 → 2) Stripe → 3) 通常プレビュー → 4) DB の previewPath（絶対/相対）→ 5) 透明1px
+// 1) 等倍 → 2) Stripe → 3) 通常プレビュー → 4) DB の previewPath（絶対/相対補正）→ 5) 透明1px
 let displayImagePath = '';
 
 if (fs.existsSync(fullAbs)) {
@@ -971,17 +975,17 @@ if (fs.existsSync(fullAbs)) {
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
 }
 
-    // EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
-    return res.render('sale', {
-      item,
-      baseUrl: BASE_URL,
-      og,
-      connect,
-      seller: seller || {},            // ← undefined ではなく {}
-      sellerLegal: sellerLegal || null,
-      displayImagePath,
-      tokushohoUrl
-    });
+// EJS でのプロパティ参照で落ちないよう、空オブジェクト/ null を渡す
+return res.render('sale', {
+  item,
+  baseUrl: BASE_URL,
+  og,
+  connect,
+  seller: seller || {},
+  sellerLegal: sellerLegal || null,
+  displayImagePath,
+  tokushohoUrl
+});
 
   } catch (e) {
     console.error('[sale] route error:', e);
@@ -1098,8 +1102,7 @@ const commonMetadata = {
 // 画像URL（絶対URLへ）
 let productImageUrl = toAbs(item.previewPath);
 
-// S3_PUBLIC_BASE が無い構成（＝ローカル /previews 配信）なら、Stripe用に生成した 1200x630 を優先
-// これが無い/読めない場合は DB の previewPath を絶対URL化したものを使う
+// S3_PUBLIC_BASE が無い構成（＝ローカル /previews 配信）なら、Stripe用 1200x630 を優先
 try {
   if (!S3_PUBLIC_BASE) {
     const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
@@ -1154,7 +1157,7 @@ const session = await stripe.checkout.sessions.create(params);
 
     console.log('[checkout] session created:', session.id, '→', session.url);
 
-// 303 リダイレクトを素直に採用しない環境向けフォールバック（JS + meta refresh）
+// 303 フォールバック（CSPに合わせてインラインJSを排除）
 const to = session.url;
 return res
   .status(200)
@@ -1171,10 +1174,6 @@ return res
 <body>
   <p>Stripe の決済ページへ遷移します…<br>
   自動で切り替わらない場合は <a href="${to}" target="_top" rel="noopener">こちらをタップ</a> してください。</p>
-  <script>
-    try { window.top.location.replace(${JSON.stringify(to)}); }
-    catch(_) { location.href = ${JSON.stringify(to)}; }
-  </script>
 </body>
 </html>`);
 
