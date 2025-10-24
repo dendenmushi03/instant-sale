@@ -1493,6 +1493,13 @@ function extnameFromKey(key) {
   }
 });
 
+// ▼ 画像ライセンスポリシー（エイリアスつき）
+app.get(['/image-license', '/image-license/', '/legal/image-license'], (req, res) => {
+  res.locals.canonical = `${BASE_URL}/image-license`;
+  console.log('[route] GET /image-license'); // デプロイ確認用ログ
+  res.render('legal/image-license');         // views/legal/image-license.ejs
+});
+
 // 404
 app.use((req, res) => res.status(404).render('error', { message: 'ページが見つかりません。' }));
 
