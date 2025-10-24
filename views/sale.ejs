@@ -30,6 +30,12 @@
 </head>
 
 <style>
+  /* 購入ボタンとの間に余白をつくる */
+  .section-license { margin-top: 12px; }           /* モバイル */
+  @media (min-width: 768px) {
+    .section-license { margin-top: 16px; }         /* タブレット/PCで少し広め */
+  }
+
   .section-license .pill {
     display:inline-block; padding:.25rem .6rem; border-radius:9999px;
     background:#223; color:#fff; font-weight:600;
