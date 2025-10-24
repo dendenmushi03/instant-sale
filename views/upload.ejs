@@ -65,16 +65,32 @@
     <span class="alert__icon" aria-hidden="true">⚠️</span>
     <div class="alert__text">
       <strong class="alert__title">受取設定が未完了です</strong>
-      <span class="alert__desc">
-        売上の受け取りには、振込口座の登録と本人確認が必要です。（所要時間：5分）<br>
-      </span>
+
+      <% if (connect && connect.hasAccount) { %>
+        <!-- アカウントは作成済み（＝申請中）。自動振込の注意書きを表示 -->
+        <span class="alert__desc">
+          売上の受け取りには、振込口座の登録と本人確認が必要です。
+        </span>
+        <p class="muted" style="margin:6px 0 0;">
+          現在、口座登録の<strong>審査中</strong>です。審査中に発生した売上は保留され、
+          <strong>登録完了後に自動で登録口座へ振り込まれます</strong>。
+        </p>
+      <% } else { %>
+        <!-- まだアカウント未作成。従来の案内＋補足 -->
+        <span class="alert__desc">
+          売上の受け取りには、振込口座の登録と本人確認が必要です。
+        </span>
+        <p class="muted" style="margin:6px 0 0;">
+          まずは口座登録を完了してください。完了後、売上は自動で振り込まれます。
+        </p>
+      <% } %>
     </div>
   </div>
 
   <a class="btn btn--primary btn--compact" href="/connect/onboard">銀行口座を登録する</a>
 </div>
 
-  <% } %>
+<% } %>
 
 <% if (connectReady) { %>
 <section class="setup">
