@@ -16,13 +16,20 @@
   .setup__body{flex:1}
   .setup__title{font-weight:700}
   .setup__desc{opacity:.85;font-size:.95em}
-    /* --- fee/profit calc box --- */
-  .calcBox{margin:16px 0 6px;border-top:1px solid var(--border);padding-top:14px}
-  .calcRow{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-  .calcRow:last-child{border-bottom:none}
-  .calcRow__label{font-size:16px;opacity:.92}
-  .calcRow__value{font-size:22px;font-weight:700;letter-spacing:.02em}
-  .calcNote{margin-top:6px;font-size:.85em;opacity:.78}
+  /* === 横一列の価格計算行 === */
+  .priceRow{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:10px 0 14px}
+  .priceCol{display:flex;flex-direction:column;gap:6px}
+  .priceLabel{font-size:.92rem;opacity:.9}
+  .op{font-weight:800;font-size:22px;line-height:44px;opacity:.95;min-width:22px;text-align:center}
+  .readonlyBox{
+    height:44px;padding:10px 12px;border:1px solid var(--border);
+    border-radius:8px;background:var(--surface);color:inherit;font-weight:700;
+  }
+  .readonlyBox--em{font-size:20px}
+  @media (max-width:640px){
+    .priceRow{align-items:stretch}
+    .op{line-height:1.2}
+  }
 </style>
 
 </head>
@@ -137,32 +144,43 @@
         <input type="text" name="title" placeholder="作品タイトル" required />
       </label>
       
-<div class="row">
-  <label style="flex:1">価格（円）
+<!-- 横一列： 価格入力 − 手数料(%) ＝ 利益 -->
+<div class="priceRow" id="priceRow"
 
-<input type="number" name="price"
+     data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
+
+     <label class="priceCol" style="min-width:200px;flex:1">
+    <span class="priceLabel">価格（円）</span>
+
+<input id="priceInput" type="number" name="price"
        min="<%= process.env.MIN_PRICE || 100 %>"
        step="1"
        value="<%= process.env.MIN_PRICE || 100 %>"
+       inputmode="numeric" autocomplete="off"
        required />
-
+    
   </label>
 
-<!-- 手数料＆利益のリアルタイム表示 -->
-<div id="calcBox"
-     class="calcBox"
-     data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
-  <div class="calcRow">
-    <div class="calcRow__label">販売手数料（<span id="feeRateText"></span>）</div>
-    <div class="calcRow__value" id="feeVal">—</div>
+  <div class="op">−</div>
+
+  <div class="priceCol" style="min-width:180px">
+    <span class="priceLabel">
+      販売手数料（<span id="feeRateText"></span>）
+    </span>
+    <input id="feeVal" type="text" class="readonlyBox" value="¥0"
+           readonly aria-readonly="true" />
   </div>
-  <div class="calcRow">
-    <div class="calcRow__label">販売利益（受け取り見込み）</div>
-    <div class="calcRow__value" id="profitVal">—</div>
+
+  <div class="op">＝</div>
+
+  <div class="priceCol" style="min-width:200px">
+    <span class="priceLabel">販売利益（受け取り見込み）</span>
+    <input id="profitVal" type="text" class="readonlyBox readonlyBox--em" value="¥0"
+           readonly aria-readonly="true" />
   </div>
-  <p class="calcNote">
-    ※ 表示は概算です。少額端数は切り捨て（円単位）。決済手数料の取扱いはサイトのポリシーに従います。
-  </p>
+
+  <!-- 通貨は内部だけ保持 -->
+  <input type="hidden" name="currency" value="jpy" />
 </div>
 
       <label>クリエイター名（任意）
@@ -223,7 +241,6 @@
 </section>
 
 
-</label>
 <button type="submit" class="btn btn--primary">販売ページを作成</button>
 </form>
 
@@ -262,36 +279,30 @@
   const form = document.querySelector('form[action="/upload"]');
   if (!form) return;
 
-    // === 価格→手数料→利益のリアルタイム計算 ===
-  const priceInput = form.querySelector('input[name="price"]');
-  const calcBox    = document.getElementById('calcBox');
-  const feeRate    = calcBox ? (Number(calcBox.dataset.rate) || 20) : 20; // % 表示用
+  // === 横一列UI：価格 → 手数料 → 利益 のリアルタイム計算 ===
+  const priceInput = document.getElementById('priceInput');
+  const row        = document.getElementById('priceRow');
+  const feeRate    = row ? (Number(row.dataset.rate) || 20) : 20; // %
   const feeRateTextEl = document.getElementById('feeRateText');
   const feeValEl      = document.getElementById('feeVal');
   const profitValEl   = document.getElementById('profitVal');
 
-  function jpy(n){ return '¥' + (isFinite(n) ? Math.max(0, Math.floor(n)).toLocaleString('ja-JP') : '—'); }
+  function jpy(n){ return '¥' + (isFinite(n) ? Math.max(0, Math.floor(n)).toLocaleString('ja-JP') : '0'); }
 
   function recalc(){
-    if (!priceInput || !feeValEl || !profitValEl) return;
-    const price = Number(priceInput.value || 0);
+    const price = Number(priceInput?.value || 0);
     if (!isFinite(price) || price <= 0){
-      feeValEl.textContent    = '—';
-      profitValEl.textContent = '—';
+      feeValEl.value    = '¥0';
+      profitValEl.value = '¥0';
       return;
     }
-    // プラットフォーム手数料（円） ※端数は切り捨て
-    const fee = Math.floor(price * (feeRate / 100));
-    // 受け取り見込み（ここでは「販売価格 − プラットフォーム手数料」）
-    // 決済手数料の扱い（プラットフォーム負担/販売者負担）は運用に合わせて必要なら控除式に変更してください。
-    const profit = price - fee;
-
-    feeValEl.textContent    = jpy(fee);
-    profitValEl.textContent = jpy(profit);
+    const fee    = Math.floor(price * (feeRate / 100)); // 端数切り捨て
+    const profit = price - fee;                          // 決済手数料の控除方針は運用に合わせて調整
+    feeValEl.value    = jpy(fee);
+    profitValEl.value = jpy(profit);
   }
 
   if (feeRateTextEl) feeRateTextEl.textContent = feeRate + '%';
-
   if (priceInput){
     ['input','change','blur'].forEach(ev => priceInput.addEventListener(ev, recalc));
     recalc(); // 初期表示
