@@ -16,6 +16,13 @@
   .setup__body{flex:1}
   .setup__title{font-weight:700}
   .setup__desc{opacity:.85;font-size:.95em}
+    /* --- fee/profit calc box --- */
+  .calcBox{margin:16px 0 6px;border-top:1px solid var(--border);padding-top:14px}
+  .calcRow{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .calcRow:last-child{border-bottom:none}
+  .calcRow__label{font-size:16px;opacity:.92}
+  .calcRow__value{font-size:22px;font-weight:700;letter-spacing:.02em}
+  .calcNote{margin-top:6px;font-size:.85em;opacity:.78}
 </style>
 
 </head>
@@ -110,13 +117,15 @@
     </div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+
       <a class="btn btn--primary btn--lg" href="/connect/onboard" aria-label="Stripeで受取設定を確認・更新する">
         登録口座の確認 / 更新
       </a>
       <!-- ★ 追加：出品者用ダッシュボード -->
-      <a class="btn btn--ghost btn--lg" href="/connect/portal" aria-label="Stripe Express ダッシュボードを開く">
+      <a class="btn btn--primary btn--lg" href="/connect/portal" aria-label="Stripe Express ダッシュボードを開く">
         売上ダッシュボードを開く
       </a>
+
     </div>
 
   </div>
@@ -139,11 +148,21 @@
 
   </label>
 
-<label style="flex:1">通貨
-  <input type="text" value="円" disabled aria-disabled="true" />
-  <input type="hidden" name="currency" value="jpy" />
-</label>
-
+<!-- 手数料＆利益のリアルタイム表示 -->
+<div id="calcBox"
+     class="calcBox"
+     data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
+  <div class="calcRow">
+    <div class="calcRow__label">販売手数料（<span id="feeRateText"></span>）</div>
+    <div class="calcRow__value" id="feeVal">—</div>
+  </div>
+  <div class="calcRow">
+    <div class="calcRow__label">販売利益（受け取り見込み）</div>
+    <div class="calcRow__value" id="profitVal">—</div>
+  </div>
+  <p class="calcNote">
+    ※ 表示は概算です。少額端数は切り捨て（円単位）。決済手数料の取扱いはサイトのポリシーに従います。
+  </p>
 </div>
 
       <label>クリエイター名（任意）
@@ -242,6 +261,41 @@
 (function() {
   const form = document.querySelector('form[action="/upload"]');
   if (!form) return;
+
+    // === 価格→手数料→利益のリアルタイム計算 ===
+  const priceInput = form.querySelector('input[name="price"]');
+  const calcBox    = document.getElementById('calcBox');
+  const feeRate    = calcBox ? (Number(calcBox.dataset.rate) || 20) : 20; // % 表示用
+  const feeRateTextEl = document.getElementById('feeRateText');
+  const feeValEl      = document.getElementById('feeVal');
+  const profitValEl   = document.getElementById('profitVal');
+
+  function jpy(n){ return '¥' + (isFinite(n) ? Math.max(0, Math.floor(n)).toLocaleString('ja-JP') : '—'); }
+
+  function recalc(){
+    if (!priceInput || !feeValEl || !profitValEl) return;
+    const price = Number(priceInput.value || 0);
+    if (!isFinite(price) || price <= 0){
+      feeValEl.textContent    = '—';
+      profitValEl.textContent = '—';
+      return;
+    }
+    // プラットフォーム手数料（円） ※端数は切り捨て
+    const fee = Math.floor(price * (feeRate / 100));
+    // 受け取り見込み（ここでは「販売価格 − プラットフォーム手数料」）
+    // 決済手数料の扱い（プラットフォーム負担/販売者負担）は運用に合わせて必要なら控除式に変更してください。
+    const profit = price - fee;
+
+    feeValEl.textContent    = jpy(fee);
+    profitValEl.textContent = jpy(profit);
+  }
+
+  if (feeRateTextEl) feeRateTextEl.textContent = feeRate + '%';
+
+  if (priceInput){
+    ['input','change','blur'].forEach(ev => priceInput.addEventListener(ev, recalc));
+    recalc(); // 初期表示
+  }
 
   form.addEventListener('submit', function (ev) {
     // ★ 先にネイティブバリデーションを実行。NGなら送信しない
