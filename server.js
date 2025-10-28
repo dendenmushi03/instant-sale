@@ -600,6 +600,36 @@ app.get('/connect/refresh', ensureAuthed, (req, res) => {
   return res.render('error', { message: 'オンボーディングを再開してください。<br><a href="/connect/onboard">もう一度始める</a>' });
 });
 
+// ★ 出品者用：Stripe Express ダッシュボード（売上/入金）へ遷移
+app.get('/connect/portal', ensureAuthed, async (req, res) => {
+  try {
+    if (!stripe) {
+      return res.status(500).render('error', { message: 'Stripeが未設定です（STRIPE_SECRET_KEY）。' });
+    }
+
+    // DBから最新ユーザーを取得（stripeAccountIdを確実に参照）
+    const me = await User.findById(req.user._id);
+    const accountId = me?.stripeAccountId;
+
+    // まだ接続アカウントがない場合 → まずオンボーディングへ
+    if (!accountId) {
+      return res.redirect('/connect/onboard');
+    }
+
+    // 一時ログインリンクを発行（数十秒〜1分有効）
+    const link = await stripe.accounts.createLoginLink(accountId, {
+      redirect_url: `${BASE_URL}/creator`  // 閲覧後の戻り先
+    });
+
+    return res.redirect(link.url);
+  } catch (err) {
+    console.error('[connect/portal] failed:', err?.raw?.message || err.message);
+    return res.status(500).render('error', {
+      message: '売上ダッシュボードに遷移できませんでした。時間をおいて再度お試しください。'
+    });
+  }
+});
+
 // ── Admin: 未送金の PendingTransfer を再実行（管理者専用） ──
 // 使い方: 環境変数 ADMIN_TOKEN を設定して、
 // POST /admin/retry-pending へ Authorization: Bearer <ADMIN_TOKEN> で呼ぶ。
