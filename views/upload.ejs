@@ -21,14 +21,20 @@
   .priceCol{display:flex;flex-direction:column;gap:6px}
   .priceLabel{font-size:.92rem;opacity:.9}
   .op{font-weight:800;font-size:22px;line-height:44px;opacity:.95;min-width:22px;text-align:center}
-  .readonlyBox{
+.readonlyBox{
     height:44px;padding:10px 12px;border:1px solid var(--border);
-    border-radius:8px;background:var(--surface);color:inherit;font-weight:700;
-  }
+    border-radius:8px;background:var(--surface);
+    color:#cfd3d8; /* ←黒に近いグレーへ変更 */
+    font-weight:700;
+}
   .readonlyBox--em{font-size:20px}
   @media (max-width:640px){
     .priceRow{align-items:stretch}
     .op{line-height:1.2}
+  }
+    /* number入力のプレースホルダを見やすく */
+  input[type="number"]::placeholder{
+    opacity:.6; /* iOS/Safari も反映されます */
   }
 </style>
 
@@ -155,8 +161,8 @@
 <input id="priceInput" type="number" name="price"
        min="<%= process.env.MIN_PRICE || 100 %>"
        step="1"
-       value="<%= process.env.MIN_PRICE || 100 %>"
-       inputmode="numeric" autocomplete="off"
+       placeholder="¥<%= process.env.MIN_PRICE || 100 %>〜"
+       inputmode="numeric"
        required />
     
   </label>
