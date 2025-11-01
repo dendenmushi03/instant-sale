@@ -220,7 +220,7 @@
     "download_note": "購入後すぐにダウンロードできます（リンクは一定時間有効）。",
     "buy_button": "今すぐ購入",
     "license_h2": "ライセンスと利用範囲",
-    "license_notice_html": "購入により記載の範囲での利用が許可されます。<br>再配布・転売・ロゴ等への組み込みなどは禁止される場合があります。"
+    "license_notice_html": "※ 共通ルールは <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">画像ライセンスポリシー</a> を参照してください。"
   },
 
   "og": {
@@ -228,3 +228,4 @@
     "sale_desc": "高解像度をすぐ購入（¥{{price}}）"
   }
 }
+

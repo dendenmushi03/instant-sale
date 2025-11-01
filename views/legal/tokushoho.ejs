@@ -27,6 +27,9 @@
 
     const websiteDisp = has(website) ? website : '';
     const hoursDisp = has(businessHours) ? businessHours : (t('tokushoho.fallback.hours') || '平日 10:00-18:00');
+
+    // 表示用のサポート連絡先
+    const supportMail = email || 'Instant-Sale.sup@outlook.jp';
   %>
 
   <main class="container legal">
@@ -45,7 +48,7 @@
           <% } else { %>
             <%= phoneDisp %><br>
           <% } %>
-          Email: <a href="mailto:<%= email %>"><%= email %></a>
+          Email: <a href="mailto:<%= supportMail %>"><%= supportMail %></a>
         </td>
       </tr>
 
@@ -60,34 +63,48 @@
         </td>
       </tr>
 
-      <tr><th><%= t('tokushoho.label.price') || '販売価格' %></th><td><%= t('tokushoho.value.price') || '各商品ページに税込価格を表示しています。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.price') || '販売価格' %></th><td><%= t('tokushoho.value.price') || '各商品ページに表示' %></td></tr>
 
       <tr>
         <th><%= t('tokushoho.label.otherFees') || '商品代金以外の必要料金' %></th>
         <td>
-          <%= t('tokushoho.value.otherFees_prefix') || '【購入者】通信に係るインターネット接続料金・通信料。' %><br>
-          <%= t('tokushoho.value.otherFees_seller_prefix') || '【出品者】' %>
-          <strong><%= t('tokushoho.value.platform_fee', { pct: (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) }) || `販売手数料：販売価格（税込）の ${(typeof platformFeePct !== 'undefined' ? platformFeePct : 20)}％` %></strong>
-          <%= t('tokushoho.value.otherFees_suffix') || '（売上から自動控除）／銀行振込時に金融機関所定の振込手数料が発生する場合があります。' %>
+          <%= t('tokushoho.value.otherFees_prefix') || 'プラットフォーム手数料やStripe決済手数料が発生する場合があります。' %><br>
+          <%= t('tokushoho.value.otherFees_seller_prefix') || '出品者向け：' %>
+          <strong><%= t('tokushoho.value.platform_fee', { pct: (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) }) || `プラットフォーム手数料：販売価格（税込）の ${(typeof platformFeePct !== 'undefined' ? platformFeePct : 20)}％` %></strong>
         </td>
       </tr>
 
-      <tr><th><%= t('tokushoho.label.paymentMethod') || 'お支払い方法' %></th><td><%= t('tokushoho.value.paymentMethod') || 'クレジットカード、その他Stripeが提供する手段（対応状況は商品ページ参照）。当社はStripeを通じて決済処理を行います。' %></td></tr>
-      <tr><th><%= t('tokushoho.label.paymentTiming') || 'お支払い時期' %></th><td><%= t('tokushoho.value.paymentTiming') || 'ご注文時に即時決済されます。' %></td></tr>
-      <tr><th><%= t('tokushoho.label.delivery') || '引渡し時期' %></th><td><%= t('tokushoho.value.delivery') || '決済完了後、直ちにダウンロードが可能です（ダウンロードリンクを表示/メール送付）。' %></td></tr>
-      <tr><th><%= t('tokushoho.label.refund') || '返品・キャンセル' %></th><td><%= t('tokushoho.value.refund') || 'デジタル商品の性質上、ダウンロード後の返品・キャンセルはお受けしておりません。二重決済・誤課金・データ欠陥等は速やかに対応します。' %></td></tr>
-      <tr><th><%= t('tokushoho.label.env') || '動作環境' %></th><td><%= t('tokushoho.value.env') || '各商品ページに記載のファイル形式・解像度等をご確認ください。' %></td></tr>
-      <tr><th><%= t('tokushoho.label.qty') || '販売数量' %></th><td><%= t('tokushoho.value.qty') || '特に制限はありません。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.paymentMethod') || 'お支払い方法' %></th><td><%= t('tokushoho.value.paymentMethod') || 'Stripeによるクレジットカード等' %></td></tr>
+      <tr><th><%= t('tokushoho.label.paymentTiming') || 'お支払い時期' %></th><td><%= t('tokushoho.value.paymentTiming') || '購入時に即時決済（お支払い方法により異なる場合があります）' %></td></tr>
+      <tr><th><%= t('tokushoho.label.delivery') || '引き渡し時期' %></th><td><%= t('tokushoho.value.delivery') || '決済確認後、ただちにダウンロード可能なURLを発行' %></td></tr>
+      <tr><th><%= t('tokushoho.label.refund') || '返品・キャンセル' %></th><td><%= t('tokushoho.value.refund') || 'デジタル商品のため返品不可。二重決済・誤課金・欠陥データ等は個別対応' %></td></tr>
+      <tr><th><%= t('tokushoho.label.env') || '動作環境' %></th><td><%= t('tokushoho.value.env') || 'インターネット接続環境および一般的なWebブラウザ' %></td></tr>
+      <tr><th><%= t('tokushoho.label.qty') || '販売数量の制限' %></th><td><%= t('tokushoho.value.qty') || '特に制限はありません（在庫・数量制限の記載がある商品を除く）' %></td></tr>
       <tr><th><%= t('tokushoho.label.hours') || '営業時間' %></th><td><%= hoursDisp %></td></tr>
-      <tr><th><%= t('tokushoho.label.notes') || '特記事項' %></th><td><%= t('tokushoho.value.notes') || '未成年の購入には保護者の同意が必要です。知的財産権を侵害する行為は禁止します。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.notes') || '備考' %></th><td><%= t('tokushoho.value.notes') || '特別な条件がある場合は各商品ページに記載します。' %></td></tr>
 
       <tr>
-        <th><%= t('tokushoho.label.stripe') || '決済・送金について' %></th>
+        <th><%= t('tokushoho.label.stripe') || 'Stripeに関する表示' %></th>
         <td>
-          <%= t('tokushoho.value.stripe_html') || '決済処理および出品者への送金は Stripe（Stripe Connect）を利用します。送金時期・入金スケジュールは Stripe Connect の規約・設定に従います。' %>
+          <%= t('tokushoho.value.stripe_html') || '当サービスはStripeを利用して決済を処理します。<br>カード情報は当サービスで保存しません。' %>
         </td>
       </tr>
     </table>
+
+    <!-- ▼ 仲介方式の明示・販売者情報の開示請求（ページ直下に常時表示） -->
+    <section class="legal-note" style="margin-top:20px">
+      <h2 style="font-size:1.1rem;margin-bottom:.5rem;">販売形態（仲介方式）</h2>
+      <p style="margin:0 0 .5rem 0;">
+        Instant Sale は、ユーザーが自ら作成したデジタルコンテンツ（画像等）を販売するためのプラットフォームです。
+        各商品は出品者によって提供され、当社は決済処理および販売仲介を行います。
+      </p>
+      <p style="margin:0 0 .5rem 0;">
+        出品者が反復継続して販売を行う場合、特定商取引法上の「販売業者」に該当することがあります。
+        当該出品者に関する氏名（又は屋号＋代表者名）・所在地・電話番号等の開示をご希望の場合は、
+        <a href="mailto:<%= supportMail %>"><%= supportMail %></a>
+        までご連絡ください。内容を確認のうえ、法令に基づき遅滞なく開示します。
+      </p>
+    </section>
   </main>
 
   <%- include('../partials/footer') %>

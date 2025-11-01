@@ -6,29 +6,128 @@
   <title>特定商取引法に基づく表示 | <%= site %></title>
   <link rel="stylesheet" href="/public/style.css" />
 </head>
-<body class="layout container">
-  <h1>特定商取引法に基づく表示</h1>
+<body class="layout">
+  <%- include('../partials/header') %>
 
-  <dl class="legal-list">
-    <dt>販売事業者</dt><dd><%= legal.name %></dd>
-    <% if (legal.responsible) { %><dt>運営責任者</dt><dd><%= legal.responsible %></dd><% } %>
-    <dt>所在地</dt><dd><%= legal.address %></dd>
-    <dt>電話番号</dt><dd><%= legal.phone %></dd>
-    <dt>メールアドレス</dt><dd><%= legal.email %></dd>
-    <% if (legal.website) { %><dt>ウェブサイト</dt><dd><a href="<%= legal.website %>" target="_blank" rel="noopener"><%= legal.website %></a></dd><% } %>
-    <% if (legal.invoiceRegNo) { %><dt>適格請求書登録番号</dt><dd><%= legal.invoiceRegNo %></dd><% } %>
+  <%
+    // ヘルパ
+    const has = (v) => !!(v && String(v).trim().length > 0);
 
-    <dt>販売価格</dt><dd>各商品ページに税込価格で表示</dd>
-    <dt>商品代金以外の必要料金</dt><dd><%= legal.extraFees || 'なし（通信費等はお客様負担）' %></dd>
-    <dt>支払方法</dt><dd><%= legal.paymentMethod %></dd>
-    <dt>支払時期</dt><dd><%= legal.paymentTiming %></dd>
-    <dt>商品の引渡時期</dt><dd><%= legal.deliveryTime %></dd>
-    <dt>返品・キャンセル</dt><dd><%= legal.returns %></dd>
-  </dl>
+    // フォールバック（未入力時に安全文言へ）
+    const nameDisp      = has(legal?.name)        ? legal.name        : '—';
+    const respDisp      = has(legal?.responsible) ? legal.responsible : '—';
+    const addressDisp   = has(legal?.address)
+      ? legal.address
+      : '個人で運営しているため、住所はご請求いただいた場合に遅滞なく開示します。';
+    const phoneDisp     = has(legal?.phone)
+      ? legal.phone
+      : '電話番号はご請求があれば遅滞なく開示いたします（通常のお問い合わせはメールでお願いします）。';
+    const emailDisp     = has(legal?.email) ? legal.email : '';
+    const websiteDisp   = has(legal?.website) ? legal.website : '';
+    const invoiceDisp   = has(legal?.invoiceRegNo) ? legal.invoiceRegNo : '';
 
-  <p><a class="btn" href="/">トップへ戻る</a></p>
+    // 取引条件系：未設定でも崩れない既定文言
+    const priceDisp     = '各商品ページに税込価格で表示';
+    const extraFeesDisp = has(legal?.extraFees) ? legal.extraFees : 'なし（通信費等はお客様負担）';
+    const payMethodDisp = has(legal?.paymentMethod) ? legal.paymentMethod : 'クレジットカード（Stripe）ほか';
+    const payTimingDisp = has(legal?.paymentTiming) ? legal.paymentTiming : '購入時に即時決済（お支払い方法により異なる場合があります）';
+    const deliveryDisp  = has(legal?.deliveryTime) ? legal.deliveryTime : '決済確認後、ただちにダウンロード可能なURLを発行';
+    const returnsDisp   = has(legal?.returns) ? legal.returns : 'デジタル商品のため返品不可。二重決済・誤課金・欠陥データ等は個別対応';
 
-<%- include('partials/footer') %>
+    // サポートメール（なければ販売者メール）
+    const supportMail   = has(legal?.supportEmail) ? legal.supportEmail : (emailDisp || 'support@instantsale.example');
+  %>
 
+  <main class="container legal">
+    <h1>特定商取引法に基づく表示</h1>
+
+    <table class="legal-table">
+      <tr>
+        <th>販売事業者</th>
+        <td><%= nameDisp %></td>
+      </tr>
+      <tr>
+        <th>運営責任者</th>
+        <td><%= respDisp %></td>
+      </tr>
+      <tr>
+        <th>所在地</th>
+        <td><%= addressDisp %></td>
+      </tr>
+      <tr>
+        <th>電話番号</th>
+        <td><%= phoneDisp %></td>
+      </tr>
+      <tr>
+        <th>メールアドレス</th>
+        <td>
+          <% if (has(emailDisp)) { %>
+            <a href="mailto:<%= emailDisp %>"><%= emailDisp %></a>
+          <% } else { %>
+            —
+          <% } %>
+        </td>
+      </tr>
+      <tr>
+        <th>ウェブサイト</th>
+        <td>
+          <% if (has(websiteDisp)) { %>
+            <a href="<%= websiteDisp %>" target="_blank" rel="noopener"><%= websiteDisp %></a>
+          <% } else { %>
+            —
+          <% } %>
+        </td>
+      </tr>
+      <% if (has(invoiceDisp)) { %>
+      <tr>
+        <th>適格請求書登録番号</th>
+        <td><%= invoiceDisp %></td>
+      </tr>
+      <% } %>
+
+      <tr>
+        <th>販売価格</th>
+        <td><%= priceDisp %></td>
+      </tr>
+      <tr>
+        <th>商品代金以外の必要料金</th>
+        <td><%= extraFeesDisp %></td>
+      </tr>
+      <tr>
+        <th>支払方法</th>
+        <td><%= payMethodDisp %></td>
+      </tr>
+      <tr>
+        <th>支払時期</th>
+        <td><%= payTimingDisp %></td>
+      </tr>
+      <tr>
+        <th>商品の引渡時期</th>
+        <td><%= deliveryDisp %></td>
+      </tr>
+      <tr>
+        <th>返品・キャンセル</th>
+        <td><%= returnsDisp %></td>
+      </tr>
+    </table>
+
+    <section class="legal-note" style="margin-top:20px">
+      <h2 style="font-size:1.05rem;margin-bottom:.5rem;">開示請求について</h2>
+      <p style="margin:0 0 .5rem 0;">
+        本ページは当該出品者が公開を選択した項目を表示しています。未記載の<strong>住所・電話番号</strong>等について
+        開示をご希望の場合は、本人確認の上、法令に基づき遅滞なく開示します。
+        その際は <a href="mailto:<%= supportMail %>"><%= supportMail %></a> までご連絡ください。
+      </p>
+      <p style="margin:0;">
+        ※ Instant Sale は販売仲介プラットフォームです。決済処理は Stripe を通じて安全に行われます。
+      </p>
+    </section>
+
+    <p style="margin-top:24px">
+      <a class="btn" href="/">トップへ戻る</a>
+    </p>
+  </main>
+
+  <%- include('../partials/footer') %>
 </body>
 </html>

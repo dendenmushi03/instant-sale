@@ -48,7 +48,7 @@
 
   "upload.modal.title": "Uploading…",
   "upload.modal.phase_uploading": "Uploading your file",
-  "upload.modal.phase_processing": "Processing the image",
+  "upload.modal.phase_processing": "We are currently creating a sales page...",
   "upload.modal.done": "All set",
   "upload.modal.created": "Your sales page URL is ready",
   "upload.modal.btn_open": "Open page",
@@ -220,7 +220,7 @@
     "download_note": "Your download link is issued immediately after purchase (valid for a limited time).",
     "buy_button": "Buy now",
     "license_h2": "License & Usage",
-    "license_notice_html": "Your purchase grants usage within the described scope.<br>Redistribution, resale, and usage in logos/marks may be prohibited."
+    "license_notice_html": "See the <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">Image License Policy</a> for common rules."
   },
 
   "og": {

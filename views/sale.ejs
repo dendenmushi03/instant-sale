@@ -99,21 +99,6 @@
 <% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>
 <div class="price">¥<%= item.price.toLocaleString(locale) %></div>
 
-        <% if (sellerLegal) { %>
-  <div class="card" style="margin:12px 0;">
-    <div class="muted" style="margin-bottom:6px;">販売事業者に関する表示（特定商取引法）</div>
-    <ul class="plain">
-      <li><strong>販売業者</strong>：<%= sellerLegal.name %></li>
-      <% if (sellerLegal.responsible) { %><li><strong>運営責任者</strong>：<%= sellerLegal.responsible %></li><% } %>
-      <li><strong>所在地</strong>：<%= sellerLegal.address %></li>
-      <% if (sellerLegal.phone) { %><li><strong>電話番号</strong>：<%= sellerLegal.phone %></li><% } %>
-      <li><strong>メール</strong>：<%= sellerLegal.email %></li>
-      <% if (sellerLegal.website) { %><li><strong>サイト</strong>：<a href="<%= sellerLegal.website %>" target="_blank" rel="noopener">開く</a></li><% } %>
-      <% if (sellerLegal.invoiceRegNo) { %><li><strong>適格請求書番号</strong>：<%= sellerLegal.invoiceRegNo %></li><% } %>
-    </ul>
-  </div>
-<% } %>
-
 <div class="muted"><%= t('product.tax_note') %></div>
 
         <%
