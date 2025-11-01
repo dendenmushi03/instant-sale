@@ -177,12 +177,34 @@
       "notes": "Any special conditions will be noted on each product page.",
       "stripe_html": "Payments are processed by Stripe.<br>We do not store card numbers on our service."
     }
-  }
-  ,
+  },
+
+  "image_license.page": {
+    "last_updated_prefix": "Last updated: {{date}}",
+    "common_title": "Common Rules",
+    "common_rules_html": "<ul><li>Buyers may use the purchased image <b>within the scope of the license preset</b> written on each product page (personal / standard / limited commercial / exclusive).</li><li><b>Credit notation is not required</b> (platform policy).</li><li><b>Redistribution / resale is prohibited</b> (including wallpaper packs, template distribution, NFT, etc.).</li><li><b>AI training</b> (training data / fine-tuning / embedding) <b>is not allowed</b>.</li><li>Do not use for illegal, discriminatory, defamatory or offensive purposes; do not infringe privacy/portrait rights, third-party trademarks or copyrights.</li></ul>",
+    "presets_title": "License Presets",
+    "personal_title": "Non-commercial (personal)",
+    "personal_desc_html": "<ul><li>Personal use only (SNS icon / personal blog / wallpaper, etc.).</li><li><b>No profit-seeking usage</b> (ads / promotion / sales / client work are not allowed).</li></ul>",
+    "standard_title": "Commercial use",
+    "standard_desc_html": "<ul><li>Allowed for SNS posts, corporate SNS, website materials, thumbnails, etc.</li><li>Not allowed for mass production / logo use / trademark registration / resale as materials.</li></ul>",
+    "lite_title": "Limited commercial",
+    "lite_desc_html": "<ul><li>Allowed for small-lot sales such as doujin goods, novelty items, etc.</li><li>Mass production, large-scale retail, or brand/logo usage is not covered.</li></ul>",
+    "exclusive_title": "Full commercial",
+    "exclusive_desc_html": "<ul><li>Allowed for advertising creatives, packaged sales, etc.</li><li>If you need exclusive usage or transfer of rights, please contact us in advance.</li></ul>"
+  },
+
   "image_license": {
     "title": "Image License",
     "h1": "Image License",
     "intro_html": "This page describes the common license rules for images sold on {{site}}."
   },
-  "upload.agree_terms_html": "I agree to the <a href=\"/terms\" target=\"_blank\" rel=\"noopener\">Terms of Service</a>."
+
+  "upload.agree_terms_html": "I agree to the <a href=\"/terms\" target=\"_blank\" rel=\"noopener\">Terms of Service</a>.",
+
+  "og": {
+    "sale_title_suffix": "Instant download",
+    "sale_desc": "Buy high-res now (¥{{price}})"
+  }
+
 }

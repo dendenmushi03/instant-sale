@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="<%= lng || 'ja' %>">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>画像ライセンスポリシー | Instant Sale</title>
+  <title><%= t('image_license.title') %> | <%= t('brand') %></title>
   <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
   <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
 </head>
@@ -11,102 +11,59 @@
   <header class="nav">
     <a class="nav__brand" href="/">
       <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
-      <span class="nav__brandText">Instant Sale</span>
+      <span class="nav__brandText"><%= t('brand') %></span>
     </a>
     <nav class="nav__right">
       <% if (me) { %>
         <span class="nav__user"><%= me.name || me.email %></span>
         <form method="post" action="/logout" class="inline">
-          <button class="btn btn--ghost">ログアウト</button>
+          <button class="btn btn--ghost"><%= t('nav.logout') %></button>
         </form>
       <% } else { %>
-        <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+        <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
       <% } %>
     </nav>
   </header>
 
 <main class="container card">
-  <h1>画像ライセンスポリシー</h1>
-  <p class="muted">最終更新日：<%= new Date().toISOString().slice(0,10) %></p>
+  <h1><%= t('image_license.h1') %></h1>
 
-  <h2>共通ルール</h2>
-  <ul>
-    <li>
-      購入者は、購入した画像を<strong>各商品の「利用許諾（プリセット）」の範囲内</strong>で
-      個人・商用目的に利用できます。
-    </li>
-    <li><strong>クレジット表記は不要</strong>です（プラットフォーム方針）。</li>
-    <li>
-      <strong>再配布・再販売は禁止</strong>です（壁紙パック・素材集・テンプレ配布・NFT化 等を含む）。
-    </li>
-    <li>
-      <strong>AI学習（学習データ/ファインチューニング/埋め込み生成）への利用は禁止</strong>です。
-    </li>
-    <li>
-      違法・差別・誹謗中傷・公序良俗に反する用途、著名人のパブリシティ/肖像権・第三者商標/著作物を
-      侵害する用途は不可です。
-    </li>
-  </ul>
+  <% const _d = new Date(); const _iso = _d.toISOString().slice(0,10); %>
+  <p class="muted"><%= t('image_license.page.last_updated_prefix', { date: _iso }) %></p>
 
-  <h2>利用許諾プリセット</h2>
+  <h2><%= t('image_license.page.common_title') %></h2>
+  <%- t('image_license.page.common_rules_html') %>
 
-  <h3>商用不可（personal）</h3>
-  <ul>
-    <li>個人利用のみ可（SNSアイコン/個人ブログ/壁紙 等）。</li>
-    <li><strong>収益目的の利用（広告/販促/販売物/クライアントワーク）は不可</strong>。</li>
-  </ul>
+  <h2><%= t('image_license.page.presets_title') %></h2>
 
-  <h3>商用可（standard）</h3>
-  <ul>
-    <li>一般的な商用利用可（SNS投稿・企業SNS・Web掲載・広告素材 等）。</li>
-    <li>NG：再配布/再販売、AI学習、<strong>ロゴ・商標登録・商品そのものの主要価値化</strong>。</li>
-  </ul>
+  <h3><%= t('image_license.page.personal_title') %></h3>
+  <%- t('image_license.page.personal_desc_html') %>
 
-  <h3>一部商用可（commercial-lite）</h3>
-  <ul>
-    <li>小規模商用可（同人誌・小ロットのグッズ 等）。</li>
-    <li>NG：<strong>大量生産・量販流通・ロゴ/商標利用・再配布/再販売・AI学習</strong>。</li>
-  </ul>
+  <h3><%= t('image_license.page.standard_title') %></h3>
+  <%- t('image_license.page.standard_desc_html') %>
 
-  <h3>完全商用可（exclusive）</h3>
-  <ul>
-    <li>幅広い商用利用可。商品主要価値としての利用やパッケージ販売も可。</li>
-    <li>
-      注：本プリセットは<strong>独占権を保証するものではありません</strong>。
-      出品者が<strong>独占を約束する場合は商品ページに明記</strong>されます。
-    </li>
-  </ul>
+  <h3><%= t('image_license.page.lite_title') %></h3>
+  <%- t('image_license.page.lite_desc_html') %>
 
-  <h2>禁止事項（抜粋）</h2>
-  <ul>
-    <li>画像そのものを主要価値とした再販売・再配布・素材サイト/テンプレ配布。</li>
-    <li>AIモデルの学習データとしての利用、ベクトルDB等への取り込み。</li>
-    <li>
-      権利侵害となる利用（第三者の肖像・商標・著作物・デザインの侵害、誤認を生む表示 等）。
-    </li>
-    <li>公序良俗に反する利用、違法行為に関連する利用。</li>
-  </ul>
-
-  <h2>表示と優先順位</h2>
-  <ul>
-    <li>各商品の販売ページには、<strong>出品者が選択したプリセットのみ</strong>が表示されます。</li>
-    <li>本ポリシーと商品ページの表記が矛盾する場合は、<strong>商品ページの表記が優先</strong>します。</li>
-  </ul>
+  <h3><%= t('image_license.page.exclusive_title') %></h3>
+  <%- t('image_license.page.exclusive_desc_html') %>
 
   <p style="margin-top:16px">
-    <a class="btn btn--primary" href="/creator">アップロードへ戻る</a>
+    <a class="btn btn--primary" href="/creator"><%= t('upload.h1') %></a>
   </p>
 </main>
 
   <footer class="site-footer">
     <div class="footer__links">
-      <a href="/terms">利用規約</a>
+      <a href="/terms"><%= t('footer.terms') %></a>
       <span class="dot">•</span>
-      <a href="/privacy">プライバシーポリシー</a>
+      <a href="/privacy"><%= t('footer.privacy') %></a>
       <span class="dot">•</span>
-      <a href="/tokushoho">特定商取引法に基づく表記</a>
+      <a href="/tokushoho"><%= t('footer.tokushoho') %></a>
+      <span class="dot">•</span>
+      <a href="/image-license"><%= t('footer.image_license') %></a>
     </div>
-    <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
+    <div class="footer__copy">© <%= new Date().getFullYear() %> <%= t('brand') %></div>
   </footer>
 </body>
 </html>

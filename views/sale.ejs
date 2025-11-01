@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="<%= lng || 'ja' %>">
 
 <head>
   <meta charset="utf-8" />
@@ -54,17 +54,17 @@
   <a class="nav__brand" href="/">
 <img class="nav__logo" src="/public/logo.png" alt="Instant Sale"
      loading="eager" decoding="async" />
-    <span class="nav__brandText">Instant Sale</span>
-  </a>
+<span class="nav__brandText"><%= t('brand') %></span>
+    </a>
   <nav class="nav__right">
     <% if (me) { %>
       <span class="nav__user"><%= me.name || me.email %></span>
       <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
+<button class="btn btn--ghost"><%= t('nav.logout') %></button>
       </form>
     <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
-    <% } %>
+<a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
+      <% } %>
   </nav>
 </header>
   
@@ -96,7 +96,8 @@
       <div class="product-info">
         <h1><%= item.title %></h1>
         <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
-<div class="price"><%= item.price.toLocaleString('ja-JP') %> 円</div>
+<% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>
+<div class="price">¥<%= item.price.toLocaleString(locale) %></div>
 
         <% if (sellerLegal) { %>
   <div class="card" style="margin:12px 0;">
@@ -113,7 +114,7 @@
   </div>
 <% } %>
 
-        <div class="muted">※税込表示</div>
+<div class="muted"><%= t('product.tax_note') %></div>
 
         <%
 // 販売者名の表示ロジック（null安全）
@@ -128,12 +129,12 @@ const sellerDisplayName =
 %>
 
 <div class="muted">
-  販売事業者： <%= sellerDisplayName %>
-  （<a href="<%= tokushohoUrl %>" rel="nofollow">特定商取引法に基づく表示</a>）
+  <%= t('product.seller_label') %> <%= sellerDisplayName %>
+  （<a href="<%= tokushohoUrl %>" rel="nofollow"><%= t('product.legal_link') %></a>）
 </div>
 
 <div class="muted" style="margin-top:8px;">
-  デジタル商品のため、購入後のキャンセルは原則できません。誤課金・ファイル不具合時はお問い合わせください。
+  <%= t('product.download_note') %>
 </div>
 
           <% if (typeof connect !== 'undefined' && connect && (!connect.hasAccount || !connect.payoutsEnabled)) { %>
@@ -145,13 +146,15 @@ const sellerDisplayName =
   <% } %>
 
           <form id="checkoutForm" action="/checkout/<%= item.slug %>" method="post" target="_top" novalidate>
-          <button id="checkoutBtn" class="btn primary" type="submit" aria-live="polite">
-            高解像度を購入してダウンロード
-          </button>
+
+<button id="checkoutBtn" class="btn primary" type="submit" aria-live="polite">
+  <%= t('product.buy_button') %>
+</button>
+
         </form>
 
 <section class="card section-license">
-  <h3 class="section-title">利用許諾</h3>
+<h3 class="section-title"><%= t('product.license_h2') %></h3>
 
   <div class="license-badge">
     <span class="pill"><%= licenseView.label %></span>
@@ -167,9 +170,9 @@ const sellerDisplayName =
     <p class="license-ai">※ 生成AI作品（モデル名：<%= item.aiModelName || '—' %>）</p>
   <% } %>
 
-  <p class="license-policy">
-    ※ 共通ルールは <a href="/image-license" rel="noopener">画像ライセンスポリシー</a> を参照。
-  </p>
+<p class="license-policy">
+  <%- t('product.license_notice_html') %>
+</p>
 </section>
 
         <p class="hint">決済はStripe（カード）で安全に処理されます。</p>
@@ -259,7 +262,6 @@ try {
       try {
         btn.disabled = true;
         btn.style.opacity = '0.75';
-        btn.textContent = 'Stripeに移動中…';
       } catch (_) {}
       // 念のため、最上位フレームへ遷移を強制（iOSアプリ内ブラウザ対策）
       try {

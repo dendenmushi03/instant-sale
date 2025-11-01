@@ -67,6 +67,16 @@ const toAbs = (u) => {
   return /^https?:\/\//i.test(u) ? u : `${BASE_URL}${u.startsWith('/') ? '' : '/'}${u}`;
 };
 
+// 現在言語の取得（cookie → i18n → Accept-Language の順で決定）
+function getLng(req) {
+  return req.cookies?.i18next || req.i18n?.language || req.language || 'ja';
+}
+
+// 言語→数値ロケールの簡易マップ
+function toNumberLocale(lng) {
+  return (lng === 'en') ? 'en-US' : 'ja-JP';
+}
+
 // 出品時に選ばれた licensePreset を販売ページ表示用に整形
 function licenseViewOf(item) {
   const key = item.licensePreset || 'standard';
@@ -1019,62 +1029,20 @@ app.get('/s/:slug', async (req, res) => {
 
 const isAbs = typeof item.previewPath === 'string' && /^https?:\/\//i.test(item.previewPath);
 
+// 現在言語と数値ロケール
+const lng = getLng(req);
+const numLocale = toNumberLocale(lng);
+
+// OGの言語化（辞書キーは既存 common.json に合わせて追加してください）
 const og = {
-  title: `${item.title} | 即ダウンロード`,
-  desc: `高解像度をすぐ購入（${Number(item.price).toLocaleString('ja-JP')} 円）`,
+  title: `${item.title} | ${req.t('og.sale_title_suffix', { lng })}`, // 例: "Instant download"
+  desc:  req.t('og.sale_desc', {
+           lng,
+           price: Number(item.price).toLocaleString(numLocale)
+         }), // 例: "Buy high-res now (¥1,200)"
   image: isAbs ? item.previewPath : `${BASE_URL}${item.previewPath}`,
-  url: `${BASE_URL}/s/${item.slug}`
+  url:   `${BASE_URL}/s/${item.slug}`
 };
-
-    // ログイン者がオーナーなら接続状態
-    let connect = null;
-    if (req.user && item.ownerUser && String(item.ownerUser) === String(req.user._id)) {
-      connect = await getConnectStatus(req.user);
-    }
-
-    // 販売者情報の取得は「例外を潰して」null安全に
-    let seller = null;
-    let sellerLegal = null;
-    if (item.ownerUser) {
-      try {
-        seller = await User.findById(item.ownerUser).lean();
-        if (seller?.legal?.published) sellerLegal = seller.legal;
-      } catch (_) {
-        seller = null;
-        sellerLegal = null;
-      }
-    }
-
-// ▼ 特商法リンクのフォールバック先を決める（販売者ページが公開されていなければ /tokushoho）
-let tokushohoUrl = '/tokushoho';
-if (seller && sellerLegal) {
-    tokushohoUrl = `/legal/seller/${seller._id}`;
-}
-
-// --- 表示用画像の決定：DBの previewPath を最優先 ---
-let displayImagePath = '';
-
-if (item.previewPath) {
-  const isAbs  = /^https?:\/\//i.test(item.previewPath);
-  const isHttp = /^http:\/\//i.test(item.previewPath);
-
-  if (isAbs) {
-    // HTTPSページ上でHTTP画像は混在コンテンツになるため空に
-    displayImagePath = (isHttp && BASE_URL.startsWith('https://')) ? '' : item.previewPath;
-  } else {
-    // 相対パスは必ず先頭スラ付きに正規化
-    displayImagePath = item.previewPath.startsWith('/') ? item.previewPath : `/${item.previewPath}`;
-  }
-}
-
-// 最後の保険：空ならローカルの preview を指す（存在確認して無ければ1px）
-if (!displayImagePath) {
-  const fallback = `/previews/${item.slug}-preview.jpg`;
-  const abs = path.join(PREVIEW_DIR, `${item.slug}-preview.jpg`);
-  displayImagePath = fs.existsSync(abs)
-    ? fallback
-    : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMB/afkGkEAAAAASUVORK5CYII=';
-}
 
 return res.render('sale', {
   item,
@@ -1085,7 +1053,8 @@ return res.render('sale', {
   sellerLegal: sellerLegal || null,
   displayImagePath,
   tokushohoUrl,
-  licenseView: licenseViewOf(item)   // ★ 追加
+  licenseView: licenseViewOf(item),
+  lng                      // ← ★ 追加：テンプレに明示的に渡す
 });
 
   } catch (e) {
@@ -1509,7 +1478,12 @@ app.get('/success', async (req, res) => {
     }
 
     const downloadUrl = `${BASE_URL}/download/${doc.token}`;
-    return res.render('success', { item, downloadUrl, expiresAt: doc.expiresAt, ttlMin: DOWNLOAD_TOKEN_TTL_MIN });
+
+return res.render('success', {
+  item, downloadUrl, expiresAt: doc.expiresAt, ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
+  lng: getLng(req)
+});
+
   } catch (e) {
     console.error(e);
     return res.status(500).render('error', { message: '決済結果の処理に失敗しました。' });
@@ -1553,12 +1527,12 @@ const cmd = new GetObjectCommand({
 });
 const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
 
-// ★ 直接リダイレクトさせず、注意文付きのビューページを表示
 return res.render('download-view', {
   imageUrl: signedUrl,
   item,
   expiresAt: doc.expiresAt,
-  ttlMin: DOWNLOAD_TOKEN_TTL_MIN
+  ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
+  lng: getLng(req)
 });
 
 // 補助: S3キーから拡張子取得
@@ -1581,12 +1555,12 @@ app.get('/legal/privacy',   (req, res) => res.redirect(301, '/privacy'));
 // ▼▼▼ 販売者ごとの特商法表示ページ ▼▼▼
 app.get('/legal/seller/:userId', async (req, res) => { /* ... */ });
 
-// どの表記でも拾えるようにエイリアスを用意
 app.get(
-  ['/image-license', '/image-license/', '/legal/image-license', '/image_license'], // ← アンダースコアも拾う
+  ['/image-license', '/image-license/', '/legal/image-license', '/image_license'],
   (req, res) => {
     res.locals.canonical = `${BASE_URL}/image-license`;
-    res.render('legal/image-license');
+    const lng = getLng(req);
+    res.render('legal/image-license', { lng });  // ← ★ 追加
   }
 );
 
