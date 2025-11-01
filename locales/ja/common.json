@@ -46,6 +46,17 @@
   "upload.license.notice_html": "※ 共通ルールは <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">画像ライセンスポリシー</a> を参照。",
   "upload.submit": "販売ページを作成",
 
+  "upload.modal.title": "アップロード中…",
+  "upload.modal.phase_uploading": "ファイルをアップロードしています",
+  "upload.modal.phase_processing": "画像を処理しています",
+  "upload.modal.done": "完了しました",
+  "upload.modal.created": "販売ページのURLが作成されました",
+  "upload.modal.btn_open": "ページを開く",
+  "upload.modal.btn_copy": "リンクをコピー",
+  "upload.modal.copied": "コピーしました",
+  "upload.modal.btn_close": "閉じる",
+  "upload.modal.hint": "このURLは保管してください。リンクがあればいつでもページに戻れます。",
+
   "footer": {
     "terms": "利用規約",
     "privacy": "プライバシーポリシー",
@@ -206,5 +217,4 @@
     "sale_title_suffix": "即ダウンロード",
     "sale_desc": "高解像度をすぐ購入（¥{{price}}）"
   }
-
 }

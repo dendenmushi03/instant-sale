@@ -46,6 +46,17 @@
   "upload.license.notice_html": "See <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">Image License Policy</a> for common rules.",
   "upload.submit": "Create product page",
 
+  "upload.modal.title": "Uploading…",
+  "upload.modal.phase_uploading": "Uploading your file",
+  "upload.modal.phase_processing": "Processing the image",
+  "upload.modal.done": "All set",
+  "upload.modal.created": "Your sales page URL is ready",
+  "upload.modal.btn_open": "Open page",
+  "upload.modal.btn_copy": "Copy link",
+  "upload.modal.copied": "Copied",
+  "upload.modal.btn_close": "Close",
+  "upload.modal.hint": "Keep this URL safe. You can revisit your page anytime with this link.",
+
   "footer": {
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
@@ -206,5 +217,4 @@
     "sale_title_suffix": "Instant download",
     "sale_desc": "Buy high-res now (¥{{price}})"
   }
-
 }
