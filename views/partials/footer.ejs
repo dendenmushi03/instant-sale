@@ -1,12 +1,12 @@
 <footer class="site-footer">
-<div class="footer__links">
-  <a href="/terms">利用規約</a>
-  <span class="dot">•</span>
-  <a href="/privacy">プライバシーポリシー</a>
-  <span class="dot">•</span>
-  <a href="/tokushoho">特定商取引法に基づく表記</a>
-  <span class="dot">•</span>
-  <a href="/image-license">画像ライセンスポリシー</a>
-</div>
-  <div class="footer__copy">© <%= new Date().getFullYear() %> Instant Sale</div>
+  <div class="footer__links">
+    <a href="/terms"><%= (t && t('footer.terms')) || '利用規約' %></a>
+    <span class="dot">•</span>
+    <a href="/privacy"><%= (t && t('footer.privacy')) || 'プライバシーポリシー' %></a>
+    <span class="dot">•</span>
+    <a href="/tokushoho"><%= (t && t('footer.tokushoho')) || '特定商取引法に基づく表記' %></a>
+    <span class="dot">•</span>
+    <a href="/image-license"><%= (t && t('footer.image_license')) || '画像ライセンスポリシー' %></a>
+  </div>
+  <div class="footer__copy">© <%= new Date().getFullYear() %> <%= (t && t('brand')) || 'Instant Sale' %></div>
 </footer>

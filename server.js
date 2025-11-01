@@ -1,5 +1,11 @@
 require('dotenv').config();
 const path = require('path');
+
+const cookieParser = require('cookie-parser');
+const i18next = require('i18next');
+const i18nextMiddleware = require('i18next-http-middleware');
+const i18nextFsBackend = require('i18next-fs-backend');
+
 const fs = require('fs');
 const fsp = require('fs/promises');
 
@@ -171,6 +177,38 @@ app.use((req, res, next) => {
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// ▼ i18n: 言語検出は Cookie 優先、辞書は /locales/{{lng}}/{{ns}}.json
+app.use(cookieParser());
+
+i18next
+  .use(i18nextFsBackend)
+  .use(i18nextMiddleware.LanguageDetector)
+  .init({
+    fallbackLng: 'ja',
+    supportedLngs: ['ja','en'],
+    preload: ['ja','en'],
+    ns: ['common'],
+    defaultNS: 'common',
+    backend: {
+      loadPath: path.join(__dirname, 'locales/{{lng}}/{{ns}}.json'),
+    },
+    detection: {
+      order: ['cookie','querystring','header'],
+      caches: ['cookie'],
+      cookieName: 'i18next',
+    },
+    interpolation: { escapeValue: false },
+  });
+
+app.use(i18nextMiddleware.handle(i18next));
+
+// EJSで t() / 現在言語 lng を使えるように
+app.use((req, res, next) => {
+  res.locals.t = req.t;
+  res.locals.lng = req.language || 'ja';
+  next();
+});
 
 const helmet = require('helmet');
 const compression = require('compression');
@@ -409,6 +447,17 @@ mongoose.connect(MONGODB_URI).then(() => {
 // index（EJS に変更）
 app.get('/', (req, res) => {
   res.render('home', { baseUrl: BASE_URL });
+});
+
+// ▼ 言語切替: /lang?lng=en | ja
+app.get('/lang', (req, res) => {
+  const nextLng = String(req.query.lng || '').toLowerCase();
+  if (['ja','en'].includes(nextLng)) {
+    res.cookie('i18next', nextLng, {
+      httpOnly: false, sameSite: 'Lax', maxAge: 1000*60*60*24*365
+    });
+  }
+  return res.redirect(req.get('Referer') || '/');
 });
 
 // robots.txt
@@ -1521,13 +1570,6 @@ function extnameFromKey(key) {
     console.error(e);
     return res.status(500).render('error', { message: 'ダウンロード処理に失敗しました。' });
   }
-});
-
-// ▼ 画像ライセンスポリシー（エイリアスつき）
-app.get(['/image-license', '/image-license/', '/legal/image-license'], (req, res) => {
-  res.locals.canonical = `${BASE_URL}/image-license`;
-  console.log('[route] GET /image-license'); // デプロイ確認用ログ
-  res.render('legal/image-license');         // views/legal/image-license.ejs
 });
 
 // 404

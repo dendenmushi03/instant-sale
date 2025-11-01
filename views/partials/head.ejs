@@ -1,13 +1,30 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title><%= title %> | Instant Sale</title>
+
+<title>
+  <%= (typeof title !== 'undefined' && title) ? `${title} | ${t ? t('brand') : 'Instant Sale'}` : (t ? t('brand') : 'Instant Sale') %>
+</title>
 
 <% if (typeof canonical !== 'undefined' && canonical) { %>
-<link rel="canonical" href="<%= canonical %>">
+  <link rel="canonical" href="<%= canonical %>">
 <% } %>
 <% if (typeof robots !== 'undefined' && robots) { %>
-<meta name="robots" content="<%= robots %>">
+  <meta name="robots" content="<%= robots %>">
 <% } %>
 
-<link rel="stylesheet" href="/public/style.css" />
-<link rel="icon" href="/public/logo.png" type="image/png" />
+<% /* OGP/Twitter: og オブジェクトがあるページのみ展開 */ %>
+<% if (typeof og !== 'undefined' && og) { %>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="<%= og.title %>" />
+  <meta property="og:description" content="<%= og.desc %>" />
+  <meta property="og:image" content="<%= og.image %>" />
+  <meta property="og:url" content="<%= og.url %>" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="<%= og.title %>" />
+  <meta name="twitter:description" content="<%= og.desc %>" />
+  <meta name="twitter:image" content="<%= og.image %>" />
+<% } %>
+
+<link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
+<link rel="icon" href="/public/logo.png?v=<%= assetVer %>" type="image/png" />

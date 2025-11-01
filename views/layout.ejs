@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="<%= lng || 'ja' %>">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <% if (typeof og !== 'undefined') { %>
     <title><%= og.title %></title>
     <meta name="description" content="<%= og.desc %>" />
@@ -16,17 +17,19 @@
     <meta name="twitter:description" content="<%= og.desc %>" />
     <meta name="twitter:image" content="<%= og.image %>" />
   <% } else { %>
-    <title>Instant Sale</title>
+    <title><%= typeof pageTitle !== 'undefined' ? pageTitle : (t ? t('brand') : 'Instant Sale') %></title>
   <% } %>
-  <link rel="stylesheet" href="/public/style.css" />
+
+  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
+  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
 </head>
-<body>
-  <header class="site-header">
-    <a href="/" class="logo">Instant Sale</a>
-  </header>
+<body class="layout">
+  <%- include('partials/header') %>
+
   <main class="container">
     <%- body %>
   </main>
-  <footer class="site-footer">© <%= new Date().getFullYear() %> Instant Sale</footer>
+
+  <%- include('partials/footer') %>
 </body>
 </html>

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="<%= lng || 'ja' %>">
 <head>
-  <meta charset="utf-8" />
+<meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Instant Sale | 画像を3ステップで即販売</title>
+<title><%= t('home.title_full') %></title>
 
 <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
 <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
@@ -12,85 +12,55 @@
 
 <body class="layout">
 
-<header class="nav">
-  <a class="nav__brand" href="/">
-    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
-    <span class="nav__brandText">Instant Sale</span>
-  </a>
-  <nav class="nav__right">
-    <% if (me) { %>
-      <span class="nav__user"><%= me.name || me.email %></span>
-      <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
-      </form>
-    <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
-    <% } %>
-  </nav>
-</header>
+<%- include('partials/header') %>
 
 <main class="container">
 
   <!-- ヒーロー -->
   <section class="heroHome">
-    <h1 class="heroHome__title">
-      画像を<span class="accent">3ステップ</span>で即販売
-    </h1>
-    <p class="heroHome__lead">アップロード → 価格入力 → リンク完成。Stripeで安全決済、ダウンロードは自動発行。</p>
+<h1 class="heroHome__title">
+  <%= t('home.hero.title_prefix') %><span class="accent"><%= t('home.hero.title_accent') %></span><%= t('home.hero.title_suffix') %>
+</h1>
+<p class="heroHome__lead"><%= t('home.hero.lead') %></p>
 
-    <div class="heroHome__actions">
-      <% if (me) { %>
-        <a class="btn btn--primary" href="/creator">アップロードして販売開始</a>
-      <% } else { %>
-        <a class="btn btn--primary" href="/auth/google">ログインして始める</a>
-      <% } %>
-    </div>
+<div class="heroHome__actions">
+  <% if (me) { %>
+    <a class="btn btn--primary" href="/creator"><%= t('home.hero.cta_authed') %></a>
+  <% } else { %>
+    <a class="btn btn--primary" href="/auth/google"><%= t('home.hero.cta_guest') %></a>
+  <% } %>
+</div>
 
   </section>
 
-  <!-- 使い方 -->
   <section id="howto" class="card howto">
-    <h2 style="margin-top:0">使い方</h2>
+    <h2 style="margin-top:0"><%= t('howto.title') %></h2>
 
-<div class="steps">
-  <!-- STEP 1 -->
-  <article class="step">
-    <div class="step__head">
-      <div class="step__num">1</div>
-      <h3 class="step__title">画像をアップロード</h3>
+    <div class="steps">
+      <article class="step">
+        <div class="step__head">
+          <div class="step__num">1</div>
+          <h3 class="step__title"><%= t('howto.step1.title') %></h3>
+        </div>
+        <p class="muted" style="margin:0 0 10px;"><%= t('howto.step1.desc') %></p>
+      </article>
+
+      <article class="step">
+        <div class="step__head">
+          <div class="step__num">2</div>
+          <h3 class="step__title"><%= t('howto.step2.title') %></h3>
+        </div>
+        <p class="muted" style="margin:0 0 10px;"><%= t('howto.step2.desc') %></p>
+      </article>
+
+      <article class="step">
+        <div class="step__head">
+          <div class="step__num">3</div>
+          <h3 class="step__title"><%= t('howto.step3.title') %></h3>
+        </div>
+        <p class="muted" style="margin:0 0 10px;"><%= t('howto.step3.desc') %></p>
+      </article>
     </div>
-    <p class="muted" style="margin:0 0 10px;">
-      高解像度ファイルを選択。プレビュー/OGP/等倍透かし画像は自動生成されます。
-    </p>
-    <!-- 任意：スクショを置く場合は /public/howto/step1.png を用意 -->
-    <!-- <div class="shot"><img src="/public/howto/step1.png" alt="画像を選択" /></div> -->
-  </article>
-
-  <!-- STEP 2 -->
-  <article class="step">
-    <div class="step__head">
-      <div class="step__num">2</div>
-      <h3 class="step__title">タイトルと価格を入力</h3>
-    </div>
-    <p class="muted" style="margin:0 0 10px;">
-      税込価格だけ決めればOK。JPY・最低価格などは既定済み。必要ならクリエイター名も表示可能。
-    </p>
-    <!-- <div class="shot"><img src="/public/howto/step2.png" alt="価格入力" /></div> -->
-  </article>
-
-  <!-- STEP 3 -->
-  <article class="step">
-    <div class="step__head">
-      <div class="step__num">3</div>
-      <h3 class="step__title">リンクをシェア</h3>
-    </div>
-    <p class="muted" style="margin:0 0 10px;">
-      販売ページURLが発行され、購入者はStripeで決済 → 自動で原本ダウンロード。売上は自動/手動で振替。
-    </p>
-    <!-- <div class="shot"><img src="/public/howto/step3.png" alt="リンクをシェア" /></div> -->
-  </article>
-</div>
-
   </section>
 
 </main>

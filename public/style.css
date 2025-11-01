@@ -863,3 +863,17 @@ body.layout .alert--error.alert--prominent{
 
 /* 非アクティブは少し弱く */
 .licenseRow.is-inactive{ opacity:.9; }
+
+.dropdown { position: relative; }
+.dropdown__menu {
+  position: absolute; right: 0; top: 100%;
+  min-width: 160px; background: var(--surface,#fff);
+  border: 1px solid var(--border,#ddd); border-radius: 8px;
+  padding: 6px; display: none; z-index: 50;
+}
+.dropdown:hover .dropdown__menu { display: block; }
+.dropdown__item {
+  display: block; padding: 8px 10px; border-radius: 6px; text-decoration: none;
+}
+.dropdown__item[aria-current="true"] { font-weight: 700; }
+.dropdown__item:hover { background: rgba(0,0,0,.05); }

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ja">
+<html lang="<%= lng || 'ja' %>">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Upload | Instant Sale</title>
+<title><%= t('upload.title_full') %></title>
 
 <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
 <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
@@ -50,215 +50,110 @@
 
 <body class="layout">
 
-<header class="nav">
-  <a class="nav__brand" href="/">
-    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
-    <span class="nav__brandText">Instant Sale</span>
-  </a>
-  <nav class="nav__right">
-    <% if (me) { %>
-      <span class="nav__user"><%= me.name || me.email %></span>
-      <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
-      </form>
-    <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
-    <% } %>
-  </nav>
-</header>
+<%- include('partials/header') %>
   
   <main class="container">
 
-<h1>即販売リンクを作る</h1>
+<h1><%= t('upload.h1') %></h1>
 
-<% const connectReady =
-     (typeof connect !== 'undefined') && !!(connect.hasAccount && connect.payoutsEnabled); %>
+  <!-- 送信先とエンコーディングを明示 -->
+  <form action="/upload" method="post" enctype="multipart/form-data">
 
-<% if (connectReady) { %>
-  <div class="alert alert--success alert--prominent alert--with-icon"
-       role="status" aria-live="polite" style="margin-top:12px;">
-    <span class="alert__icon" aria-hidden="true">✅</span>
-    <div class="alert__text">
-      <strong class="alert__title">受取設定は完了しています</strong>
-      <span class="alert__desc">売上の受け取りが可能です。必要に応じて下のボタンから設定を確認・更新できます。</span>
-    </div>
-  </div>
-<% } %>
+<label><%= t('upload.field.file') %>
+  <input type="file" name="image" accept="image/*" required />
+</label>
 
-<% if (!connectReady) { %>
+<label><%= t('upload.field.title') %>
+  <input type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
+</label>
 
-<div class="alert alert--error alert--prominent alert--with-icon alert--with-cta"
-     role="alert" aria-live="assertive" style="margin-top:12px;">
-  <div class="alert__main">
-    <span class="alert__icon" aria-hidden="true">⚠️</span>
-    <div class="alert__text">
-      <strong class="alert__title">受取設定が未完了です</strong>
+<label><%= t('upload.field.creator') %>
+  <input type="text" name="creatorName" placeholder="<%= t('upload.field.creator_ph') %>" />
+</label>
 
-      <% if (connect && connect.hasAccount) { %>
-        <!-- アカウントは作成済み（＝申請中）。自動振込の注意書きを表示 -->
-        <span class="alert__desc">
-          売上の受け取りには、振込口座の登録と本人確認が必要です。
-        </span>
-        <span class="alert__desc">
-          口座登録の申請中に発生した売上は保留され、
-          <strong>登録完了後に自動で登録口座へ振り込まれます</strong>。
-        </span>
-      <% } else { %>
-        <!-- まだアカウント未作成。従来の案内＋補足 -->
-        <span class="alert__desc">
-          売上の受け取りには、振込口座の登録と本人確認が必要です。
-        </span>
-        <p class="muted" style="margin:6px 0 0;">
-          まずは口座登録を完了してください。完了後、売上は自動で振り込まれます。
-        </p>
-      <% } %>
-    </div>
-  </div>
-
-  <a class="btn btn--primary btn--compact" href="/connect/onboard">銀行口座を登録する</a>
-</div>
-
-<% } %>
-
-<% if (connectReady) { %>
-<section class="setup">
-  <div class="connectRow">
-    <div class="connectRow__left">
-
-<div class="connectRow__head">
-    <span class="chip chip--ok chip--lg" aria-live="polite">
-      <span class="chip__icon" aria-hidden="true">✔</span> 受取設定 OK
-    </span>
-  <h3 class="connectRow__title">Stripe 受取設定</h3>
-</div>
-
-      <p class="connectRow__desc">
-        売上の入金先口座と本人確認を <strong>Stripe</strong> で設定します。内容の確認・変更ができます。
-      </p>
-    </div>
-
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-
-      <a class="btn btn--primary btn--lg" href="/connect/onboard" aria-label="Stripeで受取設定を確認・更新する">
-        登録口座の確認 / 更新
-      </a>
-      <!-- ★ 追加：出品者用ダッシュボード -->
-      <a class="btn btn--primary btn--lg" href="/connect/portal" aria-label="Stripe Express ダッシュボードを開く">
-        売上ダッシュボードを開く
-      </a>
-
-    </div>
-
-  </div>
-</section>
-<% } %>
-
-    <form class="card" action="/upload" method="post" enctype="multipart/form-data">
-
-      <label>販売データ
-        <input type="file" name="image" accept="image/*" required />
-      </label>
-
-      <label>タイトル
-        <input type="text" name="title" placeholder="作品タイトル" required />
-      </label>
-
-      <label>クリエイター名（任意）
-        <input type="text" name="creatorName" placeholder="表示用の名前（任意）" />
-      </label>
-      
-<!-- 横一列： 価格入力 − 手数料(%) ＝ 利益 -->
 <div class="priceRow" id="priceRow"
-
      data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
 
-     <label class="priceCol" style="min-width:200px;flex:1">
-    <span class="priceLabel">販売価格（円）</span>
-
-<input id="priceInput" type="number" name="price"
-       min="<%= process.env.MIN_PRICE || 100 %>"
-       step="1"
-       placeholder="¥<%= process.env.MIN_PRICE || 100 %>〜"
-       inputmode="numeric"
-       required />
-    
+  <label class="priceCol" style="min-width:200px;flex:1">
+    <span class="priceLabel"><%= t('upload.price.price') %></span>
+    <input id="priceInput" type="number" name="price"
+           min="<%= process.env.MIN_PRICE || 100 %>"
+           step="1"
+           placeholder="¥<%= process.env.MIN_PRICE || 100 %>〜"
+           inputmode="numeric"
+           required />
   </label>
 
   <div class="op">−</div>
 
   <div class="priceCol" style="min-width:180px">
     <span class="priceLabel">
-      販売手数料（<span id="feeRateText"></span>）
+      <%= t('upload.price.fee') %>（<span id="feeRateText"></span>）
     </span>
-    <input id="feeVal" type="text" class="readonlyBox" value="¥0"
-           readonly aria-readonly="true" />
+    <input id="feeVal" type="text" class="readonlyBox" value="¥0" readonly aria-readonly="true" />
   </div>
 
   <div class="op">＝</div>
 
   <div class="priceCol" style="min-width:200px">
-    <span class="priceLabel">販売利益（受け取り額）</span>
-    <input id="profitVal" type="text" class="readonlyBox readonlyBox--em" value="¥0"
-           readonly aria-readonly="true" />
+    <span class="priceLabel"><%= t('upload.price.profit') %></span>
+    <input id="profitVal" type="text" class="readonlyBox readonlyBox--em" value="¥0" readonly aria-readonly="true" />
   </div>
 
-  <!-- 通貨は内部だけ保持 -->
   <input type="hidden" name="currency" value="jpy" />
 </div>
 
-      <label>
+<label>
   <input type="checkbox" name="attestOwner" required />
-  私はこの画像の権利者（または正当に販売可能な権利保有者）です
-    </label>
+  <%= t('upload.attest') %>
+</label>
 
 <section class="card" style="margin-top:16px">
+  <h2><%= t('upload.license.h2') %></h2>
 
-  <h2>利用許諾</h2>
+  <div class="licenseList">
+    <label class="licenseRow">
+      <!-- ※ バックエンドは 'editorial' を期待。現状 'personal' だったので修正 -->
+      <input type="radio" name="licensePreset" value="editorial" checked>
+      <div class="licenseMain">
+        <div class="licenseTitle"><%= t('upload.license.editorial.title') %></div>
+        <div class="licenseDesc"><%= t('upload.license.editorial.desc') %></div>
+      </div>
+    </label>
 
-<div class="licenseList">
-  <label class="licenseRow">
-    <input type="radio" name="licensePreset" value="personal" checked>
-    <div class="licenseMain">
-      <div class="licenseTitle">商用不可</div>
-      <div class="licenseDesc">個人利用のみ可。用途例：SNSアイコン、個人ブログ、壁紙など</div>
-    </div>
-  </label>
+    <label class="licenseRow">
+      <input type="radio" name="licensePreset" value="standard">
+      <div class="licenseMain">
+        <div class="licenseTitle"><%= t('upload.license.standard.title') %></div>
+        <div class="licenseDesc"><%= t('upload.license.standard.desc') %></div>
+      </div>
+    </label>
 
-  <label class="licenseRow">
-    <input type="radio" name="licensePreset" value="standard">
-    <div class="licenseMain">
-      <div class="licenseTitle">商用可</div>
-      <div class="licenseDesc">用途例：SNS投稿、企業SNS、HP素材など</div>
-    </div>
-  </label>
+    <label class="licenseRow">
+      <input type="radio" name="licensePreset" value="commercial-lite">
+      <div class="licenseMain">
+        <div class="licenseTitle"><%= t('upload.license.commercial_lite.title') %></div>
+        <div class="licenseDesc"><%= t('upload.license.commercial_lite.desc') %></div>
+      </div>
+    </label>
 
-  <label class="licenseRow">
-    <input type="radio" name="licensePreset" value="commercial-lite">
-    <div class="licenseMain">
-      <div class="licenseTitle">一部商用可</div>
-      <div class="licenseDesc">用途例：同人誌、グッズなど小規模販売（大量生産・ロゴ利用は不可）</div>
-    </div>
-  </label>
-
-  <label class="licenseRow">
-    <input type="radio" name="licensePreset" value="exclusive">
-    <div class="licenseMain">
-      <div class="licenseTitle">完全商用可</div>
-      <div class="licenseDesc">用途例：広告素材、パッケージ販売</div>
-    </div>
-  </label>
-</div>
-
-  <p></p>
+    <label class="licenseRow">
+      <input type="radio" name="licensePreset" value="exclusive">
+      <div class="licenseMain">
+        <div class="licenseTitle"><%= t('upload.license.exclusive.title') %></div>
+        <div class="licenseDesc"><%= t('upload.license.exclusive.desc') %></div>
+      </div>
+    </label>
+  </div>
 
   <p class="muted" style="margin-top:8px">
-    ※ 共通ルールは <a href="/image-license" target="_blank" rel="noopener">画像ライセンスポリシー</a> を参照。
+    <%= t('upload.license.notice_html') %>
   </p>
 </section>
 
+<button type="submit" class="btn btn--primary"><%= t('upload.submit') %></button>
 
-<button type="submit" class="btn btn--primary">販売ページを作成</button>
-</form>
+  </form>
 
   </main>
 

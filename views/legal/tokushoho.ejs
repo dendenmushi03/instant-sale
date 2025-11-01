@@ -1,95 +1,95 @@
 <!doctype html>
-<html lang="ja">
-
+<html lang="<%= lng || 'ja' %>">
 <head>
-  <%- include('../partials/head', { title: '特定商取引法に基づく表記' }) %>
+  <%- include('../partials/head', { title: (t('tokushoho.title') || '特定商取引法に基づく表記') + ' | ' + t('brand') }) %>
 </head>
 
 <body class="layout">
+  <%- include('../partials/header') %>
 
-<header class="nav">
-  <a class="nav__brand" href="/">
-    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" />
-    <span class="nav__brandText">Instant Sale</span>
-  </a>
-  <nav class="nav__right">
-    <% if (me) { %>
-      <span class="nav__user"><%= me.name || me.email %></span>
-      <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
-      </form>
-    <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
-    <% } %>
-  </nav>
-</header>
+  <%
+    // ---- フォールバック文言（未設定時の置き換え） ----
+    const has = (v) => v && String(v).trim().length > 0;
 
-<%
-  // ---- フォールバック文言（未設定時の置き換え） ----
-  const has = (v) => v && String(v).trim().length > 0;
+    const nameDisp = has(sellerName)
+      ? sellerName
+      : (t('tokushoho.fallback.name') || '個人で運営しているため、氏名（又は屋号＋代表者名）はご請求いただいた場合に遅滞なく開示します。');
 
-  const nameDisp = has(sellerName)
-    ? sellerName
-    : '個人で運営しているため、氏名（又は屋号＋代表者名）はご請求いただいた場合に遅滞なく開示します。';
+    const respDisp = has(responsibleName) ? responsibleName : '—';
 
-  const respDisp = has(responsibleName) ? responsibleName : '—';
+    const addressDisp = has(address)
+      ? address
+      : (t('tokushoho.fallback.address') || '個人で運営しているため、住所はご請求いただいた場合に遅滞なく開示します。');
 
-  const addressDisp = has(address)
-    ? address
-    : '個人で運営しているため、住所はご請求いただいた場合に遅滞なく開示します。';
+    const phoneDisp = has(phone)
+      ? phone
+      : (t('tokushoho.fallback.phone') || '電話番号はご請求があれば遅滞なく開示いたします（通常のお問い合わせはメールでお願いします）。');
 
-  const phoneDisp = has(phone)
-    ? phone
-    : '電話番号はご請求があれば遅滞なく開示いたします（通常のお問い合わせはメールでお願いします）。';
+    const websiteDisp = has(website) ? website : '';
+    const hoursDisp = has(businessHours) ? businessHours : (t('tokushoho.fallback.hours') || '平日 10:00-18:00');
+  %>
 
-  const websiteDisp = has(website) ? website : '';
-  const hoursDisp = has(businessHours) ? businessHours : '平日 10:00-18:00';
-%>
+  <main class="container legal">
+    <h1><%= t('tokushoho.h1') || '特定商取引法に基づく表記' %></h1>
 
-<main class="container">
-  <h1>特定商取引法に基づく表記</h1>
-  <table class="legal-table">
-    <tr><th>販売事業者</th><td><%= nameDisp %></td></tr>
-    <tr><th>運営責任者</th><td><%= respDisp %></td></tr>
-    <tr><th>所在地</th><td><%= addressDisp %></td></tr>
+    <table class="legal-table">
+      <tr><th><%= t('tokushoho.label.seller') || '販売事業者' %></th><td><%= nameDisp %></td></tr>
+      <tr><th><%= t('tokushoho.label.responsible') || '運営責任者' %></th><td><%= respDisp %></td></tr>
+      <tr><th><%= t('tokushoho.label.address') || '所在地' %></th><td><%= addressDisp %></td></tr>
 
-    <tr>
-      <th>連絡先</th>
-      <td>
-        <% if (has(phone)) { %>
-          電話: <%= phoneDisp %><br>
-        <% } else { %>
-          <%= phoneDisp %><br>
-        <% } %>
-        Email: <a href="mailto:<%= email %>"><%= email %></a>
-      </td>
-    </tr>
+      <tr>
+        <th><%= t('tokushoho.label.contact') || '連絡先' %></th>
+        <td>
+          <% if (has(phone)) { %>
+            <%= t('tokushoho.label.phone') || '電話' %>: <%= phoneDisp %><br>
+          <% } else { %>
+            <%= phoneDisp %><br>
+          <% } %>
+          Email: <a href="mailto:<%= email %>"><%= email %></a>
+        </td>
+      </tr>
 
-    <tr>
-      <th>ウェブサイト</th>
-      <td>
-        <% if (websiteDisp) { %>
-          <a href="<%= websiteDisp %>"><%= websiteDisp %></a>
-        <% } else { %>
-          —
-        <% } %>
-      </td>
-    </tr>
+      <tr>
+        <th><%= t('tokushoho.label.website') || 'ウェブサイト' %></th>
+        <td>
+          <% if (websiteDisp) { %>
+            <a href="<%= websiteDisp %>" target="_blank" rel="noopener"><%= websiteDisp %></a>
+          <% } else { %>
+            —
+          <% } %>
+        </td>
+      </tr>
 
-    <tr><th>販売価格</th><td>各商品ページに税込価格を表示しています。</td></tr>
-    <tr><th>商品代金以外の必要料金</th><td>通信に係るインターネット接続料金、通信料、（銀行振込の場合は）振込手数料。</td></tr>
-    <tr><th>お支払い方法</th><td>クレジットカード、その他Stripeが提供する手段（例：PayPay等・対応状況は商品ページ参照）。当社はStripeを通じて決済処理を行います。</td></tr>
-    <tr><th>お支払い時期</th><td>ご注文時に即時決済されます。</td></tr>
-    <tr><th>引渡し時期</th><td>決済完了後、直ちにダウンロードが可能です（ダウンロードリンクを表示/メール送付）。</td></tr>
-    <tr><th>返品・キャンセル</th><td>デジタル商品の性質上、ダウンロード後の返品・キャンセルはお受けしておりません。二重決済・誤課金・データ欠陥等の場合は速やかに対応しますので上記連絡先へご連絡ください。</td></tr>
-    <tr><th>動作環境</th><td>各商品ページに記載のファイル形式・解像度等をご確認ください。</td></tr>
-    <tr><th>販売数量</th><td>特に制限はありません。</td></tr>
-    <tr><th>営業時間</th><td><%= hoursDisp %></td></tr>
-    <tr><th>特記事項</th><td>未成年の購入には保護者の同意が必要です。知的財産権を侵害する行為は禁止します。</td></tr>
-  </table>
-</main>
+      <tr><th><%= t('tokushoho.label.price') || '販売価格' %></th><td><%= t('tokushoho.value.price') || '各商品ページに税込価格を表示しています。' %></td></tr>
 
-<%- include('partials/footer') %>
+      <tr>
+        <th><%= t('tokushoho.label.otherFees') || '商品代金以外の必要料金' %></th>
+        <td>
+          <%= t('tokushoho.value.otherFees_prefix') || '【購入者】通信に係るインターネット接続料金・通信料。' %><br>
+          <%= t('tokushoho.value.otherFees_seller_prefix') || '【出品者】' %>
+          <strong><%= t('tokushoho.value.platform_fee', { pct: (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) }) || `販売手数料：販売価格（税込）の ${(typeof platformFeePct !== 'undefined' ? platformFeePct : 20)}％` %></strong>
+          <%= t('tokushoho.value.otherFees_suffix') || '（売上から自動控除）／銀行振込時に金融機関所定の振込手数料が発生する場合があります。' %>
+        </td>
+      </tr>
 
+      <tr><th><%= t('tokushoho.label.paymentMethod') || 'お支払い方法' %></th><td><%= t('tokushoho.value.paymentMethod') || 'クレジットカード、その他Stripeが提供する手段（対応状況は商品ページ参照）。当社はStripeを通じて決済処理を行います。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.paymentTiming') || 'お支払い時期' %></th><td><%= t('tokushoho.value.paymentTiming') || 'ご注文時に即時決済されます。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.delivery') || '引渡し時期' %></th><td><%= t('tokushoho.value.delivery') || '決済完了後、直ちにダウンロードが可能です（ダウンロードリンクを表示/メール送付）。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.refund') || '返品・キャンセル' %></th><td><%= t('tokushoho.value.refund') || 'デジタル商品の性質上、ダウンロード後の返品・キャンセルはお受けしておりません。二重決済・誤課金・データ欠陥等は速やかに対応します。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.env') || '動作環境' %></th><td><%= t('tokushoho.value.env') || '各商品ページに記載のファイル形式・解像度等をご確認ください。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.qty') || '販売数量' %></th><td><%= t('tokushoho.value.qty') || '特に制限はありません。' %></td></tr>
+      <tr><th><%= t('tokushoho.label.hours') || '営業時間' %></th><td><%= hoursDisp %></td></tr>
+      <tr><th><%= t('tokushoho.label.notes') || '特記事項' %></th><td><%= t('tokushoho.value.notes') || '未成年の購入には保護者の同意が必要です。知的財産権を侵害する行為は禁止します。' %></td></tr>
+
+      <tr>
+        <th><%= t('tokushoho.label.stripe') || '決済・送金について' %></th>
+        <td>
+          <%= t('tokushoho.value.stripe_html') || '決済処理および出品者への送金は Stripe（Stripe Connect）を利用します。送金時期・入金スケジュールは Stripe Connect の規約・設定に従います。' %>
+        </td>
+      </tr>
+    </table>
+  </main>
+
+  <%- include('../partials/footer') %>
 </body>
 </html>

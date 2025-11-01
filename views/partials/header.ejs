@@ -1,16 +1,31 @@
 <header class="nav">
   <a class="nav__brand" href="/">
-    <img src="/public/logo.png" alt="Instant Sale" class="nav__logo" />
-    <span class="nav__brandText">Instant Sale</span>
+    <img class="nav__logo"
+         src="/public/logo.png?v=<%= assetVer %>"
+         alt="<%= t ? t('brand') : 'Instant Sale' %>"
+         width="28" height="28" loading="eager" decoding="async" />
+    <span class="nav__brandText"><%= t ? t('brand') : 'Instant Sale' %></span>
   </a>
+
   <nav class="nav__right">
     <% if (me) { %>
       <span class="nav__user"><%= me.name || me.email %></span>
       <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
+        <button class="btn btn--ghost"><%= t ? t('nav.logout') : 'Logout' %></button>
       </form>
     <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+      <a class="btn btn--ghost" href="/auth/google"><%= t ? t('nav.login_google') : 'Sign in with Google' %></a>
     <% } %>
+
+    <!-- Language Switcher -->
+    <div class="dropdown">
+      <button class="btn btn--ghost">
+        <%= t ? t('nav.language') : 'Language' %>：<%= (lng === 'en') ? (t ? t('lang.en') : 'English') : (t ? t('lang.ja') : '日本語') %>
+      </button>
+      <div class="dropdown__menu">
+        <a class="dropdown__item" href="/lang?lng=ja" aria-current="<%= lng==='ja' ? 'true' : 'false' %>"><%= t ? t('lang.ja') : '日本語' %></a>
+        <a class="dropdown__item" href="/lang?lng=en" aria-current="<%= lng==='en' ? 'true' : 'false' %>"><%= t ? t('lang.en') : 'English' %></a>
+      </div>
+    </div>
   </nav>
 </header>
