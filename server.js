@@ -1017,46 +1017,78 @@ return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
 
 });
 
-// /s/:slug
+// /s/:slug（販売ページ）— 必要な値をすべてサーバ側で用意して渡す
 app.get('/s/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
 
-    const item = await Item.findOne({ slug }).lean();
+    // 商品を軽量に取得
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } })
+      .select('slug title price currency creatorName previewPath licensePreset licenseNotes aiGenerated aiModelName ownerUser s3Key filePath')
+      .lean();
+
     if (!item) {
       return res.status(404).render('error', { message: '販売ページが見つかりません。' });
     }
 
-const isAbs = typeof item.previewPath === 'string' && /^https?:\/\//i.test(item.previewPath);
+    // 販売者情報（必要最小限）
+    let seller = null;
+    let sellerLegal = null;
+    if (item.ownerUser) {
+      seller = await User.findById(item.ownerUser)
+        .select('name email legal stripeAccountId payoutsEnabled')
+        .lean();
+      sellerLegal = seller?.legal || null;
+    }
 
-// 現在言語と数値ロケール
-const lng = getLng(req);
-const numLocale = toNumberLocale(lng);
+    // オーナー本人が閲覧している時だけ Connect 状態を厳密に表示
+    let connect = { hasAccount: true, payoutsEnabled: true }; // 公開閲覧時は常にOKで扱う
+    if (req.user && seller && String(req.user._id) === String(item.ownerUser)) {
+      const st = await getConnectStatus(req.user);
+      connect = { hasAccount: !!st.hasAccount, payoutsEnabled: !!st.payoutsEnabled };
+    }
 
-// OGの言語化（辞書キーは既存 common.json に合わせて追加してください）
-const og = {
-  title: `${item.title} | ${req.t('og.sale_title_suffix', { lng })}`, // 例: "Instant download"
-  desc:  req.t('og.sale_desc', {
-           lng,
-           price: Number(item.price).toLocaleString(numLocale)
-         }), // 例: "Buy high-res now (¥1,200)"
-  image: isAbs ? item.previewPath : `${BASE_URL}${item.previewPath}`,
-  url:   `${BASE_URL}/s/${item.slug}`
-};
+    // 言語・ロケール
+    const lng = getLng(req);
+    const numLocale = toNumberLocale(lng);
 
-return res.render('sale', {
-  item,
-  baseUrl: BASE_URL,
-  og,
-  connect,
-  seller: seller || {},
-  sellerLegal: sellerLegal || null,
-  displayImagePath,
-  tokushohoUrl,
-  licenseView: licenseViewOf(item),
-  lng                      // ← ★ 追加：テンプレに明示的に渡す
-});
+    // 画像URL（絶対化 & フォールバック）
+    const absPreview = (() => {
+      const p = item.previewPath || `/previews/${item.slug}-preview.jpg`;
+      return /^https?:\/\//i.test(p) ? p : `${BASE_URL}${p.startsWith('/') ? '' : '/'}${p}`;
+    })();
 
+    // OGP
+    const og = {
+      title: `${item.title} | ${req.t('brand')}`,
+      desc : lng === 'en'
+        ? `Buy high-resolution now (${Number(item.price).toLocaleString('en-US',{style:'currency',currency:(item.currency||'jpy').toUpperCase()})}).`
+        : `高解像度を今すぐ購入（¥${Number(item.price).toLocaleString(numLocale)}）`,
+      image: absPreview,
+      url  : `${BASE_URL}/s/${item.slug}`
+    };
+
+    // 特商法ページURL（販売者別ページがあればクエリで識別）
+    const tokushohoUrl = `/tokushoho${seller?._id ? `?seller=${seller._id}` : ''}`;
+
+    // ライセンス表示
+    const licenseView = licenseViewOf(item);
+
+    // 軽いキャッシュ
+    res.set('Cache-Control', 'public, max-age=60');
+
+    return res.render('sale', {
+      baseUrl: BASE_URL,
+      item,
+      seller,
+      sellerLegal,
+      connect,
+      tokushohoUrl,
+      og,
+      licenseView,
+      lng
+      // t, cspNonce は res.locals からそのまま使える
+    });
   } catch (e) {
     console.error('[sale] route error:', e);
     return res.status(500).render('error', { message: '販売ページの表示に失敗しました。' });
