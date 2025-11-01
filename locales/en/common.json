@@ -152,39 +152,32 @@
       "website": "Website",
       "price": "Price",
       "otherFees": "Other fees",
-      "paymentMethod": "Payment method"
-    }
-    
-    ,
-    "paymentTiming": "Payment timing",
-    "delivery": "Delivery timing",
-    "refund": "Returns / Cancellations",
-    "env": "System requirements",
-    "qty": "Quantity limitations",
-    "hours": "Business hours",
-    "notes": "Notes",
-    "stripe": "About Stripe"
-
-    ,
+      "paymentMethod": "Payment method",
+      "paymentTiming": "Payment timing",
+      "delivery": "Delivery timing",
+      "refund": "Returns / Cancellations",
+      "env": "System requirements",
+      "qty": "Quantity limitations",
+      "hours": "Business hours",
+      "notes": "Notes",
+      "stripe": "About Stripe"
+    },
     "value": {
       "price": "Displayed on each product page",
       "otherFees_prefix": "Platform fee and Stripe payment fee may apply.",
       "otherFees_seller_prefix": "For sellers:",
       "platform_fee": "Platform fee",
-      "paymentMethod": "Credit/debit card via Stripe"
+      "paymentMethod": "Credit/debit card via Stripe",
+      "paymentTiming": "Charged at the time of purchase (may vary by payment method)",
+      "delivery": "A downloadable URL is issued immediately after payment confirmation",
+      "refund": "Digital goods are non-refundable. Double charge / wrong charge / defective files are handled individually.",
+      "env": "Internet connection and a modern web browser",
+      "qty": "No specific limitation (unless otherwise stated on the product page)",
+      "hours": "Weekdays 10:00–18:00 (JST)",
+      "notes": "Any special conditions will be noted on each product page.",
+      "stripe_html": "Payments are processed by Stripe.<br>We do not store card numbers on our service."
     }
   }
-
-  ,
-  "paymentTiming": "Charged at the time of purchase (may vary by payment method)",
-  "delivery": "A downloadable URL is issued immediately after payment confirmation",
-  "refund": "Digital goods are non-refundable. Double charge / wrong charge / defective files are handled individually.",
-  "env": "Internet connection and a modern web browser",
-  "qty": "No specific limitation (unless otherwise stated on the product page)",
-  "hours": "Weekdays 10:00–18:00 (JST)",
-  "notes": "Any special conditions will be noted on each product page.",
-  "stripe_html": "Payments are processed by Stripe.<br>We do not store card numbers on our service."
-
   ,
   "image_license": {
     "title": "Image License",
