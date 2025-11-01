@@ -183,5 +183,6 @@
     "title": "Image License",
     "h1": "Image License",
     "intro_html": "This page describes the common license rules for images sold on {{site}}."
-  }
+  },
+  "upload.agree_terms_html": "I agree to the <a href=\"/terms\" target=\"_blank\" rel=\"noopener\">Terms of Service</a>."
 }

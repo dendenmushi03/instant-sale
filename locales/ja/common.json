@@ -180,9 +180,10 @@
   }
 
   ,
-  "image_license": {
+"image_license": {
     "title": "画像ライセンス",
     "h1": "画像ライセンス",
     "intro_html": "本ページは、{{site}} で販売する画像の共通ライセンスルールを示します。"
-  }
+  },
+  "upload.agree_terms_html": "利用規約に同意します（<a href=\"/terms\" target=\"_blank\" rel=\"noopener\">利用規約を読む</a>）"
 }
