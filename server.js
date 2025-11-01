@@ -478,6 +478,7 @@ app.get('/sitemap.xml', (req, res) => {
   <url><loc>${BASE_URL}/privacy</loc></url>
   <url><loc>${BASE_URL}/terms</loc></url>
   <url><loc>${BASE_URL}/tokushoho</loc></url>
+  <url><loc>${BASE_URL}/image-license</loc></url>
 </urlset>`
   );
 });
@@ -1572,40 +1573,25 @@ function extnameFromKey(key) {
   }
 });
 
-// 404
-app.use((req, res) => res.status(404).render('error', { message: 'ページが見つかりません。' }));
-
 // === Legal pages (legacy path → 301 redirect) ===
 app.get('/legal/tokushoho', (req, res) => res.redirect(301, '/tokushoho'));
 app.get('/legal/terms',     (req, res) => res.redirect(301, '/terms'));
 app.get('/legal/privacy',   (req, res) => res.redirect(301, '/privacy'));
 
-// ▼▼▼ ここから追加：販売者ごとの特商法表示ページ ▼▼▼
-app.get('/legal/seller/:userId', async (req, res) => {
-  try {
-    const u = await User.findById(req.params.userId).lean();
-    if (!u || !u.legal || !u.legal.name) {
-      return res
-        .status(404)
-        .render('error', { message: '販売者の特商法情報が未設定です。' });
-    }
-    res.render('legal/tokushoho_seller', {
-      site: process.env.SITE_NAME || 'Instant Sale',
-      legal: u.legal
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).render('error', { message: '表示に失敗しました。' });
-  }
-});
-// ▲▲▲ 追加ここまで ▲▲▲
+// ▼▼▼ 販売者ごとの特商法表示ページ ▼▼▼
+app.get('/legal/seller/:userId', async (req, res) => { /* ... */ });
 
 // どの表記でも拾えるようにエイリアスを用意
-app.get(['/image-license', '/image-license/', '/legal/image-license'], (req, res) => {
-  res.locals.canonical = `${BASE_URL}/image-license`;
-  console.log('[route] GET /image-license hit');  // デバッグログ
-  res.render('legal/image-license');
-});
+app.get(
+  ['/image-license', '/image-license/', '/legal/image-license', '/image_license'], // ← アンダースコアも拾う
+  (req, res) => {
+    res.locals.canonical = `${BASE_URL}/image-license`;
+    res.render('legal/image-license');
+  }
+);
+
+// ★★★ ここで初めて404を置く（この下に新規ルートを足さない）★★★
+app.use((req, res) => res.status(404).render('error', { message: 'ページが見つかりません。' }));
 
 // ★ 管理者用：レガシー previewPath(http外部URL) をローカル /previews に補正
 // 実行: curl -XPOST -H "Authorization: Bearer $ADMIN_TOKEN" https://<host>/admin/fix-legacy-previews
