@@ -213,6 +213,16 @@
 
   "upload.agree_terms_html": "利用規約に同意します（<a href=\"/terms\" target=\"_blank\" rel=\"noopener\">利用規約を読む</a>）",
 
+    "product": {
+    "tax_note": "※ 表示価格は税込みです。",
+    "seller_label": "販売者：",
+    "legal_link": "特定商取引法に基づく表記",
+    "download_note": "購入後すぐにダウンロードできます（リンクは一定時間有効）。",
+    "buy_button": "今すぐ購入",
+    "license_h2": "ライセンスと利用範囲",
+    "license_notice_html": "購入により記載の範囲での利用が許可されます。<br>再配布・転売・ロゴ等への組み込みなどは禁止される場合があります。"
+  },
+
   "og": {
     "sale_title_suffix": "即ダウンロード",
     "sale_desc": "高解像度をすぐ購入（¥{{price}}）"

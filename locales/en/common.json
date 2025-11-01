@@ -213,6 +213,16 @@
 
   "upload.agree_terms_html": "I agree to the <a href=\"/terms\" target=\"_blank\" rel=\"noopener\">Terms of Service</a>.",
 
+    "product": {
+    "tax_note": "Prices include tax.",
+    "seller_label": "Seller:",
+    "legal_link": "Legal disclosure (Act on Specified Commercial Transactions)",
+    "download_note": "Your download link is issued immediately after purchase (valid for a limited time).",
+    "buy_button": "Buy now",
+    "license_h2": "License & Usage",
+    "license_notice_html": "Your purchase grants usage within the described scope.<br>Redistribution, resale, and usage in logos/marks may be prohibited."
+  },
+
   "og": {
     "sale_title_suffix": "Instant download",
     "sale_desc": "Buy high-res now (¥{{price}})"
