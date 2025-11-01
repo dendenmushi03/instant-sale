@@ -43,65 +43,129 @@
   "upload.license.commercial_lite.desc": "e.g., doujin goods / small-lot sales (no mass production or logo use).",
   "upload.license.exclusive.title": "Full commercial",
   "upload.license.exclusive.desc": "e.g., advertising creatives, packaged sales.",
-
   "upload.license.notice_html": "See <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">Image License Policy</a> for common rules.",
-  "upload.submit": "Create product page"
+  "upload.submit": "Create product page",
 
-,
-"footer": {
-  "terms": "Terms of Service",
-  "privacy": "Privacy Policy",
-  "tokushoho": "Legal Notice (Japan)",
-  "image_license": "Image License"
-},
-"terms": {
-  "title": "Terms of Service",
-  "h1": "Terms of Service",
-  "intro_html": "These Terms (the \"Terms\") govern the use of {{site}} (the \"Service\"). Please read and agree before using.",
-  "section": {
-    "definitions": "Definitions",
-    "account": "Account",
-    "warranty": "Seller Warranties",
-    "license": "License & Usage",
-    "fees": "Payments, Fees & Payouts",
-    "refund": "Refunds & Cancellations",
-    "prohibited": "Prohibited Conduct",
-    "moderation": "Content Removal & Account Suspension",
-    "disclaimer": "Disclaimer",
-    "ip": "Intellectual Property",
-    "changes": "Changes",
-    "law": "Governing Law & Jurisdiction"
+  "footer": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "tokushoho": "Legal Notice (Japan)",
+    "image_license": "Image License"
   },
-  "def": {
-    "seller": "\"Seller\": a person who sells content (digital files) on the Service",
-    "buyer": "\"Buyer\": a person who purchases content on the Service",
-    "content": "\"Content\": images or other digital data"
-  },
-  "account_html": "The Service uses external authentication such as Google. Users must keep their registration accurate and manage their accounts responsibly.",
-  "warranty_html": "Sellers represent and warrant that (1) they hold necessary rights, (2) do not infringe third-party rights, and (3) comply with laws and public order.",
-  "license_html": "The usage scope on each product page prevails. Unless otherwise noted, personal use only; redistribution, resale, public transmission, and secondary distribution of modifications are prohibited.",
-  "fees": {
-    "intro_html": "Payments are processed via Stripe or equivalent. A platform fee is deducted from sales.",
-    "platform_fee": "{{pct}}% of the tax-included price",
-    "li_settlement": "The fee is deducted at payment capture.",
-    "li_payout": "Payouts follow Stripe Connect rules and schedule.",
-    "li_chargeback": "Refunds/chargebacks/fraud may be offset against sales or adjusted later.",
-    "li_change": "The fee rate may change with prior notice on the Service."
-  },
-  "refund_html": "Due to the nature of digital goods, purchases are non-refundable after completion. Double charges, wrong charges, or defective files are handled individually.",
-  "prohibited": {
-    "law": "Violations of laws or public order",
-    "ip": "Infringement of third-party rights (copyright, trademark, portrait, etc.)",
-    "security": "Unauthorized access or tampering",
-    "operation": "Interference with the Service operation",
-    "false": "Submitting false information"
-  },
-  "moderation_html": "We may remove unlawful/inappropriate content and suspend accounts when necessary.",
-  "disclaimer_html": "We do not warrant completeness, accuracy, or usefulness of content. Our liability is limited to the amount paid to us in the month concerned, except for willful misconduct or gross negligence.",
-  "ip_html": "Rights in content belong to the respective right holders. Ownership does not transfer upon purchase.",
-  "changes_html": "We may modify these Terms. The revised Terms take effect upon posting.",
-  "law_html": "These Terms are governed by {{law}}. The exclusive agreed jurisdiction is {{court}}.",
-  "contact_prefix": "For inquiries about these Terms: "
-}
 
+  "terms": {
+    "title": "Terms of Service",
+    "h1": "Terms of Service",
+    "intro_html": "These Terms (the \"Terms\") govern the use of {{site}} (the \"Service\"). Please read and agree before using.",
+    "section": {
+      "definitions": "Definitions",
+      "account": "Account",
+      "warranty": "Seller Warranties",
+      "license": "License & Usage",
+      "fees": "Payments, Fees & Payouts",
+      "refund": "Refunds & Cancellations",
+      "prohibited": "Prohibited Conduct",
+      "moderation": "Content Removal & Account Suspension",
+      "disclaimer": "Disclaimer",
+      "ip": "Intellectual Property",
+      "changes": "Changes",
+      "law": "Governing Law & Jurisdiction"
+    },
+    "def": {
+      "seller": "\"Seller\": a person who sells content (digital files) on the Service",
+      "buyer": "\"Buyer\": a person who purchases content on the Service",
+      "content": "\"Content\": images or other digital data"
+    },
+    "account_html": "The Service uses external authentication such as Google. Users must keep their registration accurate and manage their accounts responsibly.",
+    "warranty_html": "Sellers represent and warrant that (1) they hold necessary rights, (2) do not infringe third-party rights, and (3) comply with laws and public order.",
+    "license_html": "The usage scope on each product page prevails. Unless otherwise noted, personal use only; redistribution, resale, public transmission, and secondary distribution of modifications are prohibited.",
+    "fees": {
+      "intro_html": "Payments are processed via Stripe or equivalent. A platform fee is deducted from sales.",
+      "platform_fee": "{{pct}}% of the tax-included price",
+      "li_settlement": "The fee is deducted at payment capture.",
+      "li_payout": "Payouts follow Stripe Connect rules and schedule.",
+      "li_chargeback": "Refunds/chargebacks/fraud may be offset against sales or adjusted later.",
+      "li_change": "The fee rate may change with prior notice on the Service."
+    },
+    "refund_html": "Due to the nature of digital goods, purchases are non-refundable after completion. Double charges, wrong charges, or defective files are handled individually.",
+    "prohibited": {
+      "law": "Violations of laws or public order",
+      "ip": "Infringement of third-party rights (copyright, trademark, portrait, etc.)",
+      "security": "Unauthorized access or tampering",
+      "operation": "Interference with the Service operation",
+      "false": "Submitting false information"
+    },
+    "moderation_html": "We may remove unlawful/inappropriate content and suspend accounts when necessary.",
+    "disclaimer_html": "We do not warrant completeness, accuracy, or usefulness of content. Our liability is limited to the amount paid to us in the month concerned, except for willful misconduct or gross negligence.",
+    "ip_html": "Rights in content belong to the respective right holders. Ownership does not transfer upon purchase.",
+    "changes_html": "We may modify these Terms. The revised Terms take effect upon posting.",
+    "law_html": "These Terms are governed by {{law}}. The exclusive agreed jurisdiction is {{court}}.",
+    "contact_prefix": "For inquiries about these Terms: "
+  },
+
+  "privacy": {
+    "title": "Privacy Policy",
+    "h1": "Privacy Policy",
+    "last_updated": "Last updated: {{date}}",
+    "intro_html": "This policy explains what information we collect, how we use and share it, and how we manage it.",
+    "section": {
+      "collected": "Information We Collect",
+      "usage": "How We Use Information",
+      "sharing": "Sharing with Third Parties",
+      "security": "Security Measures",
+      "retention": "Data Retention",
+      "contact": "Contact"
+    },
+    "collected": {
+      "google": {
+        "h3": "From Google authentication",
+        "item": "Google ID (sub), display name, email address, profile image URL"
+      },
+      "service": {
+        "h3": "Generated/collected by our service",
+        "item1": "Account info (stored as a user of the service)",
+        "item2": "IP address on upload (fraud prevention)",
+        "item3": "Stripe identifiers (e.g., Connect ID). *We do not store card numbers.",
+        "item4": "Sessions/cookies, download tokens, logs"
+      }
+    },
+    "usage": {
+      "item1": "To authenticate users and manage accounts",
+      "item2": "To process payments and payouts",
+      "item3": "To prevent abuse and improve security/operations",
+      "item4": "To comply with laws and respond to inquiries"
+    },
+    "sharing_html": "We share the minimum necessary data with Stripe for payment processing. We do not sell or rent data to third parties except as required by law.",
+    "security_html": "We implement reasonable security measures such as access control and encryption, though perfect security cannot be guaranteed.",
+    "retention_html": "We retain data only as long as necessary for legal or operational purposes, and delete it appropriately when no longer needed.",
+    "contact_prefix": "For inquiries about this policy: "
+  },
+
+  "tokushoho": {
+    "title": "Legal Notice (Japan)",
+    "h1": "Legal Notice",
+    "label": {
+      "seller": "Seller / Business operator",
+      "responsible": "Responsible person",
+      "address": "Address",
+      "contact": "Contact",
+      "website": "Website",
+      "price": "Price",
+      "otherFees": "Other fees",
+      "paymentMethod": "Payment method"
+    },
+    "value": {
+      "price": "Displayed on each product page",
+      "otherFees_prefix": "Platform fee and Stripe payment fee may apply.",
+      "otherFees_seller_prefix": "For sellers:",
+      "platform_fee": "Platform fee",
+      "paymentMethod": "Credit/debit card via Stripe"
+    }
+  },
+
+  "image_license": {
+    "title": "Image License",
+    "h1": "Image License",
+    "intro_html": "This page describes the common license rules for images sold on {{site}}."
+  }
 }
