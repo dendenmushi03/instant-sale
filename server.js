@@ -203,33 +203,36 @@ i18next
     backend: {
       loadPath: path.join(__dirname, 'locales/{{lng}}/{{ns}}.json'),
     },
+    // ★ querystring → cookie → header の順で検出。?lng=xx を最優先
     detection: {
-      order: ['cookie','querystring','header'],
+      order: ['querystring','cookie','header'],
+      lookupQuerystring: 'lng',
+      lookupCookie: 'i18next',
       caches: ['cookie'],
-      cookieName: 'i18next',
+      cookieSameSite: 'lax'
     },
     interpolation: { escapeValue: false },
   });
 
 app.use(i18nextMiddleware.handle(i18next));
 
-// ブラウザ言語 or URLクエリ (?lng=en) で切り替え
+// ★ 言語確定＆EJSへ引き渡し（統合版）
 app.use((req, res, next) => {
-  const queryLng = req.query.lng;
-  if (queryLng) {
-    req.language = queryLng;
-    i18next.changeLanguage(queryLng);
-  } else if (req.headers['accept-language']) {
-    const preferred = req.headers['accept-language'].split(',')[0];
-    if (preferred.startsWith('en')) i18next.changeLanguage('en');
-  }
-  next();
-});
+  const q = String(req.query.lng || '').toLowerCase();
 
-// EJSで t() / 現在言語 lng を使えるように
-app.use((req, res, next) => {
-  res.locals.t = req.t;
-  res.locals.lng = req.language || 'ja';
+  // ?lng=ja|en を最優先し、クッキーにも保存
+  if (q && ['ja','en'].includes(q)) {
+    req.i18n.changeLanguage(q);
+    res.cookie('i18next', q, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: false,
+      sameSite: 'lax'
+    });
+  }
+
+  // EJS から使う値
+  res.locals.t   = req.t;
+  res.locals.lng = req.i18n?.language || q || 'ja';  // <html lang="<%= lng %>">
   next();
 });
 
