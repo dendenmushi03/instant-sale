@@ -12,6 +12,17 @@
     .dlImage{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--border,#223);background:#0f1115}
     .dlMeta{color:#a9c0e6;font-size:13px;margin-top:8px}
   </style>
+
+    .lang-select{ margin-left:12px }
+    .lang-select__control{
+      appearance:none; -webkit-appearance:none; -moz-appearance:none;
+      background:#0f172a; border:1px solid #243246; color:#fff;
+      padding:.55rem .9rem; border-radius:12px; font-weight:700;
+    }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  </style>
+
 </head>
 <body class="layout">
 
@@ -30,10 +41,15 @@
       <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
     <% } %>
 
-  <div class="lang-switch" style="display:flex;gap:8px;margin-left:12px">
-    <a class="btn btn--ghost" href="/lang?lng=ja" aria-current="<%= lng==='ja' %>">日本語</a>
-    <a class="btn btn--ghost" href="/lang?lng=en" aria-current="<%= lng==='en' %>">English</a>
-  </div>
+  <!-- 言語セレクタ（ドロップダウン） -->
+  <form class="lang-select" action="/lang" method="get" aria-label="Language">
+    <label for="langSelect" class="sr-only">Language</label>
+    <select id="langSelect" name="lng" class="lang-select__control">
+      <option value="ja" <%= lng==='ja' ? 'selected' : '' %>>日本語</option>
+      <option value="en" <%= lng==='en' ? 'selected' : '' %>>English</option>
+    </select>
+    <noscript><button class="btn btn--ghost" type="submit">OK</button></noscript>
+  </form>
 
   </nav>
 </header>
@@ -55,6 +71,14 @@
 </main>
 
 <%- include('partials/footer') %>
+
+<script nonce="<%= cspNonce %>">
+  (function(){
+    var sel = document.getElementById('langSelect');
+    if(!sel) return;
+    sel.addEventListener('change', function(){ try{ sel.form.submit(); }catch(_){} });
+  })();
+</script>
 
 </body>
 </html>
