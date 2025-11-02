@@ -214,25 +214,37 @@ i18next
     interpolation: { escapeValue: false },
   });
 
-app.use(i18nextMiddleware.handle(i18next));
+app.use(
+  i18nextMiddleware.handle(i18next, {
+    ignoreRoutes: ['/public/'],
+    removeLngFromUrl: false
+  })
+);
 
-// ★ 言語確定＆EJSへ引き渡し（統合版）
+// ★ 初回訪問時：ブラウザ言語を自動検出し、i18next クッキーを1年固定
 app.use((req, res, next) => {
-  const q = String(req.query.lng || '').toLowerCase();
-
-  // ?lng=ja|en を最優先し、クッキーにも保存
-  if (q && ['ja','en'].includes(q)) {
-    req.i18n.changeLanguage(q);
-    res.cookie('i18next', q, {
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+  if (!req.cookies.i18next) {
+    const lang = req.acceptsLanguages('en', 'ja') || 'ja';
+    res.cookie('i18next', lang, {
+      maxAge: 365 * 24 * 60 * 60 * 1000,
       httpOnly: false,
       sameSite: 'lax'
     });
+    // i18next の言語にも反映
+    req.i18n.changeLanguage(lang);
   }
+  next();
+});
 
-  // EJS から使う値
-  res.locals.t   = req.t;
-  res.locals.lng = req.i18n?.language || q || 'ja';  // <html lang="<%= lng %>">
+// ★ EJS で使う共通変数（翻訳関数・現在言語・切替リンク）
+app.use((req, res, next) => {
+  const lng = req.language || req.i18n?.language || 'ja';
+  res.locals.t = req.t;
+  res.locals.lng = lng;
+  res.locals.langMenu = [
+    { code: 'ja', label: '日本語', url: '/lang?lng=ja', active: lng === 'ja' },
+    { code: 'en', label: 'English', url: '/lang?lng=en', active: lng === 'en' }
+  ];
   next();
 });
 
@@ -475,15 +487,17 @@ app.get('/', (req, res) => {
   res.render('home', { baseUrl: BASE_URL });
 });
 
-// ▼ 言語切替: /lang?lng=en | ja
 app.get('/lang', (req, res) => {
   const nextLng = String(req.query.lng || '').toLowerCase();
   if (['ja','en'].includes(nextLng)) {
     res.cookie('i18next', nextLng, {
-      httpOnly: false, sameSite: 'Lax', maxAge: 1000*60*60*24*365
+      httpOnly: false,
+      sameSite: 'lax',
+      maxAge: 365 * 24 * 60 * 60 * 1000
     });
+    req.i18n.changeLanguage(nextLng);
   }
-  return res.redirect(req.get('Referer') || '/');
+  res.redirect(req.get('Referer') || '/');
 });
 
 // robots.txt

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= t('checkout.done_title') %></title>
-  <link rel="stylesheet" href="/public/style.css" />
+  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
 </head>
 
 <body class="layout">
@@ -23,7 +23,14 @@
     <% } else { %>
       <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
     <% } %>
+
+<div class="lang-switch" style="display:flex;gap:8px;margin-left:12px">
+  <a class="btn btn--ghost" href="/lang?lng=ja"<% if (lng==='ja') { %> aria-current="page"<% } %>>日本語</a>
+  <a class="btn btn--ghost" href="/lang?lng=en"<% if (lng==='en') { %> aria-current="page"<% } %>>English</a>
+</div>
+
   </nav>
+ 
 </header>
 
 <% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>

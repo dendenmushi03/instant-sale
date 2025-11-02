@@ -26,16 +26,13 @@
   <meta name="twitter:image" content="<%= og.image %>" />
   <meta name="twitter:image:alt" content="<%= og.title %>" />
 
-  <link rel="stylesheet" href="/public/style.css" />
-</head>
-
+<link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
 <style>
   /* 購入ボタンとの間に余白をつくる */
-  .section-license { margin-top: 12px; }           /* モバイル */
+  .section-license { margin-top: 12px; }
   @media (min-width: 768px) {
-    .section-license { margin-top: 16px; }         /* タブレット/PCで少し広め */
+    .section-license { margin-top: 16px; }
   }
-
   .section-license .pill {
     display:inline-block; padding:.25rem .6rem; border-radius:9999px;
     background:#223; color:#fff; font-weight:600;
@@ -47,6 +44,7 @@
     margin:.4rem 0; opacity:.9;
   }
 </style>
+</head>
 
 <body class="layout">
 
@@ -65,9 +63,14 @@
     <% } else { %>
 <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
       <% } %>
+
+  <div class="lang-switch" style="display:flex;gap:8px;margin-left:12px">
+    <a class="btn btn--ghost" href="/lang?lng=ja"<% if (lng==='ja') { %> aria-current="page"<% } %>>日本語</a>
+    <a class="btn btn--ghost" href="/lang?lng=en"<% if (lng==='en') { %> aria-current="page"<% } %>>English</a>
+  </div>
   </nav>
 </header>
-  
+      
   <main class="container">
     <article class="product">
 

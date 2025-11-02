@@ -29,6 +29,12 @@
     <% } else { %>
       <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
     <% } %>
+
+  <div class="lang-switch" style="display:flex;gap:8px;margin-left:12px">
+    <a class="btn btn--ghost" href="/lang?lng=ja" aria-current="<%= lng==='ja' %>">日本語</a>
+    <a class="btn btn--ghost" href="/lang?lng=en" aria-current="<%= lng==='en' %>">English</a>
+  </div>
+
   </nav>
 </header>
 
