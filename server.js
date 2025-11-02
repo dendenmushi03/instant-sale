@@ -322,6 +322,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// ★ いま表示中のパス（クエリ含む）を全テンプレートへ
+app.use((req, res, next) => {
+  res.locals.currentPath = req.originalUrl || '/';
+  next();
+});
+
 // 各ページの canonical/robots を出せるように共通値を用意
 app.use((req, res, next) => {
   // 既に BASE_URL は末尾スラ無し・https 化済み
@@ -497,7 +503,23 @@ app.get('/lang', (req, res) => {
     });
     req.i18n.changeLanguage(nextLng);
   }
-  res.redirect(req.get('Referer') || '/');
+
+  // ★ return= に優先的に戻る（オープンリダイレクト対策で同一オリジンのパスのみ許可）
+  const retRaw = String(req.query.return || '');
+  let back = '/';
+  try {
+    const dec = decodeURIComponent(retRaw || '');
+    if (dec.startsWith('/')) back = dec;
+  } catch (_) {}
+
+  // Referer があるなら保険で使用（LINE等で欠落しやすい）
+  if (back === '/' && req.get('Referer')) {
+    try {
+      const url = new URL(req.get('Referer'));
+      if (url.pathname) back = url.pathname + (url.search || '') + (url.hash || '');
+    } catch (_) {}
+  }
+  return res.redirect(303, back);
 });
 
 // robots.txt

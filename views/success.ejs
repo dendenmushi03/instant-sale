@@ -1,12 +1,11 @@
 <!doctype html>
 <html lang="<%= lng || 'ja' %>">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= t('checkout.done_title') %></title>
   <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
-</head>
-
   <style>
     .lang-select{ margin-left:12px }
     .lang-select__control{
@@ -14,8 +13,10 @@
       background:#0f172a; border:1px solid #243246; color:#fff;
       padding:.55rem .9rem; border-radius:12px; font-weight:700;
     }
-    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px;
-      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
   </style>
 </head>
 
@@ -36,8 +37,8 @@
       <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
     <% } %>
 
-<!-- 言語セレクタ（ドロップダウン） -->
 <form class="lang-select" action="/lang" method="get" aria-label="Language">
+  <input type="hidden" name="return" value="<%= currentPath %>">
   <label for="langSelect" class="sr-only">Language</label>
   <select id="langSelect" name="lng" class="lang-select__control">
     <option value="ja" <%= lng==='ja' ? 'selected' : '' %>>日本語</option>

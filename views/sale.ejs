@@ -77,15 +77,15 @@
 <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
       <% } %>
 
-    <!-- 言語セレクタ（ドロップダウン） -->
-    <form class="lang-select" action="/lang" method="get" aria-label="Language">
-      <label for="langSelect" class="sr-only">Language</label>
-      <select id="langSelect" name="lng" class="lang-select__control">
-        <option value="ja" <%= lng==='ja' ? 'selected' : '' %>>日本語</option>
-        <option value="en" <%= lng==='en' ? 'selected' : '' %>>English</option>
-      </select>
-      <noscript><button class="btn btn--ghost" type="submit">OK</button></noscript>
-    </form>
+<form class="lang-select" action="/lang" method="get" aria-label="Language">
+  <input type="hidden" name="return" value="<%= currentPath %>">
+  <label for="langSelect" class="sr-only">Language</label>
+  <select id="langSelect" name="lng" class="lang-select__control">
+    <option value="ja" <%= lng==='ja' ? 'selected' : '' %>>日本語</option>
+    <option value="en" <%= lng==='en' ? 'selected' : '' %>>English</option>
+  </select>
+  <noscript><button class="btn btn--ghost" type="submit">OK</button></noscript>
+</form>
 
     </nav>
 </header>
