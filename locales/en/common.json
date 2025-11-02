@@ -162,6 +162,8 @@
       "contact": "Contact",
       "website": "Website",
       "price": "Price",
+          "phone": "Phone",
+    "email": "Email",
       "otherFees": "Other fees",
       "paymentMethod": "Payment method",
       "paymentTiming": "Payment timing",
@@ -227,4 +229,15 @@
     "sale_title_suffix": "Instant download",
     "sale_desc": "Buy high-res now (¥{{price}})"
   }
+,
+  "checkout.done_title": "Thank you for your purchase 🎉",
+  "checkout.done_desc": "You can download the high-resolution file using the button below.",
+  "checkout.expire_note_html": "※ Expiration: <strong>{{minutes}} min</strong> (until {{time}})",
+  "checkout.download_btn": "Download",
+
+  "download.title": "Download | {{title}}",
+  "download.notice_line1_html": "Long-press the displayed image to save it.",
+  "download.notice_line2": "You will not be able to download after closing this page.",
+  "download.expire_note": "Expires in {{minutes}} min, until {{time}}",
+  "download.img_alt": "Download image of {{title}}"
 }

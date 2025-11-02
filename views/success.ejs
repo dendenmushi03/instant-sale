@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="<%= lng || 'ja' %>">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ご購入ありがとうございます</title>
+  <title><%= t('checkout.done_title') %></title>
   <link rel="stylesheet" href="/public/style.css" />
 </head>
 
@@ -12,32 +12,38 @@
 <header class="nav">
   <a class="nav__brand" href="/">
     <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" />
-    <span class="nav__brandText">Instant Sale</span>
+    <span class="nav__brandText"><%= t('brand') %></span>
   </a>
   <nav class="nav__right">
     <% if (me) { %>
       <span class="nav__user"><%= me.name || me.email %></span>
       <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
+        <button class="btn btn--ghost"><%= t('nav.logout') %></button>
       </form>
     <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+      <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
     <% } %>
   </nav>
 </header>
 
-  <main class="container">
-    <div class="card success">
-      <h1>ご購入ありがとうございます 🎉</h1>
-      <p>以下のボタンから高解像度データをダウンロードできます。</p>
-      <p>※ 有効期限：<strong><%= ttlMin %>分</strong>（<%= expiresAt.toLocaleString() %> まで）</p>
-      <p><a class="btn primary" href="<%= downloadUrl %>">ダウンロード</a></p>
+<% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>
+
+<main class="container">
+  <div class="card success">
+    <h1><%= t('checkout.done_title') %></h1>
+    <p><%= t('checkout.done_desc') %></p>
+
+<p>
+  <%- t('checkout.expire_note_html', { minutes: ttlMin, time: expiresAt.toLocaleString(locale) }) %>
 </p>
 
-    </div>
-  </main>
+    <p>
+      <a class="btn primary" href="<%= downloadUrl %>"><%= t('checkout.download_btn') %></a>
+    </p>
+  </div>
+</main>
 
 <%- include('partials/footer') %>
 
-  </body>
+</body>
 </html>

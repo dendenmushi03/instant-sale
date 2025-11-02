@@ -162,6 +162,8 @@
       "contact": "連絡先",
       "website": "ウェブサイト",
       "price": "販売価格",
+          "phone": "電話番号",
+    "email": "メール",
       "otherFees": "商品代金以外の必要料金",
       "paymentMethod": "お支払い方法",
       "paymentTiming": "お支払い時期",
@@ -227,5 +229,16 @@
     "sale_title_suffix": "即ダウンロード",
     "sale_desc": "高解像度をすぐ購入（¥{{price}}）"
   }
-}
 
+  ,
+  "checkout.done_title": "ご購入ありがとうございます🎉",
+  "checkout.done_desc": "以下のボタンから高解像度データをダウンロードできます。",
+  "checkout.expire_note_html": "※ 有効期限：<strong>{{minutes}}分</strong>（{{time}} まで）",
+  "checkout.download_btn": "ダウンロード",
+
+  "download.title": "ダウンロード | {{title}}",
+  "download.notice_line1_html": "表示された画像を<strong>長押し</strong>して保存してください。",
+  "download.notice_line2": "このページを閉じるとダウンロードができなくなります。",
+  "download.expire_note": "有効期限：{{minutes}}分、{{time}}まで",
+  "download.img_alt": "{{title}} のダウンロード画像"
+}

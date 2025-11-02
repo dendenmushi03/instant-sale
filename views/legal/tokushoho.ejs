@@ -43,12 +43,22 @@
       <tr>
         <th><%= t('tokushoho.label.contact') || '連絡先' %></th>
         <td>
+          <% 
+            // t() が未定義キーの場合はキー文字列を返すケースに備えた安全ラベル
+            const tSafe = (key, ja, en) => {
+              const v = t(key);
+              if (!v || v === key) return (lng === 'en' ? (en || ja) : ja);
+              return v;
+            };
+            const phoneLabel = tSafe('tokushoho.label.phone', '電話番号', 'Phone');
+            const emailLabel = tSafe('tokushoho.label.email', 'メール', 'Email');
+          %>
           <% if (has(phone)) { %>
-            <%= t('tokushoho.label.phone') || '電話' %>: <%= phoneDisp %><br>
+            <%= phoneLabel %>: <%= phoneDisp %><br>
           <% } else { %>
             <%= phoneDisp %><br>
           <% } %>
-          Email: <a href="mailto:<%= supportMail %>"><%= supportMail %></a>
+          <%= emailLabel %>: <a href="mailto:<%= email %>"><%= email %></a>
         </td>
       </tr>
 

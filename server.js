@@ -213,6 +213,19 @@ i18next
 
 app.use(i18nextMiddleware.handle(i18next));
 
+// ブラウザ言語 or URLクエリ (?lng=en) で切り替え
+app.use((req, res, next) => {
+  const queryLng = req.query.lng;
+  if (queryLng) {
+    req.language = queryLng;
+    i18next.changeLanguage(queryLng);
+  } else if (req.headers['accept-language']) {
+    const preferred = req.headers['accept-language'].split(',')[0];
+    if (preferred.startsWith('en')) i18next.changeLanguage('en');
+  }
+  next();
+});
+
 // EJSで t() / 現在言語 lng を使えるように
 app.use((req, res, next) => {
   res.locals.t = req.t;

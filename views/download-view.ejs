@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ja">
+<html lang="<%= lng || 'ja' %>">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>ダウンロード | <%= item.title %></title>
+  <title><%= t('download.title', { title: item.title }) %></title>
   <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>">
   <style>
     .dlWrap{max-width:1024px;margin:0 auto;padding:16px}
@@ -18,28 +18,34 @@
 <header class="nav">
   <a class="nav__brand" href="/">
     <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28">
-    <span class="nav__brandText">Instant Sale</span>
+    <span class="nav__brandText"><%= t('brand') %></span>
   </a>
   <nav class="nav__right">
     <% if (me) { %>
       <span class="nav__user"><%= me.name || me.email %></span>
       <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
+        <button class="btn btn--ghost"><%= t('nav.logout') %></button>
       </form>
     <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+      <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
     <% } %>
   </nav>
 </header>
 
+<% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>
+
 <main class="dlWrap">
   <div class="dlNote" role="alert" aria-live="polite">
-    <div style="font-weight:800;margin-bottom:4px;">⚠ 表示された画像を<strong>長押し</strong>して保存してください。</div>
-    <strong>このページを閉じるとダウンロードができなくなります。</strong>（有効期限：<%= ttlMin %>分、<%= expiresAt.toLocaleString() %> まで）
+    <div style="font-weight:800;margin-bottom:4px;">
+
+⚠ <%- t('download.notice_line1_html') %>
+
+    </div>
+    <strong><%= t('download.notice_line2') %></strong>
+    （<%= t('download.expire_note', { minutes: ttlMin, time: expiresAt.toLocaleString(locale) }) %>）
   </div>
 
-  <img class="dlImage" src="<%= imageUrl %>" alt="<%= item.title %> のダウンロード画像">
-
+  <img class="dlImage" src="<%= imageUrl %>" alt="<%= t('download.img_alt', { title: item.title }) %>">
 </main>
 
 <%- include('partials/footer') %>
