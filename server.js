@@ -239,11 +239,16 @@ app.use((req, res, next) => {
 // ★ EJS で使う共通変数（翻訳関数・現在言語・切替リンク）
 app.use((req, res, next) => {
   const lng = req.language || req.i18n?.language || 'ja';
-  res.locals.t = req.t;
+  res.locals.t   = req.t;
   res.locals.lng = lng;
+
+  // 今のURL（クエリ・ハッシュ含む）を安全に付与
+  const now = req.originalUrl || '/';
+  const ret = encodeURIComponent(now);
+
   res.locals.langMenu = [
-    { code: 'ja', label: '日本語', url: '/lang?lng=ja', active: lng === 'ja' },
-    { code: 'en', label: 'English', url: '/lang?lng=en', active: lng === 'en' }
+    { code: 'ja', label: '日本語', url: `/lang?lng=ja&return=${ret}`, active: lng === 'ja' },
+    { code: 'en', label: 'English', url: `/lang?lng=en&return=${ret}`, active: lng === 'en' }
   ];
   next();
 });

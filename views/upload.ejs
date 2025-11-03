@@ -424,5 +424,41 @@ submitBtn.textContent = submitBtn.dataset.origText || "<%= t('upload.submit') %>
 })();
 </script>
 
+<script nonce="<%= cspNonce %>">
+(function () {
+  try {
+    var current = location.pathname + location.search + location.hash;
+    var ret = encodeURIComponent(current);
+
+    // 1) ヘッダーに「/lang」フォームがある場合は hidden を付与/更新
+    document.querySelectorAll('form[action="/lang"]').forEach(function(f){
+      // 既に無ければ hidden を作る
+      var hid = f.querySelector('input[name="return"]');
+      if (!hid) {
+        hid = document.createElement('input');
+        hid.type = 'hidden';
+        hid.name = 'return';
+        f.appendChild(hid);
+      }
+      hid.value = current;
+
+      // セレクトの change で即 submit（備え）
+      var sel = f.querySelector('select[name="lng"]');
+      if (sel && !sel.dataset._bound) {
+        sel.dataset._bound = '1';
+        sel.addEventListener('change', function(){ try { f.submit(); } catch(_) {} });
+      }
+    });
+
+    // 2) 言語リンク（/lang?lng=xx）を使っている場合は &return= を後付け
+    document.querySelectorAll('a[href^="/lang?lng="]').forEach(function(a){
+      if (!/(\?|&)return=/.test(a.search)) {
+        a.href = a.href + (a.search ? '&' : '?') + 'return=' + ret;
+      }
+    });
+  } catch(_) {}
+})();
+</script>
+
 </body>
 </html>

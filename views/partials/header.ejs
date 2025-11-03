@@ -23,9 +23,22 @@
         <%= t ? t('nav.language') : 'Language' %>：<%= (lng === 'en') ? (t ? t('lang.en') : 'English') : (t ? t('lang.ja') : '日本語') %>
       </button>
       <div class="dropdown__menu">
-        <a class="dropdown__item" href="/lang?lng=ja" aria-current="<%= lng==='ja' ? 'true' : 'false' %>"><%= t ? t('lang.ja') : '日本語' %></a>
-        <a class="dropdown__item" href="/lang?lng=en" aria-current="<%= lng==='en' ? 'true' : 'false' %>"><%= t ? t('lang.en') : 'English' %></a>
+        <% /* 現在URL（クエリ/ハッシュ含む）を return に付ける */ %>
+        <% var __ret = encodeURIComponent((typeof currentPath === 'string' && currentPath) ? currentPath : (request && request.originalUrl) ? request.originalUrl : '/'); %>
+
+        <a class="dropdown__item"
+           href="/lang?lng=ja&return=<%= __ret %>"
+           aria-current="<%= lng==='ja' ? 'true' : 'false' %>">
+          <%= t ? t('lang.ja') : '日本語' %>
+        </a>
+
+        <a class="dropdown__item"
+           href="/lang?lng=en&return=<%= __ret %>"
+           aria-current="<%= lng==='en' ? 'true' : 'false' %>">
+          <%= t ? t('lang.en') : 'English' %>
+        </a>
       </div>
     </div>
+
   </nav>
 </header>
