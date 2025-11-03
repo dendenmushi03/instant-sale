@@ -56,6 +56,43 @@
 
 <h1><%= t('upload.h1') %></h1>
 
+<%
+// i18nを簡易対応（辞書を増やさず、lngで文言を出し分け）
+const _okTitle   = (lng==='en') ? 'Payout setup completed' : '受取設定は完了しています';
+const _okDesc    = (lng==='en') ? 'You can receive payouts. You can review / update settings from the button below.' : '売上の受け取りが可能です。必要に応じて下のボタンから設定を確認・更新できます。';
+const _okBtn     = (lng==='en') ? 'Open Stripe dashboard' : '登録口座の確認 / 更新';
+
+const _ngTitle   = (lng==='en') ? 'Payout setup required' : '受取設定が未完了です';
+const _ngDesc1   = (lng==='en') ? 'To receive payouts, you need to register a bank account and complete identity verification on Stripe.' : '売上の受け取りには、振込口座の登録（Stripe）と本人確認が必要です。';
+const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Stripe）';
+%>
+
+<% if (typeof connect !== 'undefined' && connect && connect.hasAccount && connect.payoutsEnabled) { %>
+  <!-- ✅ 完了カード -->
+  <section class="card" style="margin:14px 0; background:#0b2b16; border:1px solid #1b5e20; color:#eafff3">
+    <div style="display:flex; gap:12px; align-items:flex-start;">
+      <div style="font-size:22px; line-height:1;">✅</div>
+      <div style="flex:1;">
+        <div style="font-weight:800; font-size:1.05rem; margin-bottom:6px;"><%= _okTitle %></div>
+        <p style="opacity:.9; margin:0 0 10px;"><%= _okDesc %></p>
+        <a class="btn btn--primary" href="/connect/portal"><%= _okBtn %></a>
+      </div>
+    </div>
+  </section>
+<% } else { %>
+  <!-- ⚠️ 未完了カード -->
+  <section class="card" style="margin:14px 0; background:#2a0f12; border:1px solid #6a1a21; color:#ffecec">
+    <div style="display:flex; gap:12px; align-items:flex-start;">
+      <div style="font-size:22px; line-height:1;">⚠️</div>
+      <div style="flex:1;">
+        <div style="font-weight:800; font-size:1.05rem; margin-bottom:6px;"><%= _ngTitle %></div>
+        <p style="opacity:.9; margin:0 0 10px;"><%= _ngDesc1 %></p>
+        <a class="btn btn--primary" href="/connect/onboard"><%= _ngBtn %></a>
+      </div>
+    </div>
+  </section>
+<% } %>
+
   <!-- 送信先とエンコーディングを明示 -->
   <form action="/upload" method="post" enctype="multipart/form-data">
 
