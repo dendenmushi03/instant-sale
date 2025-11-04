@@ -30,7 +30,7 @@ const User = require('./models/User');
 
 const PendingTransfer = require('./models/PendingTransfer');
 
-const { fileTypeFromFile } = require('file-type'); // ★ 追加：実体MIME検査
+const FileType = require('file-type'); // ★ 追加：実体MIME検査（CJSはfromFileを使う）
 
 const app = express();
 
@@ -914,13 +914,13 @@ const currency = CURRENCY; // ← フォーム値は無視して固定
       return res.status(400).render('error', { message: '権利者であることのチェックが未入力です。' });
     }
 
-    // ★ 実体MIME検査（画像以外は拒否）
-    const ft = await fileTypeFromFile(req.file.path).catch(() => null);
-    const realMime = ft?.mime || '';
-    if (!/^image\/(png|jpe?g|webp|gif)$/i.test(realMime)) {
-      await fsp.unlink(req.file.path).catch(() => {});
-      return res.status(400).render('error', { message: '未対応のファイル形式です。PNG/JPEG/WEBP/GIF のみ対応。' });
-    }
+// ★ 実体MIME検査（画像以外は拒否）
+const ft = await FileType.fromFile(req.file.path).catch(() => null);
+const realMime = ft?.mime || '';
+if (!/^image\/(png|jpe?g|webp|gif)$/i.test(realMime)) {
+  await fsp.unlink(req.file.path).catch(() => {});
+  return res.status(400).render('error', { message: '未対応のファイル形式です。PNG/JPEG/WEBP/GIF のみ対応。' });
+}
 
     // ★ 原本も再エンコードして EXIF/メタデータを除去（配布時の位置情報漏洩を防ぐ）
     //    ここでは JPEG に統一（色変化を抑えたい場合は PNG 保存でも可）
