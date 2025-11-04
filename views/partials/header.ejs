@@ -13,7 +13,7 @@
 
 <form method="post" action="/logout" class="inline">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <button class="btn btn--ghost"><%= t ? t('nav.logout') : 'Logout' %></button>
+  <button type="submit" class="btn btn--ghost"><%= t ? t('nav.logout') : 'Logout' %></button>
 </form>
 
       <% } else { %>

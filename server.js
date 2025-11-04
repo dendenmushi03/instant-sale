@@ -1252,8 +1252,9 @@ app.get('/s/:slug', async (req, res) => {
     // ライセンス表示
     const licenseView = licenseViewOf(item);
 
-    // 軽いキャッシュ
-    res.set('Cache-Control', 'public, max-age=60');
+// ページに CSRF トークンが含まれるので第三者キャッシュは禁止
+res.set('Cache-Control', 'private, max-age=60');
+// 必要なら完全に避けたい場合は： res.set('Cache-Control', 'no-store');
 
     return res.render('sale', {
       baseUrl: BASE_URL,
@@ -1813,6 +1814,13 @@ app.post('/admin/fix-legacy-previews', async (req, res) => {
 // ★ ここからグローバルエラーハンドラ（ファイル容量/形式NGやその他の例外を拾う）
 app.use((err, req, res, next) => {
   const isAjax = req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest';
+
+  // CSRF 不一致（期限切れ・キャッシュ済みトークン等）
+  if (err && (err.code === 'EBADCSRFTOKEN' || /csrf/i.test(err.message || ''))) {
+    const msg = 'フォームの有効期限が切れました。ページを再読み込みしてからもう一度お試しください。';
+    if (isAjax) return res.status(403).json({ ok: false, message: 'invalid_csrf_token' });
+    return res.status(403).render('error', { message: msg });
+  }
 
   // Multerの代表的エラー（容量/形式）
   if (err && (err.name === 'MulterError' || /画像ファイルのみ|File too large/i.test(err.message || ''))) {
