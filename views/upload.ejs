@@ -118,9 +118,9 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     <span class="priceLabel"><%= t('upload.price.price') %></span>
     
 <input id="priceInput" type="number" name="price"
-       min="<%= Math.max(300, Number(typeof minPrice !== 'undefined' ? minPrice : 0)) %>"
+       min="<%= Math.max(300, Number(process.env.MIN_PRICE || 0)) %>"
        step="1"
-       placeholder="¥<%= Math.max(300, Number(typeof minPrice !== 'undefined' ? minPrice : 0)) %>〜"
+       placeholder="¥<%= Math.max(300, Number(process.env.MIN_PRICE || 0)) %>〜"
        inputmode="numeric"
        required />
 
