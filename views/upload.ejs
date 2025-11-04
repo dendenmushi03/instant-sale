@@ -96,6 +96,9 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   <!-- 送信先とエンコーディングを明示 -->
   <form action="/upload" method="post" enctype="multipart/form-data">
 
+      <!-- CSRF token -->
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
 <label><%= t('upload.field.file') %>
   <input type="file" name="image" accept="image/*" required />
 </label>
@@ -115,9 +118,9 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     <span class="priceLabel"><%= t('upload.price.price') %></span>
     
 <input id="priceInput" type="number" name="price"
-       min="<%= Math.max(300, Number(process.env.MIN_PRICE || 0)) %>"
+       min="<%= Math.max(300, Number(typeof minPrice !== 'undefined' ? minPrice : 0)) %>"
        step="1"
-       placeholder="¥<%= Math.max(300, Number(process.env.MIN_PRICE || 0)) %>〜"
+       placeholder="¥<%= Math.max(300, Number(typeof minPrice !== 'undefined' ? minPrice : 0)) %>〜"
        inputmode="numeric"
        required />
 
@@ -278,10 +281,16 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   }
 
   if (feeRateTextEl) feeRateTextEl.textContent = feeRate + '%';
+
   if (priceInput){
     ['input','change','blur'].forEach(ev => priceInput.addEventListener(ev, recalc));
     recalc(); // 初期表示
   }
+
+  if (priceInput && priceInput.min) {
+  // 初期値が未入力なら最低価格でセット（UX向上）
+  if (!priceInput.value) priceInput.value = String(priceInput.min);
+}
 
   form.addEventListener('submit', function (ev) {
     // ★ 先にネイティブバリデーションを実行。NGなら送信しない
@@ -333,8 +342,14 @@ submitBtn.textContent = (submitBtn.dataset.origText || "<%= t('upload.submit') %
 
     const fd = new FormData(form);
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', form.action);
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+xhr.open('POST', form.action);
+xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+// CSRFヘッダ（bodyの_hiddenと二重で送る）
+try {
+  var csrf = form.querySelector('input[name="_csrf"]')?.value || '';
+  if (csrf) xhr.setRequestHeader('X-CSRF-Token', csrf);
+} catch(_) {}
 
     xhr.upload.onprogress = function (e) {
       if (!e.lengthComputable) return;

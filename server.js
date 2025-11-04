@@ -9,6 +9,8 @@ const i18nextFsBackend = require('i18next-fs-backend');
 const fs = require('fs');
 const fsp = require('fs/promises');
 
+const csurf = require('csurf'); // ★ 追加
+
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
@@ -27,6 +29,8 @@ const DownloadToken = require('./models/DownloadToken');
 const User = require('./models/User');
 
 const PendingTransfer = require('./models/PendingTransfer');
+
+const { fileTypeFromFile } = require('file-type'); // ★ 追加：実体MIME検査
 
 const app = express();
 
@@ -58,6 +62,12 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const CURRENCY = (process.env.CURRENCY || 'jpy').toLowerCase();
 // 最低価格（未設定なら JPY は 50）
 const MIN_PRICE = Number(process.env.MIN_PRICE || (CURRENCY === 'jpy' ? 50 : 50));
+
+const ProcessedEvent = mongoose.models.ProcessedEvent || mongoose.model('ProcessedEvent', new mongoose.Schema({
+  eventId: { type: String, unique: true, index: true },
+  at: { type: Date, default: Date.now },
+  expiresAt: { type: Date, default: () => new Date(Date.now() + 30*24*60*60*1000), index: { expires: '0s' } }
+}));
 
 // ─────────────────────────────────────────────
 // 相対→絶対URL変換（正規化済み BASE_URL を使う版）
@@ -173,6 +183,24 @@ app.use(passport.session());
 // ★ Webhook は JSON パーサより前に raw を先適用
 app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
+// ★ CSRF（webhook などは除外）
+const csrfProtection = csurf({ cookie: false });
+app.use((req, res, next) => {
+  // Stripe Webhook は署名検証で守るため CSRF 適用外
+  if (req.path.startsWith('/webhooks/stripe')) return next();
+  return csrfProtection(req, res, next);
+});
+
+// EJS から <%= csrfToken %> を使えるように
+app.use((req, res, next) => {
+  try {
+    res.locals.csrfToken = req.csrfToken ? req.csrfToken() : '';
+  } catch (_) {
+    res.locals.csrfToken = '';
+  }
+  next();
+});
+
 // どのテンプレートからも使えるように
 app.use((req, res, next) => {
   res.locals.assetVer = ASSET_VER;
@@ -257,11 +285,17 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
+// Express の署名隠し
+app.disable('x-powered-by');
+
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  // HSTS（本番のみ強制）
+  hsts: isProd ? { maxAge: 31536000, includeSubDomains: true, preload: false } : false,
   contentSecurityPolicy: {
     useDefaults: true,
     directives: {
+      "default-src": ["'self'"],
       "script-src": [
         "'self'",
         (req, res) => `'nonce-${res.locals.cspNonce}'`,
@@ -270,7 +304,18 @@ app.use(helmet({
       "img-src": ["'self'", "data:", "blob:", "https:", "http:"],
       "connect-src": ["'self'", "https://api.stripe.com", "https://r.stripe.com"],
       "frame-src": ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
-      "style-src": ["'self'", "'unsafe-inline'"]
+      "style-src": ["'self'", "'unsafe-inline'"],
+      // クリックジャッキング対策
+      "frame-ancestors": ["'none'"],
+      // plugin/object は使わない
+      "object-src": ["'none'"]
+    }
+  },
+  referrerPolicy: { policy: "no-referrer" },
+  // 権限ポリシー（使わないものは拒否）
+  permissionsPolicy: {
+    features: {
+      geolocation: ["()"], microphone: ["()"], camera: ["()"]
     }
   }
 }));
@@ -297,16 +342,15 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// 本番は 1 年キャッシュ + immutable（URLに ?v=xxx を付けて破棄）
+// ✅ /public だけを配信（キャッシュ付き）
 app.use('/public', express.static(path.join(__dirname, 'public'), {
   maxAge: isProd ? '365d' : 0,
   immutable: !!isProd,
   etag: true,
   lastModified: true
 }));
+
+// ❌ /uploads は公開しない（原本は download ルートのみで配布）
 
 // ★ 追加：/favicon.ico への直リンクをロゴで返す（簡易対応）
 app.get('/favicon.ico', (req, res) => {
@@ -315,8 +359,7 @@ app.get('/favicon.ico', (req, res) => {
 
 app.use('/previews', express.static(PREVIEW_DIR)); // OGP/プレビューを公開
 
-// Stripe/X(Twitter) など外部からの画像取得を明示許可
-app.use(['/previews', '/uploads'], (req, res, next) => {
+app.use(['/previews'], (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
 });
@@ -498,6 +541,17 @@ app.get('/', (req, res) => {
   res.render('home', { baseUrl: BASE_URL });
 });
 
+// ★ リダイレクト先を厳格にバリデーション
+function safeReturnUrl(input) {
+  try {
+    const s = String(input || '');
+    if (!s.startsWith('/')) return '/';             // 絶対URL/相対パス拒否
+    if (/^\/\/|https?:/i.test(s)) return '/';       // プロトコル相対/外部URL拒否
+    if (/[<>"'\\]/.test(s)) return '/';             // 危険文字拒否
+    return s;
+  } catch { return '/'; }
+}
+
 app.get('/lang', (req, res) => {
   const nextLng = String(req.query.lng || '').toLowerCase();
   if (['ja','en'].includes(nextLng)) {
@@ -509,22 +563,21 @@ app.get('/lang', (req, res) => {
     req.i18n.changeLanguage(nextLng);
   }
 
-  // ★ return= に優先的に戻る（オープンリダイレクト対策で同一オリジンのパスのみ許可）
-  const retRaw = String(req.query.return || '');
-  let back = '/';
+  const back = safeReturnUrl(req.query.return);
+  if (back !== '/') return res.redirect(303, back);
+
+  // Referer 保険（同一オリジンだけ）
   try {
-    const dec = decodeURIComponent(retRaw || '');
-    if (dec.startsWith('/')) back = dec;
+    const ref = req.get('Referer');
+    if (ref) {
+      const u = new URL(ref);
+      if (u.host === (req.headers['x-forwarded-host'] || req.headers.host)) {
+        return res.redirect(303, u.pathname + (u.search || '') + (u.hash || ''));
+      }
+    }
   } catch (_) {}
 
-  // Referer があるなら保険で使用（LINE等で欠落しやすい）
-  if (back === '/' && req.get('Referer')) {
-    try {
-      const url = new URL(req.get('Referer'));
-      if (url.pathname) back = url.pathname + (url.search || '') + (url.hash || '');
-    } catch (_) {}
-  }
-  return res.redirect(303, back);
+  return res.redirect(303, '/');
 });
 
 // robots.txt
@@ -825,7 +878,16 @@ app.get('/creator', ensureAuthed, async (req, res) => {
   const isBiz = false;
   const legalReady = true;
 
-  res.render('upload', { baseUrl: BASE_URL, connect, legal: L, legalReady, isBiz });
+res.render('upload', {
+  baseUrl: BASE_URL,
+  connect,
+  legal: L,
+  legalReady,
+  isBiz,
+  minPrice: MIN_PRICE,                    // ← 追加
+  platformFeePct: PLATFORM_FEE_PERCENT   // ← 追加
+});
+
 });
 
 // upload
@@ -852,7 +914,29 @@ const currency = CURRENCY; // ← フォーム値は無視して固定
       return res.status(400).render('error', { message: '権利者であることのチェックが未入力です。' });
     }
 
+    // ★ 実体MIME検査（画像以外は拒否）
+    const ft = await fileTypeFromFile(req.file.path).catch(() => null);
+    const realMime = ft?.mime || '';
+    if (!/^image\/(png|jpe?g|webp|gif)$/i.test(realMime)) {
+      await fsp.unlink(req.file.path).catch(() => {});
+      return res.status(400).render('error', { message: '未対応のファイル形式です。PNG/JPEG/WEBP/GIF のみ対応。' });
+    }
+
+    // ★ 原本も再エンコードして EXIF/メタデータを除去（配布時の位置情報漏洩を防ぐ）
+    //    ここでは JPEG に統一（色変化を抑えたい場合は PNG 保存でも可）
+    try {
+      const cleaned = await sharp(req.file.path)
+        .rotate()
+        .jpeg({ quality: 95 }) // withMetadata() を付けない = EXIF除去
+        .toBuffer();
+      await fsp.writeFile(req.file.path, cleaned);
+    } catch (re) {
+      await fsp.unlink(req.file.path).catch(() => {});
+      return res.status(400).render('error', { message: '画像の処理に失敗しました。別の画像でお試しください。' });
+    }
+
     const priceNum = Number(price);
+    
 if (!title || !priceNum || priceNum < MIN_PRICE) {
   await fsp.unlink(req.file.path).catch(() => {});
   return res.status(400).render('error', { message: `タイトルと価格（${MIN_PRICE}以上）は必須です。` });
@@ -866,7 +950,8 @@ const licenseNotesSafe  = (licenseNotes || '').trim().slice(0, 1000);
 const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
 
     const slug = nanoid(10);
-    const mimeType = req.file.mimetype;
+    // ★ 配布原本は JPEG 化したので MIME も固定
+    const mimeType = 'image/jpeg';
 
 // OGPプレビュー（1200x630）
 const previewName = `${slug}-preview.jpg`;
@@ -962,11 +1047,28 @@ if (!s3) {
   aiModelName:   aiModelNameSafe,
 });
 
-  const saleUrl = `${BASE_URL}/s/${item.slug}`;
-  if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
-    return res.json({ ok: true, createdUrl: saleUrl });
-  }
-  return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
+const saleUrl = `${BASE_URL}/s/${item.slug}`;
+if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
+  return res.json({ ok: true, createdUrl: saleUrl });
+}
+
+// ← ここから追加：成功後に再描画する upload 画面にも必要情報を渡す
+const connectNow  = await getConnectStatus(req.user);
+const meAfter     = await User.findById(req.user._id).lean();
+const LAfter      = meAfter?.legal || {};
+const isBizAfter  = false;     // 本サービスは個人専用運用
+const legalReadyA = true;
+
+return res.render('upload', {
+  baseUrl: BASE_URL,
+  connect: connectNow,
+  legal: LAfter,
+  legalReady: legalReadyA,
+  isBiz: isBizAfter,
+  createdUrl: saleUrl,
+  minPrice: MIN_PRICE,                   // ← 追加
+  platformFeePct: PLATFORM_FEE_PERCENT  // ← 追加
+});
 
 }
 
@@ -1062,7 +1164,24 @@ const saleUrl = `${BASE_URL}/s/${item.slug}`;
 if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
   return res.json({ ok: true, createdUrl: saleUrl });
 }
-return res.render('upload', { baseUrl: BASE_URL, createdUrl: saleUrl });
+
+// ← ここから追加：成功後に再描画する upload 画面にも必要情報を渡す
+const connectNow  = await getConnectStatus(req.user);
+const meAfter     = await User.findById(req.user._id).lean();
+const LAfter      = meAfter?.legal || {};
+const isBizAfter  = false;     // 本サービスは個人専用運用
+const legalReadyA = true;
+
+return res.render('upload', {
+  baseUrl: BASE_URL,
+  connect: connectNow,
+  legal: LAfter,
+  legalReady: legalReadyA,
+  isBiz: isBizAfter,
+  createdUrl: saleUrl,
+  minPrice: MIN_PRICE,                   // ← 追加
+  platformFeePct: PLATFORM_FEE_PERCENT  // ← 追加
+});
 
 } catch (e) {
   console.error(e);
@@ -1369,8 +1488,6 @@ app.get('/debug/session', async (req, res) => {
   }
 });
 
-// ====== Stripe Webhook（決済確定→ダウンロード発行＋必要なら送金）======
-// 注意: このルートは raw が必要（署名検証のため）
 app.post('/webhooks/stripe', async (req, res) => {
   try {
     if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
@@ -1385,6 +1502,14 @@ app.post('/webhooks/stripe', async (req, res) => {
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
+    // ★ リプレイ防止：同じ event.id を一度しか処理しない
+    try {
+      await ProcessedEvent.create({ eventId: event.id });
+    } catch (dup) {
+      // 既に登録済みなら無視して200を返す（idempotent）
+      return res.json({ received: true, duplicate: true });
+    }
+
     // 決済完了（カード等）＋ 非同期ウォレット成功（PayPay等）
     if (
       event.type === 'checkout.session.completed' ||
@@ -1394,7 +1519,7 @@ app.post('/webhooks/stripe', async (req, res) => {
       const sessionId = session.id;
       const paid = session.payment_status === 'paid';
       const itemId = session.metadata?.itemId;
-
+      
       // --------------------
       // 1) ダウンロードトークンの発行（既存ロジック）
       // --------------------
