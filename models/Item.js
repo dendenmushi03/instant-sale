@@ -5,7 +5,11 @@ const ItemSchema = new mongoose.Schema(
   {
     slug: { type: String, required: true, unique: true, index: true },
     title: { type: String, required: true, trim: true },
-    price: { type: Number, required: true, min: 1 }, // jpy最小単位=1円
+price: {
+  type: Number,
+  required: true,
+  min: 300 // ★300円未満を拒否
+}, // jpyは最小単位=1円
     currency: { type: String, default: 'jpy', lowercase: true, trim: true },
 
     // S3を使わないときだけ必須（ローカル原本）

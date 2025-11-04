@@ -113,13 +113,15 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
   <label class="priceCol" style="min-width:200px;flex:1">
     <span class="priceLabel"><%= t('upload.price.price') %></span>
-    <input id="priceInput" type="number" name="price"
-           min="<%= process.env.MIN_PRICE || 100 %>"
-           step="1"
-           placeholder="¥<%= process.env.MIN_PRICE || 100 %>〜"
-           inputmode="numeric"
-           required />
-  </label>
+    
+<input id="priceInput" type="number" name="price"
+       min="<%= Math.max(300, Number(process.env.MIN_PRICE || 0)) %>"
+       step="1"
+       placeholder="¥<%= Math.max(300, Number(process.env.MIN_PRICE || 0)) %>〜"
+       inputmode="numeric"
+       required />
+
+          </label>
 
   <div class="op">−</div>
 
@@ -288,6 +290,14 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     }
 
     ev.preventDefault(); // ← バリデーション通過後に抑止
+
+      // 価格の最小値をもう一段階チェック（堅牢化）
+  const minVal = Number(priceInput?.getAttribute('min') || 300);
+  const nowVal = Number(priceInput?.value || 0);
+  if (nowVal < minVal) {
+    alert((lng === 'en') ? `The minimum listing price is ${minVal} JPY.` : `出品価格は${minVal}円以上で設定してください。`);
+    return;
+  }
 
     const modal = document.getElementById('progressModal');
     const bar   = document.getElementById('progressBar');
