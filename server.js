@@ -183,18 +183,27 @@ app.use(passport.session());
 // ★ Webhook は JSON パーサより前に raw を先適用
 app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
-// ★ CSRF（webhook などは除外）
+// ★★★ ここで先に parsers を通す（← 重要！）★★★
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cookieParser());
+
+// ★ CSRF（/webhooks/stripe と /logout は除外）
 const csrfProtection = csurf({ cookie: false });
 app.use((req, res, next) => {
-  // Stripe Webhook は署名検証で守るため CSRF 適用外
   if (req.path.startsWith('/webhooks/stripe')) return next();
+  if (req.path === '/logout') return next(); // ← 例外
   return csrfProtection(req, res, next);
 });
 
 // EJS から <%= csrfToken %> を使えるように
 app.use((req, res, next) => {
   try {
-    res.locals.csrfToken = req.csrfToken ? req.csrfToken() : '';
+    if (typeof req.csrfToken === 'function') {
+      res.locals.csrfToken = req.csrfToken();
+    } else {
+      res.locals.csrfToken = '';
+    }
   } catch (_) {
     res.locals.csrfToken = '';
   }
@@ -207,17 +216,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// ★ 追加：各リクエスト毎に CSP 用の nonce を作ってビューへ渡す
+// ★ 各リクエスト毎に CSP nonce
 app.use((req, res, next) => {
   res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
   next();
 });
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// ▼ i18n: 言語検出は Cookie 優先、辞書は /locales/{{lng}}/{{ns}}.json
-app.use(cookieParser());
 
 i18next
   .use(i18nextFsBackend)
@@ -619,7 +622,7 @@ app.get('/auth/google/callback',
   (req, res) => res.redirect('/creator')
 );
 
-app.post('/logout', (req, res) => {
+app.all('/logout', (req, res) => {
   req.logout(() => res.redirect('/'));
 });
 

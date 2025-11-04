@@ -11,10 +11,7 @@
     <% if (me) { %>
       <span class="nav__user"><%= me.name || me.email %></span>
 
-<form method="post" action="/logout" class="inline">
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <button type="submit" class="btn btn--ghost"><%= t ? t('nav.logout') : 'Logout' %></button>
-</form>
+<a class="btn btn--ghost" href="/logout"><%= t ? t('nav.logout') : 'Logout' %></a>
 
       <% } else { %>
       <a class="btn btn--ghost" href="/auth/google"><%= t ? t('nav.login_google') : 'Sign in with Google' %></a>
