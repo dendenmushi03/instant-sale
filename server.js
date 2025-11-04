@@ -228,10 +228,12 @@ i18next
     preload: ['ja','en'],
     ns: ['common'],
     defaultNS: 'common',
+    // ↓ 明示しておくと安心（デフォルトも '.' だが衝突を避けるため）
+    keySeparator: '.',     // ドットで階層解釈
+    nsSeparator: ':',      // 名前空間セパレータ（将来の多NS運用向け）
     backend: {
       loadPath: path.join(__dirname, 'locales/{{lng}}/{{ns}}.json'),
     },
-    // ★ querystring → cookie → header の順で検出。?lng=xx を最優先
     detection: {
       order: ['querystring','cookie','header'],
       lookupQuerystring: 'lng',
