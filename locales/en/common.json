@@ -239,5 +239,21 @@
   "download.notice_line1_html": "Long-press the displayed image to save it.",
   "download.notice_line2": "You will not be able to download after closing this page.",
   "download.expire_note": "Expires in {{minutes}} min, until {{time}}",
-  "download.img_alt": "Download image of {{title}}"
+  "download.img_alt": "Download image of {{title}}",
+
+  "terms.fees.expiration_title": "Unclaimed Earnings Policy (180-Day Expiration)",
+  "terms.fees.expiration_html": "To receive earnings, sellers must complete Stripe’s payout setup (create a Stripe Express account, complete identity verification, and register/activate a bank account). If the payout setup is not completed within <strong>180 days</strong> from the payment completion date, such earnings may, at our discretion, <strong>expire</strong>, and the seller forfeits the right to receive them. Expired earnings are not returned.",
+  "terms.fees.expiration_note_html": "While the payout setup remains incomplete, earnings are held by us in accordance with our policy. If the seller completes the payout setup during the hold period, we will process the payout within a reasonable timeframe. Chargebacks and other adjustments follow Stripe’s rules and processes.",
+
+  "tokushoho.label.payout_notice": "Special Notice on Payouts",
+  "tokushoho.value.payout_notice_html": "Sellers must complete Stripe’s payout setup (Stripe Express account, identity verification, and bank account registration/activation). Earnings for which the payout setup is not completed within <strong>180 days</strong> from payment may <strong>expire</strong>.",
+
+  "privacy.collected.payout.h3": "Information Related to Payments & Payout Setup",
+  "privacy.collected.payout.item1": "Stripe Connect connection status (connected account ID, payout eligibility, last updated time, etc.)",
+  "privacy.collected.payout.item2": "Internal statuses necessary to determine/hold/expire unclaimed earnings (180-day rule)",
+  "privacy.collected.payout.item3": "Note: Sensitive card information is stored by Stripe, not by our service.",
+
+  "privacy.usage.expiration_ops_html": "Operating the 180-day unclaimed-earnings policy: verifying Stripe payout setup, holding/unholding balances, notifying users, and expiring unclaimed earnings.",
+
+  "image_license.note.payout_expiration_html": "Note: Seller earnings are held until the Stripe payout setup is completed. If the payout setup is not completed within <strong>180 days</strong> from payment, such earnings may <strong>expire</strong>."
 }

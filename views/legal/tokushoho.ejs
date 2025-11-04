@@ -88,6 +88,12 @@
       <tr><th><%= t('tokushoho.label.paymentTiming') || 'お支払い時期' %></th><td><%= t('tokushoho.value.paymentTiming') || '購入時に即時決済（お支払い方法により異なる場合があります）' %></td></tr>
       <tr><th><%= t('tokushoho.label.delivery') || '引き渡し時期' %></th><td><%= t('tokushoho.value.delivery') || '決済確認後、ただちにダウンロード可能なURLを発行' %></td></tr>
       <tr><th><%= t('tokushoho.label.refund') || '返品・キャンセル' %></th><td><%= t('tokushoho.value.refund') || 'デジタル商品のため返品不可。二重決済・誤課金・欠陥データ等は個別対応' %></td></tr>
+
+<tr>
+  <th><%= t('tokushoho.label.payout_notice') %></th>
+  <td><%- t('tokushoho.value.payout_notice_html') %></td>
+</tr>
+
       <tr><th><%= t('tokushoho.label.env') || '動作環境' %></th><td><%= t('tokushoho.value.env') || 'インターネット接続環境および一般的なWebブラウザ' %></td></tr>
       <tr><th><%= t('tokushoho.label.qty') || '販売数量の制限' %></th><td><%= t('tokushoho.value.qty') || '特に制限はありません（在庫・数量制限の記載がある商品を除く）' %></td></tr>
       <tr><th><%= t('tokushoho.label.hours') || '営業時間' %></th><td><%= hoursDisp %></td></tr>

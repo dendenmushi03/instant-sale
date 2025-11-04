@@ -240,5 +240,21 @@
   "download.notice_line1_html": "表示された画像を<strong>長押し</strong>して保存してください。",
   "download.notice_line2": "このページを閉じるとダウンロードができなくなります。",
   "download.expire_note": "有効期限：{{minutes}}分、{{time}}まで",
-  "download.img_alt": "{{title}} のダウンロード画像"
+  "download.img_alt": "{{title}} のダウンロード画像",
+
+  "terms.fees.expiration_title": "未受領売上の取扱い（180日失効）",
+  "terms.fees.expiration_html": "出品者が売上の受領を行うには、Stripe 提供の受取設定（Stripe Express アカウントの開設・本人確認・振込口座の登録・有効化）が必要です。決済完了日から<strong>180日以内</strong>に受取設定が完了しない売上は、当社の裁量により<strong>失効</strong>し、出品者は当該売上の受領権を失います。失効後の売上は返還されません。",
+  "terms.fees.expiration_note_html": "受取設定が未完了の間、売上は当社所定の方法で保留されます。出品者が保留期間中に受取設定を完了した場合、当社は合理的な期間内に送金手続きを行います。チャージバックその他の精算は Stripe の規約・処理に従います。",
+
+  "tokushoho.label.payout_notice": "売上の受け取りに関する特記事項",
+  "tokushoho.value.payout_notice_html": "出品者の売上受領には Stripe の受取設定（Stripe Express アカウントの開設・本人確認・振込口座登録・有効化）が必要です。決済完了日から<strong>180日以内</strong>に受取設定が完了しない売上は<strong>失効</strong>します。",
+
+  "privacy.collected.payout.h3": "決済・受取設定に関する情報",
+  "privacy.collected.payout.item1": "Stripe Connect の接続状況（接続アカウントID、受取可否の状態、最終更新日時 等）",
+  "privacy.collected.payout.item2": "未受領売上の判定・保留・失効（180日ルール）管理に必要な内部ステータス",
+  "privacy.collected.payout.item3": "※カード番号等の機微な決済情報は Stripe が保持し、当サービスでは保持しません。",
+
+  "privacy.usage.expiration_ops_html": "Stripe 受取設定の確認、未受領売上の保留・通知・<strong>失効（180日ルール）</strong>の運用",
+
+  "image_license.note.payout_expiration_html": "※ 出品者の売上は Stripe の受取設定が完了するまで保留されます。決済完了日から<strong>180日以内</strong>に受取設定が完了しない売上は<strong>失効</strong>します。"
 }
