@@ -93,8 +93,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   </section>
 <% } %>
 
-  <!-- 送信先とエンコーディングを明示 -->
-  <form action="/upload" method="post" enctype="multipart/form-data">
+<form action="/upload" method="post" enctype="multipart/form-data" autocomplete="off">
 
       <!-- CSRF token -->
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -118,10 +117,11 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     <span class="priceLabel"><%= t('upload.price.price') %></span>
     
 <input id="priceInput" type="number" name="price"
-       min="<%= Math.max(300, Number(process.env.MIN_PRICE || 0)) %>"
+       min="<%= (typeof minPrice === 'number' ? minPrice : 300) %>"
        step="1"
-       placeholder="¥<%= Math.max(300, Number(process.env.MIN_PRICE || 0)) %>〜"
+       placeholder="¥<%= (typeof minPrice === 'number' ? minPrice : 300) %>〜"
        inputmode="numeric"
+       autocomplete="off"
        required />
 
           </label>
@@ -257,6 +257,9 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     hint       : "<%= t('upload.modal.hint') %>"
   };
 
+  // クライアント側で言語を使えるように（en/ja）
+const LNG = "<%= (lng || 'ja') %>";
+
   // === 横一列UI：価格 → 手数料 → 利益 のリアルタイム計算 ===
   const priceInput = document.getElementById('priceInput');
   const row        = document.getElementById('priceRow');
@@ -282,14 +285,11 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
   if (feeRateTextEl) feeRateTextEl.textContent = feeRate + '%';
 
-  if (priceInput){
-    ['input','change','blur'].forEach(ev => priceInput.addEventListener(ev, recalc));
-    recalc(); // 初期表示
-  }
-
-  if (priceInput && priceInput.min) {
-  // 初期値が未入力なら最低価格でセット（UX向上）
-  if (!priceInput.value) priceInput.value = String(priceInput.min);
+if (priceInput){
+  // 先にクリア（オートフィルや履歴復元の値を消す）
+  try { priceInput.value = ''; } catch(_) {}
+  ['input','change','blur'].forEach(ev => priceInput.addEventListener(ev, recalc));
+  recalc(); // 初期表示（¥0/¥0 表示）
 }
 
   form.addEventListener('submit', function (ev) {
@@ -303,10 +303,11 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       // 価格の最小値をもう一段階チェック（堅牢化）
   const minVal = Number(priceInput?.getAttribute('min') || 300);
   const nowVal = Number(priceInput?.value || 0);
-  if (nowVal < minVal) {
-    alert((lng === 'en') ? `The minimum listing price is ${minVal} JPY.` : `出品価格は${minVal}円以上で設定してください。`);
-    return;
-  }
+
+if (nowVal < minVal) {
+  alert((LNG === 'en') ? `The minimum listing price is ${minVal} JPY.` : `出品価格は${minVal}円以上で設定してください。`);
+  return;
+}
 
     const modal = document.getElementById('progressModal');
     const bar   = document.getElementById('progressBar');
