@@ -357,7 +357,11 @@ app.use((req, res, next) => {
   const host  = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
 
-  if (host && host !== CANON_HOST) {
+  // ★ X/Twitter・Facebook・Slack 等のカード取得ボットは 301 を回避
+  const ua = String(req.headers['user-agent'] || '');
+  const isCardBot = /(Twitterbot|facebookexternalhit|Slackbot|Discordbot|LinkedInBot)/i.test(ua);
+
+  if (!isCardBot && host && host !== CANON_HOST) {
     return res.redirect(301, `${proto}://${CANON_HOST}${req.originalUrl}`);
   }
   next();
