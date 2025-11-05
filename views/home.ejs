@@ -1,13 +1,28 @@
 <!doctype html>
 <html lang="<%= lng || 'ja' %>">
+
 <head>
-<meta charset="utf-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title><%= t('home.title_full') %></title>
 
-<link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
-<link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
+  <title><%= (typeof og !== 'undefined' && og.title) ? og.title : t('home.title_full') %></title>
+  <meta name="description" content="<%= (typeof og !== 'undefined' && og.desc) ? og.desc : t('home.hero.lead') %>" />
 
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="<%= (og && og.title) || '' %>" />
+  <meta property="og:description" content="<%= (og && og.desc) || '' %>" />
+  <meta property="og:url" content="<%= (og && og.url) || (baseUrl || '') %>" />
+  <meta property="og:image" content="<%= (og && og.image) || (baseUrl ? (baseUrl + '/public/og/instantsale_ogp.jpg') : '') %>" />
+
+  <!-- X(Twitter) -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="<%= (og && og.title) || '' %>" />
+  <meta name="twitter:description" content="<%= (og && og.desc) || '' %>" />
+  <meta name="twitter:image" content="<%= (og && og.image) || (baseUrl ? (baseUrl + '/public/og/instantsale_ogp.jpg') : '') %>" />
+
+  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
+  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
 </head>
 
 <body class="layout">

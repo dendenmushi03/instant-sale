@@ -216,6 +216,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// ▼ OGP共通デフォルト（ページごとに上書き可）
+app.use((req, res, next) => {
+  res.locals.og = {
+    title: 'Instant Sale | 生成画像を3ステップで即販売',
+    desc : 'AIクリエイター向け。画像をアップロード → 価格入力 → 販売リンク完成。Stripeで安全決済・自動ダウンロード。',
+    url  : `${BASE_URL}${req.originalUrl || '/'}`,
+    image: `${BASE_URL}/public/og/instantsale_ogp.jpg` // ← 絶対URL
+  };
+  next();
+});
+
 // ★ 各リクエスト毎に CSP nonce
 app.use((req, res, next) => {
   res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
@@ -541,9 +552,15 @@ mongoose.connect(MONGODB_URI).then(() => {
 
 /* ====== Routes ====== */
 
-// index（EJS に変更）
 app.get('/', (req, res) => {
-  res.render('home', { baseUrl: BASE_URL });
+  // ホーム専用の文言や画像で上書き
+  const og = {
+    title: 'Instant Sale | 生成画像で収益発生',
+    desc : 'AIで作った一枚を、3ステップで即販売。Stripe決済＆自動ダウンロードで安心・手軽。',
+    url  : `${BASE_URL}/`,
+    image: `${BASE_URL}/public/og/instantsale_ogp.jpg` // ← 指定OGP画像（絶対URL）
+  };
+  res.render('home', { baseUrl: BASE_URL, og });
 });
 
 // ★ リダイレクト先を厳格にバリデーション
