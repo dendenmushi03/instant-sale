@@ -1,0 +1,39 @@
+name: Auto Tweet (InstantSale)
+
+on:
+  schedule:
+    # UTC で 15,21,3,9 = JST の 0,6,12,18
+    - cron: "0 15,21,3,9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: instant-sale-tweet
+  cancel-in-progress: true
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 依存が package.json に記載されている想定（tweet.js だけなら削除してOK）
+      - name: Install deps
+        run: npm ci --omit=dev
+
+      - name: Run tweet
+        run: node tweet.js
+        env:
+          TWITTER_API_KEY:       ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET:    ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN:  ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
