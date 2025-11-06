@@ -311,12 +311,13 @@ app.disable('x-powered-by');
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  // HSTS（本番のみ強制）
   hsts: isProd ? { maxAge: 31536000, includeSubDomains: true, preload: false } : false,
   contentSecurityPolicy: {
     useDefaults: true,
     directives: {
       "default-src": ["'self'"],
+      "base-uri": ["'self'"],                             // ★ 追加
+      "form-action": ["'self'", "https://checkout.stripe.com"], // ★ 追加（将来の埋め込み/POST遷移を許可）
       "script-src": [
         "'self'",
         (req, res) => `'nonce-${res.locals.cspNonce}'`,
@@ -324,16 +325,18 @@ app.use(helmet({
       ],
       "img-src": ["'self'", "data:", "blob:", "https:", "http:"],
       "connect-src": ["'self'", "https://api.stripe.com", "https://r.stripe.com"],
-      "frame-src": ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+      "frame-src": [
+        "'self'",
+        "https://js.stripe.com",
+        "https://hooks.stripe.com",
+        "https://checkout.stripe.com"                    // ★ 追加（Embedded Checkout等の将来互換）
+      ],
       "style-src": ["'self'", "'unsafe-inline'"],
-      // クリックジャッキング対策
       "frame-ancestors": ["'none'"],
-      // plugin/object は使わない
       "object-src": ["'none'"]
     }
   },
   referrerPolicy: { policy: "no-referrer" },
-  // 権限ポリシー（使わないものは拒否）
   permissionsPolicy: {
     features: {
       geolocation: ["()"], microphone: ["()"], camera: ["()"]
