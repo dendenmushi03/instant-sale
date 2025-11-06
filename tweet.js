@@ -18,7 +18,7 @@ const tweet = tweets[Math.floor(Math.random() * tweets.length)];
 const url = urls[Math.floor(Math.random() * urls.length)];
 
 // --- ③ 固定タグ（共通ハッシュタグ） ---
-const hashtags = "#InstantSale #AIクリエイター支援 #画像販売";
+const hashtags = "#AIgirl #AIart #AImodel #AIbeauty #AIGallery #AI美女 #AIグラビア #グラビア #AIモデル #AIクリエイター #画像販売";
 
 // --- ④ ツイート本文組み立て ---
 const tweetText = `${tweet}\n${url}\n${hashtags}`;
