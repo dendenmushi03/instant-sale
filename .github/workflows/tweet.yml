@@ -24,13 +24,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      # 依存が package.json に記載されている想定（tweet.js だけなら削除してOK）
-      - name: Install deps
-        run: npm ci --omit=dev
+      # どこにファイルがあるか可視化＆実行パスを決める
+      - name: Show tree
+        run: |
+          pwd
+          ls -la
+          echo "---- data ----"
+          ls -la data || true
 
+      # tweet.js がサブフォルダにある場合はここを ./scripts などに変更
+      - name: Set working dir
+        id: wd
+        run: echo "DIR=." >> $GITHUB_OUTPUT
+
+      # package.json が無くても動くように初期化 → ライブラリ導入
+      - name: Prepare deps
+        working-directory: ${{ steps.wd.outputs.DIR }}
+        run: |
+          node -v
+          npm -v
+          if [ ! -f package.json ]; then npm init -y; fi
+          npm install twitter-api-v2
+
+      # 実行（tweet.js のパスが ./tweet.js でないなら修正）
       - name: Run tweet
+        working-directory: ${{ steps.wd.outputs.DIR }}
         run: node tweet.js
         env:
           TWITTER_API_KEY:       ${{ secrets.TWITTER_API_KEY }}
