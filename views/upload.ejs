@@ -243,10 +243,15 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
 <a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;">
   <img src="/public/x-icon.png" alt="X" style="width:18px;height:18px;vertical-align:middle;">
-  <span>で販売する</span>
+  <% if (lng === 'en') { %>
+    <span>Sell on</span>
+  <% } else { %>
+    <span>で販売する</span>
+  <% } %>
 </a>
+
 <button type="button" id="copyResultUrl" class="btn btn--primary"><%= t('upload.modal.btn_copy') %></button>
-<a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open') %></a>
+<a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open_sale') %></a>
 <button type="button" id="closeModal" class="btn btn--ghost"><%= t('upload.modal.btn_close') %></button>
 
       </div>
@@ -268,7 +273,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     processing : "<%= t('upload.modal.phase_processing') %>",
     done       : "<%= t('upload.modal.done') %>",
     created    : "<%= t('upload.modal.created') %>",
-    btnOpen    : "<%= t('upload.modal.btn_open') %>",
+    btnOpen    : "<%= t('upload.modal.btn_open_sale') %>",
     btnCopy    : "<%= t('upload.modal.btn_copy') %>",
     copied     : "<%= t('upload.modal.copied') %>",
     btnClose   : "<%= t('upload.modal.btn_close') %>",

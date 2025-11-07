@@ -51,7 +51,7 @@
   "upload.modal.phase_processing": "販売ページを作成中です・・・",
   "upload.modal.done": "完了しました",
   "upload.modal.created": "販売ページのURLが作成されました",
-  "upload.modal.btn_open": "ページを開く",
+  "upload.modal.btn_open_sale": "販売ページを開く",
   "upload.modal.btn_copy": "リンクをコピー",
   "upload.modal.copied": "コピーしました",
   "upload.modal.btn_close": "閉じる",

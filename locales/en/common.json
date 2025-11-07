@@ -51,7 +51,7 @@
   "upload.modal.phase_processing": "We are currently creating a sales page...",
   "upload.modal.done": "All set",
   "upload.modal.created": "Your sales page URL is ready",
-  "upload.modal.btn_open": "Open page",
+  "upload.modal.btn_open_sale": "Open sales page",
   "upload.modal.btn_copy": "Copy link",
   "upload.modal.copied": "Copied",
   "upload.modal.btn_close": "Close",
