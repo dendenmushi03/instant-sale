@@ -44,6 +44,21 @@
   input[type="number"]::placeholder{
     opacity:.6; /* iOS/Safari も反映されます */
   }
+
+  /* -- モーダルの「閉じる」をグレーに -- */
+  #closeModal{
+    background:#e5e7eb;            /* 明るいグレー */
+    color:#111;                     /* 濃い文字色 */
+    border:1px solid #d1d5db;       /* 薄い枠線 */
+  }
+  #closeModal:hover{
+    background:#dcdfe3;             /* ほんのり濃く */
+  }
+  #closeModal:focus{
+    outline:2px solid #9aa4b2;      /* アクセシビリティ */
+    outline-offset:2px;
+  }
+
 </style>
 
 </head>
@@ -226,6 +241,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
              style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
 
+<a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;">
+  <img src="/public/x-icon.png" alt="X" style="width:18px;height:18px;vertical-align:middle;">
+  <span>で販売する</span>
+</a>
 <button type="button" id="copyResultUrl" class="btn btn--primary"><%= t('upload.modal.btn_copy') %></button>
 <a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open') %></a>
 <button type="button" id="closeModal" class="btn btn--ghost"><%= t('upload.modal.btn_close') %></button>
@@ -396,11 +415,22 @@ if (resultBox) resultBox.style.display = 'none';
   const openBtn = document.getElementById('openResultUrl');
   const closeBtn = document.getElementById('closeModal');
   const copyBtn  = document.getElementById('copyResultUrl');
+  const tweetBtn = document.getElementById('tweetOnX'); // ← 追加
 
   if (resultWrap && resultInput && openBtn) {
     resultInput.value = res.createdUrl;
     openBtn.href = res.createdUrl;
     resultWrap.style.display = 'block';
+
+    // ← ここから追加：Xの投稿作成画面を開く intent
+    if (tweetBtn) {
+      const SHARE_TEXT = (LNG === 'en')
+        ? 'Started selling my image on Instant Sale'
+        : 'Instant Saleで販売を開始しました';
+      const intent = 'https://x.com/intent/tweet?text='
+        + encodeURIComponent(SHARE_TEXT + '\n\n' + res.createdUrl);
+      tweetBtn.href = intent;
+    }
 
     // コピーボタン（毎回多重にイベントが付かないよう一旦初期化）
     if (copyBtn) {

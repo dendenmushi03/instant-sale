@@ -877,3 +877,11 @@ body.layout .alert--error.alert--prominent{
 }
 .dropdown__item[aria-current="true"] { font-weight: 700; }
 .dropdown__item:hover { background: rgba(0,0,0,.05); }
+
+/* === X販売ボタン（tweetOnX）用 === */
+#tweetOnX img {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  filter: invert(1); /* 白ロゴを黒背景に映えるように反転可 */
+}
