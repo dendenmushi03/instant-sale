@@ -553,7 +553,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* 販売ページのプレビューをガッツリぼかす */
 .product-image--blur{
-  filter: blur(60px) brightness(.8);
+  filter: blur(50px) brightness(.8);
   transform: scale(1.12);
   transform-origin: center;
 }
