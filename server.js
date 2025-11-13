@@ -1420,20 +1420,6 @@ const commonMetadata = {
   sellerId: seller?._id ? String(seller._id) : ''
 };
 
-// 画像URL（絶対URLへ）
-let productImageUrl = toAbs(item.previewPath);
-
-// S3_PUBLIC_BASE が無い構成（＝ローカル /previews 配信）なら、Stripe用 1200x630 を優先
-try {
-  if (!S3_PUBLIC_BASE) {
-    const stripeImgAbs = path.join(PREVIEW_DIR, `${item.slug}-stripe.jpg`);
-    await fsp.access(stripeImgAbs);
-    productImageUrl = toAbs(`/previews/${item.slug}-stripe.jpg`);
-  }
-} catch (_) {
-  // 何もしない（productImageUrl は既に previewPath の絶対URLになっている）
-}
-
 const automaticTax = { enabled: true, liability: { type: 'self' } };
 const paymentIntentData = {
   transfer_group: transferGroup,
@@ -1459,8 +1445,8 @@ const params = {
       unit_amount: item.price,
       tax_behavior: 'inclusive',
       product_data: {
+        // Stripe 側には商品名だけ渡し、画像は一切渡さない
         name: item.title,
-        images: productImageUrl ? [productImageUrl] : [],
       },
     },
     quantity: 1,
