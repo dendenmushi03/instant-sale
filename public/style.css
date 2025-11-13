@@ -55,19 +55,27 @@ body:not(.layout) .btn:hover { opacity: 0.92; }
 
 .muted { color: #6b7280; }
 
-/* ここが “ロゴをタイル状に敷く透かし” 本体 */
 .product-imageWrap::after{
   content: "";
   position: absolute;
   inset: 0;
+
+  /* ロゴの量を減らす（背景サイズを大きくして間隔を空ける） */
   background-image: url("/public/logo.png");
   background-repeat: repeat;
-  background-size: 160px auto;
-  opacity: .18;
-  filter: saturate(1.05) brightness(1.05);
-  transform: rotate(-18deg) scale(1.15);
+  background-size: 260px auto;   /* ← 160 → 260 にして密度を減らす */
+
+  /* ロゴの色を薄くする */
+  opacity: 0.08;                 /* ← 0.18 → 0.08 に変更 */
+
+  /* 彩度とコントラストを下げて、より存在感を弱める */
+  filter: saturate(0.3) brightness(1.1);
+
+  /* 角度とスケールは軽く掛けるだけに */
+  transform: rotate(-10deg) scale(1.05);
+
   pointer-events: none;
-  z-index: 2;  /* ぼかし＋暗ベールよりさらに前面 */
+  z-index: 2;
 }
 
 .product-info { flex: 1; }
