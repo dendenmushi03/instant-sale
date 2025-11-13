@@ -543,7 +543,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* 販売ページのプレビューを少しぼかす */
 .product-image--blur{
-  filter: blur(6px);         /* ぼかし量：4〜6pxくらいが「中身は分かる」レベル */
+  filter: blur(24px);         /* ぼかし量：4〜6pxくらいが「中身は分かる」レベル */
   transform: scale(1.06);    /* ぼかしで端が透けるのを防ぐため、少しだけ拡大 */
   transform-origin: center;
 }
