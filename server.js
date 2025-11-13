@@ -1444,10 +1444,12 @@ const params = {
       currency: item.currency,
       unit_amount: item.price,
       tax_behavior: 'inclusive',
-      product_data: {
-        // Stripe 側には商品名だけ渡し、画像は一切渡さない
-        name: item.title,
-      },
+
+product_data: {
+  name: item.title,
+  images: [`${BASE_URL}/public/logo.png`],   // ★ ロゴを表示させる
+},
+
     },
     quantity: 1,
   }],
