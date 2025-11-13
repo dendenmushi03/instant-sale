@@ -14,8 +14,9 @@
     <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" />
     <span class="nav__brandText">Instant Sale</span>
   </a>
+
   <nav class="nav__right">
-    <% if (me) { %>
+    <% if (typeof me !== 'undefined' && me) { %>
       <span class="nav__user"><%= me.name || me.email %></span>
       <form method="post" action="/logout" class="inline">
         <button class="btn btn--ghost">ログアウト</button>
@@ -24,6 +25,7 @@
       <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
     <% } %>
   </nav>
+
 </header>
 
   <main class="container">

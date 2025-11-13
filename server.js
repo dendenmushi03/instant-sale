@@ -279,8 +279,15 @@ app.use((req, res, next) => {
       httpOnly: false,
       sameSite: 'lax'
     });
-    // i18next の言語にも反映
-    req.i18n.changeLanguage(lang);
+
+    // i18next の言語にも反映（req.i18n があるときだけ）
+    if (req.i18n && typeof req.i18n.changeLanguage === 'function') {
+      try {
+        req.i18n.changeLanguage(lang);
+      } catch (e) {
+        console.error('[lang auto-detect] changeLanguage failed:', e);
+      }
+    }
   }
   next();
 });
@@ -597,7 +604,15 @@ app.get('/lang', (req, res) => {
       sameSite: 'lax',
       maxAge: 365 * 24 * 60 * 60 * 1000
     });
-    req.i18n.changeLanguage(nextLng);
+
+    // i18n インスタンスがあるときだけ安全に呼ぶ
+    if (req.i18n && typeof req.i18n.changeLanguage === 'function') {
+      try {
+        req.i18n.changeLanguage(nextLng);
+      } catch (e) {
+        console.error('[lang] changeLanguage failed:', e);
+      }
+    }
   }
 
   const back = safeReturnUrl(req.query.return);
