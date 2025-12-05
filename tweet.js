@@ -21,7 +21,9 @@ const url = urls[Math.floor(Math.random() * urls.length)];
 const hashtags = "#AIgirl #AIart #AImodel #AIbeauty #AIGallery #AI美女 #AIグラビア #グラビア #AIモデル #AIクリエイター #画像販売";
 
 // --- ④ ツイート本文組み立て ---
-const tweetText = `${tweet}\n\n${url}\n\n${hashtags}`;
+const tweetText =
+  `【手持ちの画像を気軽に販売！簡単副業を始めませんか？】\n\n` +
+  `${tweet}\n\n${url}\n\n${hashtags}`;
 
 console.log("🔹 Posting Tweet:", tweetText);
 
