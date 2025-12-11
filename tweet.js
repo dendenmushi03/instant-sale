@@ -22,7 +22,7 @@ const hashtags = "#AIgirl #AIart #AImodel #AIbeauty #AIGallery #AI美女 #AIグ�
 
 // --- ④ ツイート本文組み立て ---
 const tweetText =
-`\n【手持ちの画像を気軽に販売！簡単副業を始めませんか？】\n\n` +
+`\n\n🔥話題沸騰中🔥\n【生成画像で簡単に収益化！】\n\n` +
 `${tweet}\n\n${url}\n\n${hashtags}`;
 
 console.log("🔹 Posting Tweet:", tweetText);
