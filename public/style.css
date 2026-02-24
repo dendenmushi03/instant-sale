@@ -657,3 +657,26 @@ body.menu-open{
 @media (min-width:768px){
   .section-license{margin-top:16px}
 }
+
+.buyCard__top{ margin-bottom: 12px; }
+.buyCard__tax{ margin-top: 4px; }
+
+.buyCard__form{ margin-top: 10px; }
+.buyCard__btn{ width: 100%; height: 50px; font-size: 15px; }
+
+.buyCard__details{
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.buyCard__summary{
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.buyCard__details summary::-webkit-details-marker{ display:none; }
+
+.buyCard__meta{ line-height: 1.7; }
+.buyCard__hint{ margin-top: 10px; }
