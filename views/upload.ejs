@@ -239,6 +239,25 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   
       <input id="resultUrlInModal" type="text" readonly
              style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
+
+      <div style="margin-top:12px;display:grid;gap:8px;">
+        <label for="tweetTemplate" style="font-size:.95em;opacity:.95;"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
+        <select id="tweetTemplate" style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
+          <% if (lng === 'en') { %>
+            <option value="promo">Promotion (Standard)</option>
+            <option value="support">Support request (Buy to support)</option>
+            <option value="limited">Limited feel (today/limited quantity)</option>
+          <% } else { %>
+            <option value="promo">宣伝（標準）</option>
+            <option value="support">支援お願い（応援購入）</option>
+            <option value="limited">限定感（本日限定/数量限定風）</option>
+          <% } %>
+        </select>
+        <textarea id="tweetText" rows="5" style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;"></textarea>
+        <button type="button" id="copyTweetText" class="btn btn--primary"><%= (lng === 'en') ? 'Copy post text' : '本文をコピー' %></button>
+        <small style="opacity:.85;"><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
+      </div>
+
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
 
 <a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;">
@@ -309,7 +328,68 @@ const LNG = "<%= (lng || 'ja') %>";
 
   if (feeRateTextEl) feeRateTextEl.textContent = feeRate + '%';
 
-if (priceInput){
+  function buildTweetText(templateType, createdUrl) {
+    const isEn = LNG === 'en';
+    const hashtags = isEn
+      ? ['#AIart', '#AIillustration', '#DigitalArt', '#ArtForSale']
+      : ['#AIイラスト', '#AI画像', '#AIart', '#画像販売'];
+
+    const lineMap = isEn
+      ? {
+          promo: [
+            'My AI artwork is now on sale.',
+            'Buy in high resolution and compare with SAMPLE watermark preview.',
+            createdUrl
+          ],
+          support: [
+            'If you like my AI artwork, please support me with a purchase.',
+            'You will get a high-resolution file (cleaner than SAMPLE watermark preview).',
+            createdUrl
+          ],
+          limited: [
+            'Limited release today for my AI artwork.',
+            'Get the high-resolution version (SAMPLE watermark is preview only).',
+            createdUrl
+          ]
+        }
+      : {
+          promo: [
+            'AI作品を出品しました。',
+            '購入すると高解像度版を入手できます（SAMPLE透かしはプレビュー用）。',
+            createdUrl
+          ],
+          support: [
+            'このAI作品を気に入っていただけたら、応援購入してもらえると嬉しいです。',
+            '高解像度で購入でき、SAMPLE透かしなしの本編を楽しめます。',
+            createdUrl
+          ],
+          limited: [
+            '本日限定の気分でAI作品を公開中。',
+            '高解像度で購入可能（SAMPLE透かしはプレビューのみ）。',
+            createdUrl
+          ]
+        };
+
+    const maxLen = 270;
+    const lines = lineMap[templateType] || lineMap.promo;
+    let tagCount = hashtags.length;
+    let text = '';
+
+    while (tagCount >= 1) {
+      text = lines.concat([hashtags.slice(0, tagCount).join(' ')]).join('\n');
+      if (text.length <= maxLen || tagCount <= 2) break;
+      tagCount -= 1;
+    }
+
+    return text;
+  }
+
+  function resetLicensePreset() {
+    const defaultRadio = form.querySelector('input[name="licensePreset"][value="editorial"]');
+    if (defaultRadio) defaultRadio.checked = true;
+  }
+
+  if (priceInput){
   // 先にクリア（オートフィルや履歴復元の値を消す）
   try { priceInput.value = ''; } catch(_) {}
   ['input','change','blur'].forEach(ev => priceInput.addEventListener(ev, recalc));
@@ -420,6 +500,9 @@ if (resultBox) resultBox.style.display = 'none';
   const openBtn = document.getElementById('openResultUrl');
   const closeBtn = document.getElementById('closeModal');
   const copyBtn  = document.getElementById('copyResultUrl');
+  const copyTweetBtn = document.getElementById('copyTweetText');
+  const tweetText = document.getElementById('tweetText');
+  const tweetTemplate = document.getElementById('tweetTemplate');
   const tweetBtn = document.getElementById('tweetOnX'); // ← 追加
 
   if (resultWrap && resultInput && openBtn) {
@@ -427,14 +510,27 @@ if (resultBox) resultBox.style.display = 'none';
     openBtn.href = res.createdUrl;
     resultWrap.style.display = 'block';
 
-    // ← ここから追加：Xの投稿作成画面を開く intent
-    if (tweetBtn) {
-      const SHARE_TEXT = (LNG === 'en')
-        ? 'Started selling my image on Instant Sale'
-        : 'Instant Saleで販売を開始しました';
-      const intent = 'https://x.com/intent/tweet?text='
-        + encodeURIComponent(SHARE_TEXT + '\n\n' + res.createdUrl);
+    const syncTweetIntent = () => {
+      if (!tweetBtn || !tweetText) return;
+      const intent = 'https://x.com/intent/tweet?text=' + encodeURIComponent(tweetText.value || '');
       tweetBtn.href = intent;
+    };
+
+    if (tweetTemplate && tweetText) {
+      tweetTemplate.value = 'promo';
+      tweetText.value = buildTweetText(tweetTemplate.value, res.createdUrl);
+      tweetTemplate.onchange = () => {
+        tweetText.value = buildTweetText(tweetTemplate.value, res.createdUrl);
+        syncTweetIntent();
+      };
+      tweetText.oninput = syncTweetIntent;
+      syncTweetIntent();
+    }
+
+    if (tweetBtn) {
+      tweetBtn.onclick = () => {
+        syncTweetIntent();
+      };
     }
 
     // コピーボタン（毎回多重にイベントが付かないよう一旦初期化）
@@ -452,12 +548,30 @@ setTimeout(() => (copyBtn.textContent = I18N.btnCopy), 1200);
       };
     }
 
+    if (copyTweetBtn && tweetText) {
+      copyTweetBtn.onclick = null;
+      copyTweetBtn.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(tweetText.value || '');
+          copyTweetBtn.textContent = I18N.copied;
+          setTimeout(() => {
+            copyTweetBtn.textContent = (LNG === 'en') ? 'Copy post text' : '本文をコピー';
+          }, 1200);
+        } catch (_) {
+          tweetText.select();
+          document.execCommand('copy');
+        }
+      };
+    }
+
     // 閉じる → モーダル閉じてフォームだけ初期化
     if (closeBtn) {
 closeBtn.onclick = () => {
   modal.style.display = 'none';
   document.body.classList.remove('modal-open'); // 背景ロック解除
   resultWrap.style.display = 'none';
+  if (tweetTemplate) tweetTemplate.value = 'promo';
+  if (tweetText) tweetText.value = '';
 };
     }
   }
@@ -465,8 +579,12 @@ closeBtn.onclick = () => {
   // フォームの軽いリセット
   const file = form.querySelector('input[type="file"]');
   if (file) file.value = '';
-  const chk = form.querySelector('input[type="checkbox"]');
-  if (chk) chk.checked = false;
+  form.querySelectorAll('input[type="checkbox"]').forEach((chk) => {
+    chk.checked = false;
+  });
+  if (priceInput) priceInput.value = '';
+  recalc();
+  resetLicensePreset();
 
   // 送信ボタンを復帰
   const submitBtn = form.querySelector('button[type="submit"]');
