@@ -60,27 +60,15 @@
 </div>
       
       <div class="product-info">
-        <h1 class="product-title"><%= item.title %></h1>
-        <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
-
         <% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>
 
-        <!-- ✅ 購入CTA（スマホ最適化の主役） -->
         <section class="buyCard" aria-label="purchase">
           <div class="buyCard__top">
+            <h1 class="product-title"><%= item.title %></h1>
+            <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
+
             <div class="price">¥<%= item.price.toLocaleString(locale) %></div>
             <div class="muted buyCard__tax"><%= t('product.tax_note') %></div>
-          </div>
-
-          <form id="checkoutForm" class="buyCard__form" action="/checkout/<%= item.slug %>" method="post" target="_top" novalidate>
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button id="checkoutBtn" class="btn primary buyCard__btn" type="submit" aria-live="polite">
-              <%= t('product.buy_button') %>
-            </button>
-          </form>
-
-          <details class="buyCard__details">
-            <summary class="buyCard__summary"><%= t('product.download_note') %></summary>
 
             <%
               const sellerDisplayName =
@@ -98,18 +86,27 @@
             <div class="muted buyCard__meta" style="margin-top:8px;">
               <%= t('product.download_note') %>
             </div>
-          </details>
 
-          <p class="hint buyCard__hint">決済はStripe（カード）で安全に処理されます。</p>
-        </section>
-
-        <% if (typeof connect !== 'undefined' && connect && (!connect.hasAccount || !connect.payoutsEnabled)) { %>
-          <div class="card error" style="background:#fffaf0; border:1px solid #ffe6b3; padding:12px; margin:12px 0;">
-            <strong>（オーナー向けの注意）</strong><br>
-            この商品は売上の受取設定が完了していません。<br>
-            <a href="/connect/onboard">こちら</a> から Stripe で振込口座の登録を行ってください。
+            <% if (typeof connect !== 'undefined' && connect && (!connect.hasAccount || !connect.payoutsEnabled)) { %>
+              <div class="card error" style="background:#fffaf0; border:1px solid #ffe6b3; padding:12px; margin:12px 0;">
+                <strong>（オーナー向けの注意）</strong><br>
+                この商品は売上の受取設定が完了していません。<br>
+                <a href="/connect/onboard">こちら</a> から Stripe で振込口座の登録を行ってください。
+              </div>
+            <% } %>
           </div>
-        <% } %>
+
+          <form id="checkoutForm" class="buyCard__form" action="/checkout/<%= item.slug %>" method="post" target="_top" novalidate>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button id="checkoutBtn" class="btn primary buyCard__btn" type="submit" aria-live="polite">
+              <%= t('product.buy_button') %>
+            </button>
+          </form>
+
+          <div class="buyCard__details">
+            <p class="hint buyCard__hint">決済はStripe（カード）で安全に処理されます。</p>
+          </div>
+        </section>
 
         <!-- ライセンスはこのままでOK（余白だけCSSで調整） -->
         <section class="card section-license">
