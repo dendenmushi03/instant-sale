@@ -1015,17 +1015,36 @@ const previewBase = await sharp(req.file.path)
   .jpeg({ quality: 85 })
   .toBuffer();
 
-const svg = Buffer.from(`
-  <svg width="1200" height="630">
-    <style>
-      .wmark { fill: rgba(255,255,255,0.35); font-size: 110px; font-weight: 700; }
-    </style>
-    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="wmark">SAMPLE</text>
+// ====== 透かしSVG生成（タイル＋四隅） ======
+const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from(`
+  <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="wm-tile" width="280" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+        <text x="18" y="112" fill="rgba(255,255,255,${alpha})" font-size="46" font-weight="700" font-family="Arial, sans-serif">SAMPLE</text>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#wm-tile)" />
   </svg>
 `);
 
+const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
+  const margin = Math.max(24, Math.round(Math.min(width, height) * 0.03));
+  const wmSize = Math.max(26, Math.round(Math.min(width, height) * 0.055));
+  return Buffer.from(`
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <style>.wm{ fill: rgba(255,255,255,${alpha}); font-size: ${wmSize}px; font-weight: 700; font-family: Arial, sans-serif; }</style>
+      <text x="${margin}" y="${margin + wmSize}" class="wm">SAMPLE</text>
+      <text x="${width - margin}" y="${margin + wmSize}" text-anchor="end" class="wm">SAMPLE</text>
+      <text x="${margin}" y="${height - margin}" dominant-baseline="ideographic" class="wm">SAMPLE</text>
+      <text x="${width - margin}" y="${height - margin}" text-anchor="end" dominant-baseline="ideographic" class="wm">SAMPLE</text>
+    </svg>
+  `);
+};
+
+const previewWatermarkSvg = createTiledWatermarkSvg({ width: 1200, height: 630, alpha: 0.24 });
+
 await sharp(previewBase)
-  .composite([{ input: svg, gravity: 'center' }])
+  .composite([{ input: previewWatermarkSvg }])
   .toFile(previewFull);
 
 // ★ Stripe用（縦長が切れない “contain” 版）
@@ -1038,7 +1057,7 @@ await sharp(req.file.path)
     fit: 'contain',
     background: { r: 10, g: 16, b: 24, alpha: 1 }
   })
-  .composite([{ input: svg, gravity: 'center' }])
+  .composite([{ input: createTiledWatermarkSvg({ width: 1200, height: 630, alpha: 0.21 }) }])
   .jpeg({ quality: 85 })
   .toFile(stripeFull);
 
@@ -1057,16 +1076,8 @@ const fullMeta = await sharp(fullBase).metadata();
 const fw = Math.max(1, fullMeta.width  || 1200);
 const fh = Math.max(1, fullMeta.height || 1200);
 
-// 実寸にピッタリの SVG を生成（短辺の約14%をフォントサイズ）
-const wmSize = Math.round(Math.min(fw, fh) * 0.14);
-const svgFull = Buffer.from(`
-  <svg width="${fw}" height="${fh}" xmlns="http://www.w3.org/2000/svg">
-
-    <style>.wm{ fill: rgba(255,255,255,.38); font-size: ${wmSize}px; font-weight: 700; }</style>
-    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-      class="wm" transform="rotate(-18 ${fw/2} ${fh/2})">SAMPLE</text>
-  </svg>
-`);
+// full は購入前閲覧用：視認性を保ちつつ最も弱い四隅透かし
+const svgFull = createCornerWatermarkSvg({ width: fw, height: fh, alpha: 0.18 });
 
 await sharp(fullBase)
   .composite([{ input: svgFull }])  // ← fullBase と同寸の SVG なので安全
