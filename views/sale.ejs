@@ -27,13 +27,6 @@
   <meta name="twitter:image:alt" content="<%= og.title %>" />
 
 <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
-<style>
-  /* 購入ボタンとの間に余白をつくる */
-  .section-license { margin-top: 12px; }
-  @media (min-width: 768px) {
-    .section-license { margin-top: 16px; }
-  }
-</style>
 
 </head>
 
@@ -67,72 +60,80 @@
 </div>
       
       <div class="product-info">
-        <h1><%= item.title %></h1>
+        <h1 class="product-title"><%= item.title %></h1>
         <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
-<% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>
-<div class="price">¥<%= item.price.toLocaleString(locale) %></div>
 
-<div class="muted"><%= t('product.tax_note') %></div>
+        <% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>
 
-        <%
-// 販売者名の表示ロジック（null安全）
-// 1) sellerLegal.name（事業者名）
-// 2) seller.legal.name → seller.name → seller.email
-// 3) それも無ければ '—'
-const sellerDisplayName =
-  (sellerLegal && sellerLegal.name) ? sellerLegal.name :
-  (seller && seller.legal && seller.legal.name) ? seller.legal.name :
-  (seller && (seller.name || seller.email)) ? (seller.name || seller.email) :
-  '—';
-%>
+        <!-- ✅ 購入CTA（スマホ最適化の主役） -->
+        <section class="buyCard" aria-label="purchase">
+          <div class="buyCard__top">
+            <div class="price">¥<%= item.price.toLocaleString(locale) %></div>
+            <div class="muted buyCard__tax"><%= t('product.tax_note') %></div>
+          </div>
 
-<div class="muted">
-  <%= t('product.seller_label') %> <%= sellerDisplayName %>
-  （<a href="<%= tokushohoUrl %>" rel="nofollow"><%= t('product.legal_link') %></a>）
-</div>
+          <form id="checkoutForm" class="buyCard__form" action="/checkout/<%= item.slug %>" method="post" target="_top" novalidate>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button id="checkoutBtn" class="btn primary buyCard__btn" type="submit" aria-live="polite">
+              <%= t('product.buy_button') %>
+            </button>
+          </form>
 
-<div class="muted" style="margin-top:8px;">
-  <%= t('product.download_note') %>
-</div>
+          <details class="buyCard__details">
+            <summary class="buyCard__summary"><%= t('product.download_note') %></summary>
 
-          <% if (typeof connect !== 'undefined' && connect && (!connect.hasAccount || !connect.payoutsEnabled)) { %>
-    <div class="card error" style="background:#fffaf0; border:1px solid #ffe6b3; padding:12px; margin:12px 0;">
-      <strong>（オーナー向けの注意）</strong><br>
-      この商品は売上の受取設定が完了していません。<br>
-      <a href="/connect/onboard">こちら</a> から Stripe で振込口座の登録を行ってください。
-    </div>
-  <% } %>
+            <%
+              const sellerDisplayName =
+                (sellerLegal && sellerLegal.name) ? sellerLegal.name :
+                (seller && seller.legal && seller.legal.name) ? seller.legal.name :
+                (seller && (seller.name || seller.email)) ? (seller.name || seller.email) :
+                '—';
+            %>
 
-<form id="checkoutForm" action="/checkout/<%= item.slug %>" method="post" target="_top" novalidate>
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <button id="checkoutBtn" class="btn primary" type="submit" aria-live="polite">
-    <%= t('product.buy_button') %>
-  </button>
-</form>
-  
-<section class="card section-license">
-<h3 class="section-title"><%= t('product.license_h2') %></h3>
+            <div class="muted buyCard__meta">
+              <%= t('product.seller_label') %> <%= sellerDisplayName %>
+              （<a href="<%= tokushohoUrl %>" rel="nofollow"><%= t('product.legal_link') %></a>）
+            </div>
 
-  <div class="license-badge">
-    <span class="pill"><%= licenseView.label %></span>
-  </div>
+            <div class="muted buyCard__meta" style="margin-top:8px;">
+              <%= t('product.download_note') %>
+            </div>
+          </details>
 
-  <p class="license-desc"><%= licenseView.desc %></p>
+          <p class="hint buyCard__hint">決済はStripe（カード）で安全に処理されます。</p>
+        </section>
 
-  <% if (item.licenseNotes) { %>
-    <p class="license-notes"><%= item.licenseNotes %></p>
-  <% } %>
+        <% if (typeof connect !== 'undefined' && connect && (!connect.hasAccount || !connect.payoutsEnabled)) { %>
+          <div class="card error" style="background:#fffaf0; border:1px solid #ffe6b3; padding:12px; margin:12px 0;">
+            <strong>（オーナー向けの注意）</strong><br>
+            この商品は売上の受取設定が完了していません。<br>
+            <a href="/connect/onboard">こちら</a> から Stripe で振込口座の登録を行ってください。
+          </div>
+        <% } %>
 
-  <% if (item.aiGenerated) { %>
-    <p class="license-ai">※ 生成AI作品（モデル名：<%= item.aiModelName || '—' %>）</p>
-  <% } %>
+        <!-- ライセンスはこのままでOK（余白だけCSSで調整） -->
+        <section class="card section-license">
+          <h3 class="section-title"><%= t('product.license_h2') %></h3>
 
-<p class="license-policy">
-  <%- t('product.license_notice_html') %>
-</p>
-</section>
+          <div class="license-badge">
+            <span class="pill"><%= licenseView.label %></span>
+          </div>
 
-        <p class="hint">決済はStripe（カード）で安全に処理されます。</p>
+          <p class="license-desc"><%= licenseView.desc %></p>
+
+          <% if (item.licenseNotes) { %>
+            <p class="license-notes"><%= item.licenseNotes %></p>
+          <% } %>
+
+          <% if (item.aiGenerated) { %>
+            <p class="license-ai">※ 生成AI作品（モデル名：<%= item.aiModelName || '—' %>）</p>
+          <% } %>
+
+          <p class="license-policy">
+            <%- t('product.license_notice_html') %>
+          </p>
+        </section>
+      </div>
       </div>
     </article>
   </main>
@@ -147,11 +148,16 @@ const sellerDisplayName =
   var btnClose = modal.querySelector('.lightbox__close');
   var btnFit   = modal.querySelector('.lightbox__fit');
   var img      = document.getElementById('viewerImg');
-  var srcFull  = "/view/<%= item.slug %>";   // 等倍生成エンドポイント
+  var srcBase  = "/view/<%= item.slug %>";   // 等倍生成エンドポイント
   var fitMode  = false; // false=等倍, true=画面フィット
 
-  // 事前プリロードで初回の空白を防ぐ
-  var pre = new Image(); pre.src = srcFull;
+  function fullUrl(){
+    return srcBase + "?t=" + Date.now();
+  }
+
+  // 事前プリロードで初回の空白を防ぐ（cache-bustなし）
+  var pre = new Image();
+  pre.src = srcBase;
 
   function applyMode(){
     if (fitMode) {
@@ -168,15 +174,12 @@ const sellerDisplayName =
   }
 
   function show(){
+    var srcFull = fullUrl(); // 表示時にだけキャッシュ回避を付与
     if (img.getAttribute('src') !== srcFull) img.setAttribute('src', srcFull);
-    fitMode = false; applyMode();     // いつも等倍で開く
-try {
-    var url = '/view/<%= item.slug %>?t=' + Date.now(); // キャッシュ回避
-    var img = modal.querySelector('.lightbox__img');
-    if (img && img.src !== url) img.src = url;
-  } catch(_) {}
-  modal.hidden = false;
-  document.body.style.overflow = 'hidden';
+    fitMode = false;
+    applyMode();     // いつも等倍で開く
+    modal.hidden = false;
+    document.body.classList.add('modal-open');
 
     var inner = modal.querySelector('.lightbox__inner');
     if (inner) inner.scrollTo({left:0, top:0, behavior:'auto'}); // 左上から開始
@@ -184,7 +187,7 @@ try {
 
   function hide(){
     modal.hidden = true;
-    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
   }
 
   opener.addEventListener('click', function(e){ e.preventDefault(); show(); });
