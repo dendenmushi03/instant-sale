@@ -657,3 +657,111 @@ body.menu-open{
 @media (min-width:768px){
   .section-license{margin-top:16px}
 }
+
+.buyCard__summary{
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.buyCard__details summary::-webkit-details-marker{ display:none; }
+
+.buyCard__meta{ line-height: 1.7; }
+.buyCard__hint{ margin-top: 10px; }
+
+/* sale page section spacing (moved from inline style) */
+.section-license{margin-top:12px}
+@media (min-width:768px){
+  .section-license{margin-top:16px}
+}
+
+.mnav[open] .mnav__panel{
+  z-index:81;
+}
+
+@media (max-width:960px){
+  .mnav{display:block}
+
+  .siteHeader__inner{
+    grid-template-columns:1fr auto;
+    align-items:center;
+  }
+
+  .siteHeader__nav--desktop,
+  .siteHeader__actions--desktop{display:none}
+
+  .siteHeader__name{
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .mnav__panel{
+    position:fixed;
+    top:calc(56px + env(safe-area-inset-top));
+    right:12px;
+    width:min(calc(100vw - 24px),420px);
+    max-height:calc(100dvh - 72px - env(safe-area-inset-top));
+    overflow:auto;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:var(--shadow-soft);
+  }
+}
+
+@media (min-width:961px){
+  .mnav{display:none}
+  .siteHeader__nav--desktop,
+  .siteHeader__actions--desktop{display:flex}
+}
+
+/* =========================
+   Product (sale page) mobile UX
+   ========================= */
+
+/* スマホ：画像がデカすぎ問題を抑える */
+@media (max-width: 768px){
+  .product-imageWrap{
+    max-height: 52vh;
+  }
+  .product-image{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+/* 購入CTAカード */
+.buyCard{
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.buyCard__top{ margin-bottom: 12px; }
+.buyCard__tax{ margin-top: 4px; }
+
+.buyCard__form{ margin-top: 10px; }
+.buyCard__btn{ width: 100%; height: 50px; font-size: 15px; }
+
+.buyCard__details{
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.buyCard__summary{
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.buyCard__details summary::-webkit-details-marker{ display:none; }
+
+.buyCard__meta{ line-height: 1.7; }
+.buyCard__hint{ margin-top: 10px; }
