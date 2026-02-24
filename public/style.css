@@ -893,3 +893,598 @@ body.menu-open{
   border-color:#000;
   color:#fff;
 }
+
+#progressModal #tweetOnX,
+#progressModal #openResultUrl{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+#progressModal #copyResultUrl,
+#progressModal #copyTweetText{
+  background:rgba(20,20,20,.06);
+  border-color:rgba(20,20,20,.2);
+}
+
+#progressModal #closeModal{
+  background:transparent;
+  border-color:rgba(20,20,20,.16);
+  color:rgba(20,20,20,.72);
+}
+
+#progressModal #tweetOnX img{
+  width:16px;
+  height:16px;
+  margin-right:2px;
+  vertical-align:middle;
+}
+
+#progressModal :is(button,a,select,textarea,input):focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(17,17,17,.20);
+}
+
+@media (max-width:768px){
+  #progressModal{padding:10px}
+
+  #progressModal .modal__panel{
+    width:min(100vw - 10px,100%);
+    max-height:92dvh;
+    padding:16px;
+    border-radius:24px;
+  }
+
+  #progressModal .modal__result-actions{
+    grid-template-columns:1fr 1fr;
+  }
+
+  #progressModal #closeModal{
+    grid-column:1 / -1;
+  }
+}
+
+@media (min-width:769px){
+  #progressModal .modal__result-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+}
+
+/* progress modal content grouping */
+#progressModal .modalBlock{
+  display:grid;
+  gap:10px;
+  margin:10px 0;
+}
+
+#progressModal .modalBlock__title{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:rgba(20,20,20,.58);
+}
+
+#progressModal .modalDivider{
+  height:1px;
+  background:rgba(20,20,20,.10);
+  margin:12px 0 10px;
+}
+
+#progressModal .modalBlock .tweet-controls{
+  margin-top:0;
+  gap:10px;
+}
+
+#progressModal .modalBlock #resultUrlInModal,
+#progressModal .modalBlock #tweetTemplate,
+#progressModal .modalBlock #tweetText{
+  margin:0;
+}
+
+/* progress modal url row */
+#progressModal .urlRow{display:flex;gap:10px;align-items:stretch}
+#progressModal #resultUrlInModal{flex:1;min-width:0}
+#progressModal #copyResultUrl{height:44px;padding:0 14px;border-radius:12px;white-space:nowrap}
+@media (max-width:480px){
+  #progressModal .urlRow{flex-direction:column}
+  #progressModal #copyResultUrl{width:100%}
+}
+
+.buyCard__details summary::-webkit-details-marker{ display:none; }
+
+.buyCard__meta{ line-height: 1.7; }
+.buyCard__hint{ margin-top: 10px; }
+
+/* sale page section spacing (moved from inline style) */
+.section-license{margin-top:12px}
+@media (min-width:768px){
+  .section-license{margin-top:16px}
+}
+
+/* =========================
+   Progress modal premium refresh (upload only)
+   ========================= */
+#progressModal{
+  background:rgba(8,10,14,.52);
+  backdrop-filter:saturate(118%) blur(9px);
+}
+
+#progressModal .modal__panel{
+  width:min(700px,94vw);
+  max-height:min(88dvh,860px);
+  padding:20px;
+  border-radius:26px;
+  border:1px solid rgba(20,20,20,.14);
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(250,248,244,.96));
+  box-shadow:0 26px 70px rgba(0,0,0,.22),0 8px 22px rgba(0,0,0,.08);
+}
+
+#progressModal .modal__title,
+#progressModal .modal__phase,
+#progressModal .progress,
+#progressModal .progress__pct{
+  position:relative;
+  z-index:1;
+}
+
+#progressModal .modal__title{
+  margin:0;
+  font-size:19px;
+  font-weight:900;
+}
+
+#progressModal .modal__phase{
+  margin:8px 0 10px;
+  color:rgba(20,20,20,.62);
+  font-weight:700;
+}
+
+#progressModal .progress{
+  margin-top:4px;
+  height:12px;
+  border-radius:999px;
+  background:rgba(20,20,20,.10);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.08);
+}
+
+#progressModal .progress__bar{
+  background:linear-gradient(90deg,#111,#5f5f5f 60%,#8f8f8f);
+}
+
+#progressModal .progress__pct{
+  margin-top:8px;
+  font-variant-numeric:tabular-nums;
+  font-weight:700;
+}
+
+#progressModal #resultUrlInModal,
+#progressModal #tweetTemplate,
+#progressModal #tweetText{
+  border-radius:14px;
+  border:1px solid rgba(20,20,20,.16);
+  background:rgba(255,255,255,.94);
+}
+
+#progressModal #resultUrlInModal{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+
+#progressModal #tweetText{
+  min-height:124px;
+  line-height:1.6;
+}
+
+#progressModal .tweet-controls{
+  margin-top:14px;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(20,20,20,.10);
+  background:rgba(255,255,255,.66);
+}
+
+#progressModal .modal__result-actions{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+#progressModal .modal__result-actions .btn,
+#progressModal .modal__result-actions a.btn{
+  height:44px;
+}
+
+#progressModal #tweetOnX,
+#progressModal #openResultUrl{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+#progressModal #copyResultUrl,
+#progressModal #copyTweetText{
+  background:rgba(20,20,20,.06);
+  border-color:rgba(20,20,20,.2);
+}
+
+#progressModal #closeModal{
+  background:transparent;
+  border-color:rgba(20,20,20,.16);
+  color:rgba(20,20,20,.72);
+}
+
+#progressModal #tweetOnX img{
+  width:16px;
+  height:16px;
+  margin-right:2px;
+  vertical-align:middle;
+}
+
+#progressModal :is(button,a,select,textarea,input):focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(17,17,17,.20);
+}
+
+@media (max-width:768px){
+  #progressModal{padding:10px}
+
+  #progressModal .modal__panel{
+    width:min(100vw - 10px,100%);
+    max-height:92dvh;
+    padding:16px;
+    border-radius:24px;
+  }
+
+  #progressModal .modal__result-actions{
+    grid-template-columns:1fr 1fr;
+  }
+
+  #progressModal #closeModal{
+    grid-column:1 / -1;
+  }
+}
+
+@media (min-width:769px){
+  #progressModal .modal__result-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+}
+
+/* progress modal content grouping */
+#progressModal .modalBlock{
+  display:grid;
+  gap:10px;
+  margin:10px 0;
+}
+
+#progressModal .modalBlock__title{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:rgba(20,20,20,.58);
+}
+
+#progressModal .modalDivider{
+  height:1px;
+  background:rgba(20,20,20,.10);
+  margin:12px 0 10px;
+}
+
+#progressModal .modalBlock .tweet-controls{
+  margin-top:0;
+  gap:10px;
+}
+
+#progressModal .modalBlock #resultUrlInModal,
+#progressModal .modalBlock #tweetTemplate,
+#progressModal .modalBlock #tweetText{
+  margin:0;
+}
+
+@media (min-width:961px){
+  .mnav{display:none}
+  .siteHeader__inner{
+    grid-template-columns:auto 1fr auto;
+  }
+  .siteHeader__nav--desktop,
+  .siteHeader__actions--desktop{display:flex}
+}
+
+/* =========================
+   Product (sale page) mobile UX
+   ========================= */
+
+/* スマホ：画像がデカすぎ問題を抑える */
+@media (max-width: 768px){
+  .product-imageWrap{
+    max-height: 52vh;
+  }
+  .product-image{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+/* 購入CTAカード */
+.buyCard{
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.buyCard__top{ margin-bottom: 12px; }
+.buyCard__tax{ margin-top: 4px; }
+
+.buyCard__form{ margin-top: 10px; }
+.buyCard__btn{ width: 100%; height: 50px; font-size: 15px; }
+
+.buyCard__details{
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.buyCard__summary{
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.buyCard__details summary::-webkit-details-marker{ display:none; }
+
+.buyCard__meta{ line-height: 1.7; }
+.buyCard__hint{ margin-top: 10px; }
+
+/* sale page section spacing (moved from inline style) */
+.section-license{margin-top:12px}
+@media (min-width:768px){
+  .section-license{margin-top:16px}
+}
+
+/* =========================
+   Progress modal premium refresh (upload only)
+   ========================= */
+#progressModal{
+  background:rgba(8,10,14,.52);
+  backdrop-filter:saturate(118%) blur(9px);
+}
+
+#progressModal .modal__panel{
+  width:min(700px,94vw);
+  max-height:min(88dvh,860px);
+  padding:20px;
+  border-radius:26px;
+  border:1px solid rgba(20,20,20,.14);
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(250,248,244,.96));
+  box-shadow:0 26px 70px rgba(0,0,0,.22),0 8px 22px rgba(0,0,0,.08);
+}
+
+#progressModal .modal__title,
+#progressModal .modal__phase,
+#progressModal .progress,
+#progressModal .progress__pct{
+  position:relative;
+  z-index:1;
+}
+
+#progressModal .modal__title{
+  margin:0;
+  font-size:19px;
+  font-weight:900;
+}
+
+#progressModal .modal__phase{
+  margin:8px 0 10px;
+  color:rgba(20,20,20,.62);
+  font-weight:700;
+}
+
+#progressModal .progress{
+  margin-top:4px;
+  height:12px;
+  border-radius:999px;
+  background:rgba(20,20,20,.10);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.08);
+}
+
+#progressModal .progress__bar{
+  background:linear-gradient(90deg,#111,#5f5f5f 60%,#8f8f8f);
+}
+
+#progressModal .progress__pct{
+  margin-top:8px;
+  font-variant-numeric:tabular-nums;
+  font-weight:700;
+}
+
+#progressModal #resultUrlInModal,
+#progressModal #tweetTemplate,
+#progressModal #tweetText{
+  border-radius:14px;
+  border:1px solid rgba(20,20,20,.16);
+  background:rgba(255,255,255,.94);
+}
+
+#progressModal #resultUrlInModal{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+
+#progressModal #tweetText{
+  min-height:124px;
+  line-height:1.6;
+}
+
+#progressModal .tweet-controls{
+  margin-top:14px;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(20,20,20,.10);
+  background:rgba(255,255,255,.66);
+}
+
+#progressModal .modal__result-actions{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+#progressModal .modal__result-actions .btn,
+#progressModal .modal__result-actions a.btn{
+  height:44px;
+}
+
+#progressModal #tweetOnX,
+#progressModal #openResultUrl{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+#progressModal #copyResultUrl,
+#progressModal #copyTweetText{
+  background:rgba(20,20,20,.06);
+  border-color:rgba(20,20,20,.2);
+}
+
+#progressModal #closeModal{
+  background:transparent;
+  border-color:rgba(20,20,20,.16);
+  color:rgba(20,20,20,.72);
+}
+
+#progressModal #tweetOnX img{
+  width:16px;
+  height:16px;
+  margin-right:2px;
+  vertical-align:middle;
+}
+
+#progressModal :is(button,a,select,textarea,input):focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(17,17,17,.20);
+}
+
+@media (max-width:768px){
+  #progressModal{padding:10px}
+
+  #progressModal .modal__panel{
+    width:min(100vw - 10px,100%);
+    max-height:92dvh;
+    padding:16px;
+    border-radius:24px;
+  }
+
+  #progressModal .modal__result-actions{
+    grid-template-columns:1fr 1fr;
+  }
+
+  #progressModal #closeModal{
+    grid-column:1 / -1;
+  }
+}
+
+@media (min-width:769px){
+  #progressModal .modal__result-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+}
+
+@media (min-width:961px){
+  .mnav{display:none}
+  .siteHeader__inner{
+    grid-template-columns:auto 1fr auto;
+  }
+  .siteHeader__nav--desktop,
+  .siteHeader__actions--desktop{display:flex}
+}
+
+/* =========================
+   Product (sale page) mobile UX
+   ========================= */
+
+/* スマホ：画像がデカすぎ問題を抑える */
+@media (max-width: 768px){
+  .product-imageWrap{
+    max-height: 52vh;
+  }
+  .product-image{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+/* 購入CTAカード */
+.buyCard{
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.buyCard__top{ margin-bottom: 12px; }
+.buyCard__tax{ margin-top: 4px; }
+
+.buyCard__form{ margin-top: 10px; }
+.buyCard__btn{ width: 100%; height: 50px; font-size: 15px; }
+
+.buyCard__details{
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.buyCard__summary{
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.buyCard__details summary::-webkit-details-marker{ display:none; }
+
+.buyCard__meta{ line-height: 1.7; }
+.buyCard__hint{ margin-top: 10px; }
+
+/* sale page section spacing (moved from inline style) */
+.section-license{margin-top:12px}
+@media (min-width:768px){
+  .section-license{margin-top:16px}
+}
+
+.buyCard__top{ margin-bottom: 12px; }
+.buyCard__tax{ margin-top: 4px; }
+
+.buyCard__form{ margin-top: 10px; }
+.buyCard__btn{ width: 100%; height: 50px; font-size: 15px; }
+
+.buyCard__details{
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.buyCard__summary{
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.buyCard__details summary::-webkit-details-marker{ display:none; }
+
+.buyCard__meta{ line-height: 1.7; }
+.buyCard__hint{ margin-top: 10px; }
