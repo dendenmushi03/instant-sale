@@ -1117,3 +1117,69 @@ body.layout .legal-table td{
 .license-badge,.pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:#eef2ff;color:#1e3a8a;border:1px solid #dbeafe;font-size:12px;font-weight:700}
 .license-desc{margin:.35rem 0;color:#374151}
 .license-notes,.license-ai,.license-policy{color:var(--muted);font-size:.92rem;line-height:1.6}
+
+/* ===== Minimal premium light refinement ===== */
+:root{
+  --radius-lg:16px;
+  --radius-md:12px;
+}
+
+body{letter-spacing:.01em}
+p,li{line-height:1.72;color:#374151}
+h1{font-size:clamp(1.8rem,2.8vw,2.3rem);letter-spacing:.01em;color:#111827}
+h2{font-size:clamp(1.3rem,2vw,1.6rem);letter-spacing:.01em;color:#1f2937}
+
+.nav{
+  padding:14px 24px;
+  background:rgba(255,255,255,.82);
+  border-bottom:1px solid #eceff3;
+}
+.nav__brand{font-weight:700;letter-spacing:.02em;color:#111827}
+.nav__right{gap:10px}
+
+.site-footer{
+  background:rgba(255,255,255,.92);
+  border-top:1px solid #eceff3;
+}
+
+.card{
+  border-radius:var(--radius-lg);
+  border-color:#e7ebf0;
+  box-shadow:0 6px 18px rgba(15,23,42,.05);
+}
+
+.btn{
+  border-radius:999px;
+  min-height:42px;
+  padding:0 18px;
+  font-weight:600;
+  border-color:#d8dee8;
+}
+.btn--primary,.btn.primary{
+  background:#2563eb;
+  border-color:#2563eb;
+  box-shadow:0 2px 8px rgba(37,99,235,.18);
+}
+.btn--primary:hover,.btn.primary:hover{background:#1d4ed8;border-color:#1d4ed8}
+
+.dropdown__menu{
+  background:#fff;
+  border:1px solid #e6ebf1;
+  border-radius:12px;
+  box-shadow:0 14px 30px rgba(15,23,42,.1);
+  padding:8px;
+}
+.dropdown__item{
+  color:#374151;
+  border-radius:10px;
+}
+.dropdown__item:hover{background:#f3f6fa}
+
+/* sale license tokens (replace dark pill) */
+.section-license .pill,
+.license-badge,
+.pill{
+  background:#f3f4f6;
+  border:1px solid #e5e7eb;
+  color:#111827;
+}
