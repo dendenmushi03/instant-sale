@@ -209,16 +209,6 @@ try {
 <%- include('partials/footer') %>
 
 <script nonce="<%= cspNonce %>">
-  (function(){
-    var sel = document.getElementById('langSelect');
-    if(!sel) return;
-    sel.addEventListener('change', function(){
-      try { sel.form.submit(); } catch(_) {}
-    });
-  })();
-</script>
-
-<script nonce="<%= cspNonce %>">
   (function () {
     var form = document.getElementById('checkoutForm');
     var btn  = document.getElementById('checkoutBtn');
@@ -240,4 +230,3 @@ try {
 
 </body>
 </html>
-

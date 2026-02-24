@@ -5,7 +5,6 @@
   "nav.language": "言語",
   "lang.ja": "日本語",
   "lang.en": "English",
-
   "home.title_full": "Instant Sale | 画像を3ステップで即販売",
   "home.hero.title_prefix": "画像を",
   "home.hero.title_accent": "3ステップ",
@@ -13,7 +12,6 @@
   "home.hero.lead": "アップロード → 価格入力 → リンク完成。Stripeで安全決済、ダウンロードは自動発行。",
   "home.hero.cta_authed": "アップロードして販売開始",
   "home.hero.cta_guest": "ログインして始める",
-
   "howto.title": "使い方",
   "howto.step1.title": "画像をアップロード",
   "howto.step1.desc": "高解像度ファイルを選択。プレビュー/OGP/等倍透かし画像は自動生成されます。",
@@ -21,7 +19,6 @@
   "howto.step2.desc": "税込価格だけ決めればOK。JPY・最低価格などは既定済み。必要ならクリエイター名も表示可能。",
   "howto.step3.title": "リンクをシェア",
   "howto.step3.desc": "販売ページURLが発行され、購入者はStripeで決済 → 自動で原本ダウンロード。売上は自動/手動で振替。",
-
   "upload.title_full": "Upload | Instant Sale",
   "upload.h1": "即販売リンクを作る",
   "upload.field.file": "販売データ",
@@ -33,7 +30,6 @@
   "upload.price.fee": "販売手数料",
   "upload.price.profit": "販売利益（受け取り額）",
   "upload.attest": "私はこの画像の権利者（または正当に販売可能な権利保有者）です",
-
   "upload.license.h2": "利用許諾",
   "upload.license.editorial.title": "商用不可",
   "upload.license.editorial.desc": "個人利用のみ可。用途例：SNSアイコン、個人ブログ、壁紙など",
@@ -45,7 +41,6 @@
   "upload.license.exclusive.desc": "用途例：広告素材、パッケージ販売",
   "upload.license.notice_html": "※ 共通ルールは <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">画像ライセンスポリシー</a> を参照。",
   "upload.submit": "販売ページを作成",
-
   "upload.modal.title": "アップロード中…",
   "upload.modal.phase_uploading": "ファイルをアップロードしています",
   "upload.modal.phase_processing": "販売ページを作成中です・・・",
@@ -56,14 +51,12 @@
   "upload.modal.copied": "コピーしました",
   "upload.modal.btn_close": "閉じる",
   "upload.modal.hint": "このURLは保管してください。リンクがあればいつでもページに戻れます。",
-
   "footer": {
     "terms": "利用規約",
     "privacy": "プライバシーポリシー",
     "tokushoho": "特定商取引法に基づく表記",
     "image_license": "画像ライセンス"
   },
-
   "terms": {
     "title": "利用規約",
     "h1": "利用規約",
@@ -113,7 +106,6 @@
     "law_html": "本規約は{{law}}に準拠し、{{court}}を専属的合意管轄裁判所とします。",
     "contact_prefix": "本規約に関するお問い合わせ："
   },
-
   "privacy": {
     "title": "プライバシーポリシー",
     "h1": "プライバシーポリシー",
@@ -151,7 +143,6 @@
     "retention_html": "法令や業務上の必要な期間を超えない範囲で保持し、不要になった情報は適切な方法で削除します。",
     "contact_prefix": "本ポリシーに関するお問い合わせ："
   },
-
   "tokushoho": {
     "title": "特定商取引法に基づく表記",
     "h1": "特定商取引法に基づく表記",
@@ -162,8 +153,8 @@
       "contact": "連絡先",
       "website": "ウェブサイト",
       "price": "販売価格",
-          "phone": "電話番号",
-    "email": "メール",
+      "phone": "電話番号",
+      "email": "メール",
       "otherFees": "商品代金以外の必要料金",
       "paymentMethod": "お支払い方法",
       "paymentTiming": "お支払い時期",
@@ -191,30 +182,27 @@
       "stripe_html": "当サービスはStripeを利用して決済を処理します。<br>カード情報は当サービスで保存しません。"
     }
   },
-
   "image_license": {
-  "title": "画像ライセンス",
-  "h1": "画像ライセンス",
-  "intro_html": "本ページは、{{site}} で販売する画像の共通ライセンスルールを示します。",
-  "page": {
-    "last_updated_prefix": "最終更新日：{{date}}",
-    "common_title": "共通ルール",
-    "common_rules_html": "<ul><li>購入者は、購入した画像を各商品の<b>「利用許諾（プリセット）」の範囲内</b>で利用できます（商用不可／商用可／一部商用可／完全商用可）。</li><li><b>クレジット表記は不要</b>（プラットフォーム方針）。</li><li><b>再配布・再販売は禁止</b>（壁紙パック・テンプレ配布・NFT化 等を含む）。</li><li><b>AI学習（学習データ／ファインチューニング／埋め込み生成）への利用は不可</b>。</li><li>違法・差別・誹謗中傷・公序良俗に反する用途、著名人のパブリシティ/肖像権・第三者商標/著作物の侵害用途は禁止。</li></ul>",
-    "presets_title": "利用許諾プリセット",
-    "personal_title": "商用不可（personal）",
-    "personal_desc_html": "<ul><li>個人利用のみ可（SNSアイコン／個人ブログ／壁紙 等）。</li><li><b>営利目的の利用（広告／販促／販売物／クライアントワーク）は不可</b>。</li></ul>",
-    "standard_title": "商用可",
-    "standard_desc_html": "<ul><li>SNS投稿・企業SNS・Webサイト素材・サムネイル等に利用可。</li><li>大量生産・ロゴ利用・商標登録・素材としての再販売は不可。</li></ul>",
-    "lite_title": "一部商用可",
-    "lite_desc_html": "<ul><li>同人誌・小規模グッズ・ノベルティ等の少量販売に限り可。</li><li>大量生産・大規模小売・ブランド/ロゴ用途は対象外。</li></ul>",
-    "exclusive_title": "完全商用可",
-    "exclusive_desc_html": "<ul><li>広告クリエイティブ、パッケージ販売等に利用可。</li><li>独占利用や権利譲渡が必要な場合は事前にお問い合わせください。</li></ul>"
-  }
-},
-
+    "title": "画像ライセンス",
+    "h1": "画像ライセンス",
+    "intro_html": "本ページは、{{site}} で販売する画像の共通ライセンスルールを示します。",
+    "page": {
+      "last_updated_prefix": "最終更新日：{{date}}",
+      "common_title": "共通ルール",
+      "common_rules_html": "<ul><li>購入者は、購入した画像を各商品の<b>「利用許諾（プリセット）」の範囲内</b>で利用できます（商用不可／商用可／一部商用可／完全商用可）。</li><li><b>クレジット表記は不要</b>（プラットフォーム方針）。</li><li><b>再配布・再販売は禁止</b>（壁紙パック・テンプレ配布・NFT化 等を含む）。</li><li><b>AI学習（学習データ／ファインチューニング／埋め込み生成）への利用は不可</b>。</li><li>違法・差別・誹謗中傷・公序良俗に反する用途、著名人のパブリシティ/肖像権・第三者商標/著作物の侵害用途は禁止。</li></ul>",
+      "presets_title": "利用許諾プリセット",
+      "personal_title": "商用不可（personal）",
+      "personal_desc_html": "<ul><li>個人利用のみ可（SNSアイコン／個人ブログ／壁紙 等）。</li><li><b>営利目的の利用（広告／販促／販売物／クライアントワーク）は不可</b>。</li></ul>",
+      "standard_title": "商用可",
+      "standard_desc_html": "<ul><li>SNS投稿・企業SNS・Webサイト素材・サムネイル等に利用可。</li><li>大量生産・ロゴ利用・商標登録・素材としての再販売は不可。</li></ul>",
+      "lite_title": "一部商用可",
+      "lite_desc_html": "<ul><li>同人誌・小規模グッズ・ノベルティ等の少量販売に限り可。</li><li>大量生産・大規模小売・ブランド/ロゴ用途は対象外。</li></ul>",
+      "exclusive_title": "完全商用可",
+      "exclusive_desc_html": "<ul><li>広告クリエイティブ、パッケージ販売等に利用可。</li><li>独占利用や権利譲渡が必要な場合は事前にお問い合わせください。</li></ul>"
+    }
+  },
   "upload.agree_terms_html": "利用規約に同意します（<a href=\"/terms\" target=\"_blank\" rel=\"noopener\">利用規約を読む</a>）",
-
-    "product": {
+  "product": {
     "tax_note": "※ 表示価格は税込みです。",
     "seller_label": "販売者：",
     "legal_link": "特定商取引法に基づく表記",
@@ -223,37 +211,35 @@
     "license_h2": "ライセンスと利用範囲",
     "license_notice_html": "※ 共通ルールは <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">画像ライセンスポリシー</a> を参照してください。"
   },
-
   "og": {
     "sale_title_suffix": "即ダウンロード",
     "sale_desc": "高解像度をすぐ購入（¥{{price}}）"
-  }
-
-  ,
+  },
   "checkout.done_title": "ご購入ありがとうございます🎉",
   "checkout.done_desc": "以下のボタンから高解像度データをダウンロードできます。",
   "checkout.expire_note_html": "※ 有効期限：<strong>{{minutes}}分</strong>（{{time}} まで）",
   "checkout.download_btn": "ダウンロード",
-
   "download.title": "ダウンロード | {{title}}",
   "download.notice_line1_html": "表示された画像を<strong>長押し</strong>して保存してください。",
   "download.notice_line2": "このページを閉じるとダウンロードができなくなります。",
   "download.expire_note": "有効期限：{{minutes}}分、{{time}}まで",
   "download.img_alt": "{{title}} のダウンロード画像",
-
   "terms.fees.expiration_title": "未受領売上の取扱い（180日失効）",
   "terms.fees.expiration_html": "出品者が売上の受領を行うには、Stripe 提供の受取設定（Stripe Express アカウントの開設・本人確認・振込口座の登録・有効化）が必要です。決済完了日から<strong>180日以内</strong>に受取設定が完了しない売上は、当社の裁量により<strong>失効</strong>し、出品者は当該売上の受領権を失います。失効後の売上は返還されません。",
   "terms.fees.expiration_note_html": "受取設定が未完了の間、売上は当社所定の方法で保留されます。出品者が保留期間中に受取設定を完了した場合、当社は合理的な期間内に送金手続きを行います。チャージバックその他の精算は Stripe の規約・処理に従います。",
-
   "tokushoho.label.payout_notice": "売上の受け取りに関する特記事項",
   "tokushoho.value.payout_notice_html": "出品者の売上受領には Stripe の受取設定（Stripe Express アカウントの開設・本人確認・振込口座登録・有効化）が必要です。決済完了日から<strong>180日以内</strong>に受取設定が完了しない売上は<strong>失効</strong>します。",
-
   "privacy.collected.payout.h3": "決済・受取設定に関する情報",
   "privacy.collected.payout.item1": "Stripe Connect の接続状況（接続アカウントID、受取可否の状態、最終更新日時 等）",
   "privacy.collected.payout.item2": "未受領売上の判定・保留・失効（180日ルール）管理に必要な内部ステータス",
   "privacy.collected.payout.item3": "※カード番号等の機微な決済情報は Stripe が保持し、当サービスでは保持しません。",
-
   "privacy.usage.expiration_ops_html": "Stripe 受取設定の確認、未受領売上の保留・通知・<strong>失効（180日ルール）</strong>の運用",
-
-  "image_license.note.payout_expiration_html": "※ 出品者の売上は Stripe の受取設定が完了するまで保留されます。決済完了日から<strong>180日以内</strong>に受取設定が完了しない売上は<strong>失効</strong>します。"
+  "image_license.note.payout_expiration_html": "※ 出品者の売上は Stripe の受取設定が完了するまで保留されます。決済完了日から<strong>180日以内</strong>に受取設定が完了しない売上は<strong>失効</strong>します。",
+  "nav.home": "ホーム",
+  "nav.license": "ライセンス",
+  "nav.terms": "利用規約",
+  "nav.privacy": "プライバシー",
+  "nav.creator": "クリエイター",
+  "nav.payouts": "売上管理",
+  "nav.login": "ログイン"
 }
