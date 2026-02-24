@@ -1,20 +1,57 @@
 <header class="siteHeader">
   <div class="siteHeader__inner">
+
     <a class="siteHeader__brand" href="/">
       <img class="siteHeader__logo" src="/public/logo.png?v=<%= assetVer %>" alt="Instant Sale" />
       <span class="siteHeader__name"><%= t('brand') %></span>
     </a>
 
-    <nav class="siteHeader__nav" aria-label="primary">
+    <!-- ▼ モバイル: 折りたたみメニュー（JS不要） -->
+    <details class="mnav" id="mnav">
+      <summary class="mnav__btn" aria-label="menu">
+        <span class="mnav__icon" aria-hidden="true"></span>
+        <span class="mnav__label">Menu</span>
+      </summary>
+
+      <div class="mnav__panel">
+        <nav class="siteHeader__nav mnav__nav" aria-label="primary">
+          <a class="siteHeader__link <%= (currentPath === '/' ? 'is-active' : '') %>" href="/"><%= t('nav.home') %></a>
+          <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/image-license') ? 'is-active' : '') %>" href="/image-license"><%= t('nav.license') %></a>
+          <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/terms') ? 'is-active' : '') %>" href="/terms"><%= t('nav.terms') %></a>
+          <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/privacy') ? 'is-active' : '') %>" href="/privacy"><%= t('nav.privacy') %></a>
+        </nav>
+
+        <div class="siteHeader__actions mnav__actions">
+          <div class="langSwitch" aria-label="language">
+            <% if (langMenu && langMenu.length) { %>
+              <select class="langSwitch__select" aria-label="language" onchange="location.href=this.value">
+                <% langMenu.forEach(function(x){ %>
+                  <option value="<%= x.url %>" <%= x.active ? 'selected' : '' %>><%= x.label %></option>
+                <% }) %>
+              </select>
+            <% } %>
+          </div>
+
+          <% if (me) { %>
+            <a class="btn btn--ghost" href="/creator"><%= t('nav.creator') %></a>
+            <a class="btn btn--ghost" href="/connect/portal"><%= t('nav.payouts') %></a>
+            <a class="btn btn--ghost" href="/logout"><%= t('nav.logout') %></a>
+          <% } else { %>
+            <a class="btn btn--primary" href="/auth/google"><%= t('nav.login') %></a>
+          <% } %>
+        </div>
+      </div>
+    </details>
+
+    <!-- ▼ PC: 従来の横並び（CSSでPCだけ表示） -->
+    <nav class="siteHeader__nav siteHeader__nav--desktop" aria-label="primary">
       <a class="siteHeader__link <%= (currentPath === '/' ? 'is-active' : '') %>" href="/"><%= t('nav.home') %></a>
       <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/image-license') ? 'is-active' : '') %>" href="/image-license"><%= t('nav.license') %></a>
       <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/terms') ? 'is-active' : '') %>" href="/terms"><%= t('nav.terms') %></a>
       <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/privacy') ? 'is-active' : '') %>" href="/privacy"><%= t('nav.privacy') %></a>
     </nav>
 
-    <div class="siteHeader__actions">
-
-      <!-- 言語切替（server.js が langMenu を用意済み） -->
+    <div class="siteHeader__actions siteHeader__actions--desktop">
       <div class="langSwitch" aria-label="language">
         <% if (langMenu && langMenu.length) { %>
           <select class="langSwitch__select" aria-label="language" onchange="location.href=this.value">
@@ -28,11 +65,11 @@
       <% if (me) { %>
         <a class="btn btn--ghost" href="/creator"><%= t('nav.creator') %></a>
         <a class="btn btn--ghost" href="/connect/portal"><%= t('nav.payouts') %></a>
-        <!-- server.js 仕様：/logout は CSRF 例外 & app.all なので GETリンクでOK -->
         <a class="btn btn--ghost" href="/logout"><%= t('nav.logout') %></a>
       <% } else { %>
         <a class="btn btn--primary" href="/auth/google"><%= t('nav.login') %></a>
       <% } %>
     </div>
+
   </div>
 </header>
