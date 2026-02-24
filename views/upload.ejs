@@ -302,6 +302,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
   // クライアント側で言語を使えるように（en/ja）
 const LNG = "<%= (lng || 'ja') %>";
+let lastCreatedUrl = "";
 
   // === 横一列UI：価格 → 手数料 → 利益 のリアルタイム計算 ===
   const priceInput = document.getElementById('priceInput');
@@ -372,16 +373,15 @@ const LNG = "<%= (lng || 'ja') %>";
 
     const maxLen = 270;
     const lines = lineMap[templateType] || lineMap.promo;
-    let tagCount = hashtags.length;
-    let text = '';
 
-    while (tagCount >= 1) {
-      text = lines.concat([hashtags.slice(0, tagCount).join(' ')]).join('\n');
-      if (text.length <= maxLen || tagCount <= 2) break;
-      tagCount -= 1;
+    for (let tagCount = hashtags.length; tagCount >= 0; tagCount -= 1) {
+      const tagLine = hashtags.slice(0, tagCount).join(' ');
+      const text = tagLine ? lines.concat([tagLine]).join('\n') : lines.join('\n');
+      if (text.length < maxLen) return text;
     }
 
-    return text;
+    const fallback = lines.join('\n');
+    return fallback.slice(0, Math.max(0, maxLen - 1));
   }
 
   function resetLicensePreset() {
@@ -516,11 +516,13 @@ if (resultBox) resultBox.style.display = 'none';
       tweetBtn.href = intent;
     };
 
+    lastCreatedUrl = res.createdUrl;
+
     if (tweetTemplate && tweetText) {
       tweetTemplate.value = 'promo';
-      tweetText.value = buildTweetText(tweetTemplate.value, res.createdUrl);
+      tweetText.value = buildTweetText(tweetTemplate.value, lastCreatedUrl);
       tweetTemplate.onchange = () => {
-        tweetText.value = buildTweetText(tweetTemplate.value, res.createdUrl);
+        tweetText.value = buildTweetText(tweetTemplate.value, lastCreatedUrl);
         syncTweetIntent();
       };
       tweetText.oninput = syncTweetIntent;
@@ -528,9 +530,13 @@ if (resultBox) resultBox.style.display = 'none';
     }
 
     if (tweetBtn) {
-      tweetBtn.onclick = () => {
-        syncTweetIntent();
-      };
+      tweetBtn._syncTweetIntent = syncTweetIntent;
+      if (!tweetBtn.dataset.intentSyncBound) {
+        tweetBtn.addEventListener('click', () => {
+          if (typeof tweetBtn._syncTweetIntent === 'function') tweetBtn._syncTweetIntent();
+        });
+        tweetBtn.dataset.intentSyncBound = '1';
+      }
     }
 
     // コピーボタン（毎回多重にイベントが付かないよう一旦初期化）
@@ -571,7 +577,7 @@ closeBtn.onclick = () => {
   document.body.classList.remove('modal-open'); // 背景ロック解除
   resultWrap.style.display = 'none';
   if (tweetTemplate) tweetTemplate.value = 'promo';
-  if (tweetText) tweetText.value = '';
+  if (tweetText) tweetText.value = buildTweetText('promo', lastCreatedUrl);
 };
     }
   }
