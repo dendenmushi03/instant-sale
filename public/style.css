@@ -575,3 +575,10 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
     text-overflow:ellipsis;
   }
 }
+@media (max-width:640px){
+  .modal__panel{padding:18px}
+}
+
+.siteHeader__nav::-webkit-scrollbar{height:6px}
+.siteHeader__nav::-webkit-scrollbar-thumb{background:rgba(20,20,20,.18);border-radius:999px}
+.siteHeader__nav::-webkit-scrollbar-track{background:transparent}
