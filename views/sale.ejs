@@ -151,13 +151,13 @@
   var srcBase  = "/view/<%= item.slug %>";   // 等倍生成エンドポイント
   var fitMode  = false; // false=等倍, true=画面フィット
 
-  function buildFullSrc(withBust){
-    return withBust ? (srcBase + '?t=' + Date.now()) : srcBase;
+  function fullUrl(){
+    return srcBase + "?t=" + Date.now();
   }
 
-  // 事前プリロードで初回の空白を防ぐ
+  // 事前プリロードで初回の空白を防ぐ（cache-bustなし）
   var pre = new Image();
-  pre.src = buildFullSrc(false);
+  pre.src = srcBase;
 
   function applyMode(){
     if (fitMode) {
@@ -174,7 +174,7 @@
   }
 
   function show(){
-    var srcFull = buildFullSrc(true); // 表示時にだけキャッシュ回避を付与
+    var srcFull = fullUrl(); // 表示時にだけキャッシュ回避を付与
     if (img.getAttribute('src') !== srcFull) img.setAttribute('src', srcFull);
     fitMode = false;
     applyMode();     // いつも等倍で開く
