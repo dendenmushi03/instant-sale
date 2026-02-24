@@ -174,6 +174,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 <div id="progressModal" class="modal" aria-hidden="true">
   <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="progressTitle">
     
+<div class="modalProgress" id="modalProgress">
 <h3 id="progressTitle" class="modal__title"><%= t('upload.modal.title') %></h3>
 <p id="progressPhase" class="modal__phase"><%= t('upload.modal.phase_uploading') %></p>
 
@@ -181,31 +182,46 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       <div id="progressBar" class="progress__bar"></div>
     </div>
     <p id="progressPct" class="progress__pct">0%</p>
+</div>
 
 <div id="resultInModal" class="modal__result">
   <div class="modal__result-title"><%= t('upload.modal.created') %></div>
-  
+
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="sale-page-url">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Sale page URL' : '販売ページURL' %></div>
+    <div class="urlRow">
       <input id="resultUrlInModal" type="text" readonly>
+      <button type="button" id="copyResultUrl" class="btn btn--primary"><%= t('upload.modal.btn_copy') %></button>
+    </div>
+  </section>
 
-      <div class="tweet-controls">
-        <label for="tweetTemplate"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
-        <select id="tweetTemplate">
-          <% if (lng === 'en') { %>
-            <option value="promo">Promotion (Standard)</option>
-            <option value="support">Support request (Buy to support)</option>
-            <option value="limited">Limited feel (today/limited quantity)</option>
-          <% } else { %>
-            <option value="promo">宣伝（標準）</option>
-            <option value="support">支援お願い（応援購入）</option>
-            <option value="limited">限定感（本日限定/数量限定風）</option>
-          <% } %>
-        </select>
-        <textarea id="tweetText" rows="5"></textarea>
-        <button type="button" id="copyTweetText" class="btn btn--primary"><%= (lng === 'en') ? 'Copy post text' : '本文をコピー' %></button>
-        <small><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
-      </div>
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="post-template">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Post text' : '投稿文テンプレ' %></div>
+    <div class="tweet-controls">
+      <label for="tweetTemplate"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
+      <select id="tweetTemplate">
+        <% if (lng === 'en') { %>
+          <option value="promo">Promotion (Standard)</option>
+          <option value="support">Support request (Buy to support)</option>
+          <option value="limited">Limited feel (today/limited quantity)</option>
+        <% } else { %>
+          <option value="promo">宣伝（標準）</option>
+          <option value="support">支援お願い（応援購入）</option>
+          <option value="limited">限定感（本日限定/数量限定風）</option>
+        <% } %>
+      </select>
+      <textarea id="tweetText" rows="5"></textarea>
+      <button type="button" id="copyTweetText" class="btn btn--primary"><%= (lng === 'en') ? 'Copy post text' : '本文をコピー' %></button>
+      <small><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
+    </div>
+  </section>
 
-      <div class="modal__result-actions">
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="actions">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Actions' : '操作' %></div>
+    <div class="modal__result-actions">
 
 <a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener">
   <img src="/public/x-icon.png" alt="X">
@@ -216,15 +232,15 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   <% } %>
 </a>
 
-<button type="button" id="copyResultUrl" class="btn btn--primary"><%= t('upload.modal.btn_copy') %></button>
 <a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open_sale') %></a>
 <button type="button" id="closeModal" class="btn btn--ghost"><%= t('upload.modal.btn_close') %></button>
 
-      </div>
-
- <p class="muted"><%= t('upload.modal.hint') %></p>
-
     </div>
+  </section>
+
+  <p class="muted"><%= t('upload.modal.hint') %></p>
+
+</div>
   </div>
 </div>
 
@@ -364,6 +380,7 @@ if (nowVal < minVal) {
     const bar   = document.getElementById('progressBar');
     const pct   = document.getElementById('progressPct');
     const phase = document.getElementById('progressPhase');
+    const modalProgress = document.getElementById('modalProgress');
 
 const resultBox = document.getElementById('ajaxResultBox');      // あってもなくてもOK
 // const resultUrl = document.getElementById('ajaxResultUrl');   // 未使用なら削除でOK
@@ -378,6 +395,7 @@ bar.style.width = '0%';
 
 pct.textContent = '0%';
 phase.textContent = I18N.uploading;
+if (modalProgress) modalProgress.classList.remove('is-hidden');
 
 modal.style.display = 'flex';
 document.body.classList.add('modal-open');   // ← 追加（スマホで背景を止める）
@@ -455,6 +473,7 @@ if (resultBox) resultBox.style.display = 'none';
   if (resultWrap && resultInput && openBtn) {
     resultInput.value = res.createdUrl;
     openBtn.href = res.createdUrl;
+    if (modalProgress) modalProgress.classList.add('is-hidden');
     resultWrap.style.display = 'block';
 
     const syncTweetIntent = () => {
@@ -523,6 +542,10 @@ closeBtn.onclick = () => {
   modal.style.display = 'none';
   document.body.classList.remove('modal-open'); // 背景ロック解除
   resultWrap.style.display = 'none';
+  if (modalProgress) modalProgress.classList.remove('is-hidden');
+  bar.style.width = '0%';
+  pct.textContent = '0%';
+  phase.textContent = I18N.uploading;
   if (tweetTemplate) tweetTemplate.value = 'promo';
   if (tweetText) tweetText.value = buildTweetText('promo', lastCreatedUrl);
 };
