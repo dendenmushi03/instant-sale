@@ -519,29 +519,6 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
   padding:0 14px;
 }
 
-/* SP: brand + menu in one row */
-@media (max-width:960px){
-  .siteHeader__inner{
-    grid-template-columns: 1fr auto;
-    align-items:center;
-    gap:10px;
-  }
-  .siteHeader__nav--desktop{ display:none; }
-  .siteHeader__actions--desktop{ display:none; }
-}
-
-/* PC: restore desktop header */
-@media (min-width:961px){
-  .mnav{ display:none; }
-  .siteHeader__inner{
-    grid-template-columns: auto 1fr auto;
-  }
-  .siteHeader__nav--desktop,
-  .siteHeader__actions--desktop{
-    display:flex;
-  }
-}
-
 /* Header v3 mobile stability patch */
 .siteHeader__menuWrap,
 .mnav{
@@ -559,21 +536,6 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
   border:1px solid var(--border);
   border-radius:16px;
   box-shadow:var(--shadow-soft);
-}
-
-@media (max-width:960px){
-  .siteHeader__inner{
-    grid-template-columns:1fr auto;
-  }
-
-  .siteHeader__nav:not(.mnav__nav){display:none}
-  .siteHeader__actions:not(.mnav__actions){display:none}
-
-  .siteHeader__name{
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
 }
 
 /* Header v3 interaction patch */
@@ -603,8 +565,11 @@ body.menu-open{
   .siteHeader__inner{
     grid-template-columns:1fr auto;
     align-items:center;
+    gap:10px;
   }
 
+  .siteHeader__nav:not(.mnav__nav){display:none}
+  .siteHeader__actions:not(.mnav__actions){display:none}
   .siteHeader__nav--desktop,
   .siteHeader__actions--desktop{display:none}
 
@@ -631,6 +596,9 @@ body.menu-open{
 
 @media (min-width:961px){
   .mnav{display:none}
+  .siteHeader__inner{
+    grid-template-columns:auto 1fr auto;
+  }
   .siteHeader__nav--desktop,
   .siteHeader__actions--desktop{display:flex}
 }
@@ -688,103 +656,6 @@ body.menu-open{
 .section-license{margin-top:12px}
 @media (min-width:768px){
   .section-license{margin-top:16px}
-}
-
-/* Header v3 interaction patch */
-body.menu-open{
-  position:fixed;
-  left:0;
-  right:0;
-  width:100%;
-  overflow:hidden;
-}
-
-.mnav[open]::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:rgba(20,20,20,.24);
-  z-index:70;
-}
-
-.mnav[open] .mnav__panel{
-  z-index:81;
-}
-
-@media (max-width:960px){
-  .mnav{display:block}
-
-  .siteHeader__inner{
-    grid-template-columns:1fr auto;
-    align-items:center;
-  }
-
-  .siteHeader__nav--desktop,
-  .siteHeader__actions--desktop{display:none}
-
-  .siteHeader__name{
-    min-width:0;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  .mnav__panel{
-    position:fixed;
-    top:calc(56px + env(safe-area-inset-top));
-    right:12px;
-    width:min(calc(100vw - 24px),420px);
-    max-height:calc(100dvh - 72px - env(safe-area-inset-top));
-    overflow:auto;
-    padding:12px;
-    border:1px solid var(--border);
-    border-radius:16px;
-    box-shadow:var(--shadow-soft);
-  }
-}
-
-@media (min-width:961px){
-  .mnav{display:none}
-  .siteHeader__nav--desktop,
-  .siteHeader__actions--desktop{display:flex}
-}
-
-/* =========================
-   Product (sale page) mobile UX
-   ========================= */
-
-/* スマホ：画像がデカすぎ問題を抑える */
-@media (max-width: 768px){
-  .product-imageWrap{
-    max-height: 52vh;
-  }
-  .product-image{
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-}
-
-/* 購入CTAカード */
-.buyCard{
-  margin-top: 14px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-
-.buyCard__top{ margin-bottom: 12px; }
-.buyCard__tax{ margin-top: 4px; }
-
-.buyCard__form{ margin-top: 10px; }
-.buyCard__btn{ width: 100%; height: 50px; font-size: 15px; }
-
-.buyCard__details{
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
 }
 
 .buyCard__summary{
