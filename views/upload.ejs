@@ -9,58 +9,6 @@
 <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
 <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
 
-  <style>
-  .setup{display:grid;gap:12px;margin:12px 0}
-  .setup__item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
-  .setup__status{font-size:20px;min-width:24px;text-align:center}
-  .setup__body{flex:1}
-  .setup__title{font-weight:700}
-  .setup__desc{opacity:.85;font-size:.95em}
-  /* === 横一列の価格計算行 === */
-  .priceRow{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:10px 0 14px}
-  .priceCol{display:flex;flex-direction:column;gap:6px}
-  .priceLabel{font-size:.92rem;opacity:.9}
-  .op{font-weight:800;font-size:22px;line-height:44px;opacity:.95;min-width:22px;text-align:center}
-.readonlyBox{
-  height:44px;padding:10px 12px;border:1px solid var(--border);
-  border-radius:8px;background:var(--surface);
-  color:#000;                 /* ← 黒 */
-  -webkit-text-fill-color:#000; /* ← iOS/Safari対策 */
-  opacity:1;                 /* ← 一部ブラウザの薄色化対策 */
-  font-weight:700;
-}
-/* 念のため readonly 状態にも明示 */
-.readonlyBox[readonly]{
-  color:#000;
-  -webkit-text-fill-color:#000;
-  opacity:1;
-}
-  .readonlyBox--em{font-size:20px}
-  @media (max-width:640px){
-    .priceRow{align-items:stretch}
-    .op{line-height:1.2}
-  }
-    /* number入力のプレースホルダを見やすく */
-  input[type="number"]::placeholder{
-    opacity:.6; /* iOS/Safari も反映されます */
-  }
-
-  /* -- モーダルの「閉じる」をグレーに -- */
-  #closeModal{
-    background:#e5e7eb;            /* 明るいグレー */
-    color:#111;                     /* 濃い文字色 */
-    border:1px solid #d1d5db;       /* 薄い枠線 */
-  }
-  #closeModal:hover{
-    background:#dcdfe3;             /* ほんのり濃く */
-  }
-  #closeModal:focus{
-    outline:2px solid #9aa4b2;      /* アクセシビリティ */
-    outline-offset:2px;
-  }
-
-</style>
-
 </head>
 
 <body class="layout">
@@ -84,24 +32,24 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
 <% if (typeof connect !== 'undefined' && connect && connect.hasAccount && connect.payoutsEnabled) { %>
   <!-- ✅ 完了カード -->
-  <section class="card" style="margin:14px 0; background:#0b2b16; border:1px solid #1b5e20; color:#eafff3">
-    <div style="display:flex; gap:12px; align-items:flex-start;">
-      <div style="font-size:22px; line-height:1;">✅</div>
-      <div style="flex:1;">
-        <div style="font-weight:800; font-size:1.05rem; margin-bottom:6px;"><%= _okTitle %></div>
-        <p style="opacity:.9; margin:0 0 10px;"><%= _okDesc %></p>
+  <section class="status-card status-card--success">
+    <div class="status-card__inner">
+      <div class="status-card__icon">✅</div>
+      <div class="status-card__body">
+        <div class="status-card__title"><%= _okTitle %></div>
+        <p class="status-card__desc"><%= _okDesc %></p>
         <a class="btn btn--primary" href="/connect/portal"><%= _okBtn %></a>
       </div>
     </div>
   </section>
 <% } else { %>
   <!-- ⚠️ 未完了カード -->
-  <section class="card" style="margin:14px 0; background:#2a0f12; border:1px solid #6a1a21; color:#ffecec">
-    <div style="display:flex; gap:12px; align-items:flex-start;">
-      <div style="font-size:22px; line-height:1;">⚠️</div>
-      <div style="flex:1;">
-        <div style="font-weight:800; font-size:1.05rem; margin-bottom:6px;"><%= _ngTitle %></div>
-        <p style="opacity:.9; margin:0 0 10px;"><%= _ngDesc1 %></p>
+  <section class="status-card status-card--warning">
+    <div class="status-card__inner">
+      <div class="status-card__icon">⚠️</div>
+      <div class="status-card__body">
+        <div class="status-card__title"><%= _ngTitle %></div>
+        <p class="status-card__desc"><%= _ngDesc1 %></p>
         <a class="btn btn--primary" href="/connect/onboard"><%= _ngBtn %></a>
       </div>
     </div>
@@ -128,7 +76,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 <div class="priceRow" id="priceRow"
      data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
 
-  <label class="priceCol" style="min-width:200px;flex:1">
+  <label class="priceCol priceCol--wide">
     <span class="priceLabel"><%= t('upload.price.price') %></span>
     
 <input id="priceInput" type="number" name="price"
@@ -143,7 +91,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
   <div class="op">−</div>
 
-  <div class="priceCol" style="min-width:180px">
+  <div class="priceCol">
     <span class="priceLabel">
       <%= t('upload.price.fee') %>（<span id="feeRateText"></span>）
     </span>
@@ -152,7 +100,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
   <div class="op">＝</div>
 
-  <div class="priceCol" style="min-width:200px">
+  <div class="priceCol priceCol--wide">
     <span class="priceLabel"><%= t('upload.price.profit') %></span>
     <input id="profitVal" type="text" class="readonlyBox readonlyBox--em" value="¥0" readonly aria-readonly="true" />
   </div>
@@ -170,7 +118,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   <%- t('upload.agree_terms_html') %>
 </label>
 
-<section class="card" style="margin-top:16px">
+<section class="card">
   <h2><%= t('upload.license.h2') %></h2>
 
   <div class="licenseList">
@@ -208,7 +156,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </label>
   </div>
 
-  <p class="muted" style="margin-top:8px">
+  <p class="muted">
     <%- t('upload.license.notice_html') %>
   </p>
 
@@ -226,23 +174,22 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 <div id="progressModal" class="modal" aria-hidden="true">
   <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="progressTitle">
     
-<h3 id="progressTitle" style="margin:0 0 8px;font-size:18px;"><%= t('upload.modal.title') %></h3>
-<p id="progressPhase" style="margin:0 0 12px;opacity:.9"><%= t('upload.modal.phase_uploading') %></p>
+<h3 id="progressTitle" class="modal__title"><%= t('upload.modal.title') %></h3>
+<p id="progressPhase" class="modal__phase"><%= t('upload.modal.phase_uploading') %></p>
 
     <div class="progress">
       <div id="progressBar" class="progress__bar"></div>
     </div>
     <p id="progressPct" class="progress__pct">0%</p>
 
-<div id="resultInModal" style="display:none;margin-top:14px;">
-  <div style="font-weight:700;margin:0 0 8px;"><%= t('upload.modal.created') %></div>
+<div id="resultInModal" class="modal__result">
+  <div class="modal__result-title"><%= t('upload.modal.created') %></div>
   
-      <input id="resultUrlInModal" type="text" readonly
-             style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
+      <input id="resultUrlInModal" type="text" readonly>
 
-      <div style="margin-top:12px;display:grid;gap:8px;">
-        <label for="tweetTemplate" style="font-size:.95em;opacity:.95;"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
-        <select id="tweetTemplate" style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;">
+      <div class="tweet-controls">
+        <label for="tweetTemplate"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
+        <select id="tweetTemplate">
           <% if (lng === 'en') { %>
             <option value="promo">Promotion (Standard)</option>
             <option value="support">Support request (Buy to support)</option>
@@ -253,15 +200,15 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
             <option value="limited">限定感（本日限定/数量限定風）</option>
           <% } %>
         </select>
-        <textarea id="tweetText" rows="5" style="width:100%;background:#0b2015;border:1px solid #2d6a3f;border-radius:8px;padding:10px;color:#c9fdd7;"></textarea>
+        <textarea id="tweetText" rows="5"></textarea>
         <button type="button" id="copyTweetText" class="btn btn--primary"><%= (lng === 'en') ? 'Copy post text' : '本文をコピー' %></button>
-        <small style="opacity:.85;"><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
+        <small><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
       </div>
 
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+      <div class="modal__result-actions">
 
-<a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:6px;">
-  <img src="/public/x-icon.png" alt="X" style="width:18px;height:18px;vertical-align:middle;">
+<a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener">
+  <img src="/public/x-icon.png" alt="X">
   <% if (lng === 'en') { %>
     <span>Sell on</span>
   <% } else { %>
@@ -275,7 +222,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
       </div>
 
- <p style="margin:10px 0 0;"><%= t('upload.modal.hint') %></p>
+ <p class="muted"><%= t('upload.modal.hint') %></p>
 
     </div>
   </div>
