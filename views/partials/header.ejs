@@ -1,54 +1,38 @@
-<header class="nav">
-  <a class="nav__brand" href="/">
-    <img class="nav__logo"
-         src="/public/logo.png?v=<%= assetVer %>"
-         alt="<%= t ? t('brand') : 'Instant Sale' %>"
-         width="28" height="28" loading="eager" decoding="async" />
-    <span class="nav__brandText"><%= t ? t('brand') : 'Instant Sale' %></span>
-  </a>
+<header class="siteHeader">
+  <div class="siteHeader__inner">
+    <a class="siteHeader__brand" href="/">
+      <img class="siteHeader__logo" src="/public/logo.png?v=<%= assetVer %>" alt="Instant Sale" />
+      <span class="siteHeader__name"><%= t('brand') %></span>
+    </a>
 
-  <nav class="nav__right">
-    <% if (me) { %>
-      <span class="nav__user"><%= me.name || me.email %></span>
+    <nav class="siteHeader__nav" aria-label="primary">
+      <a class="siteHeader__link <%= (currentPath === '/' ? 'is-active' : '') %>" href="/"><%= t('nav.home') %></a>
+      <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/image-license') ? 'is-active' : '') %>" href="/image-license"><%= t('nav.license') %></a>
+      <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/terms') ? 'is-active' : '') %>" href="/terms"><%= t('nav.terms') %></a>
+      <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/privacy') ? 'is-active' : '') %>" href="/privacy"><%= t('nav.privacy') %></a>
+    </nav>
 
-<form method="post" action="/logout" class="inline" aria-label="logout">
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <button class="btn btn--ghost" type="submit"><%= t ? t('nav.logout') : 'Logout' %></button>
-</form>
+    <div class="siteHeader__actions">
 
-      <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google"><%= t ? t('nav.login_google') : 'Sign in with Google' %></a>
-    <% } %>
-
-    <!-- Language Switcher -->
-    <div class="dropdown">
-      <button class="btn btn--ghost">
-        <%= t ? t('nav.language') : 'Language' %>：
-        <%= (lng === 'en') ? (t ? t('lang.en') : 'English') : (t ? t('lang.ja') : '日本語') %>
-      </button>
-
-      <div class="dropdown__menu">
-        <% /* 現在のページURL（クエリ/ハッシュ含む）を return に付与。
-             server.js の middleware で res.locals.currentPath をセット済み。 */ %>
-        <% const __ret = encodeURIComponent(
-             (typeof currentPath === 'string' && currentPath) ? currentPath : '/'
-           ); %>
-
-        <a class="dropdown__item"
-           href="/lang?lng=ja&return=<%= __ret %>"
-           hreflang="ja"
-           aria-current="<%= lng==='ja' ? 'true' : 'false' %>">
-          <%= t ? t('lang.ja') : '日本語' %>
-        </a>
-
-        <a class="dropdown__item"
-           href="/lang?lng=en&return=<%= __ret %>"
-           hreflang="en"
-           aria-current="<%= lng==='en' ? 'true' : 'false' %>">
-          <%= t ? t('lang.en') : 'English' %>
-        </a>
+      <!-- 言語切替（server.js が langMenu を用意済み） -->
+      <div class="langSwitch" aria-label="language">
+        <% if (langMenu && langMenu.length) { %>
+          <select class="langSwitch__select" aria-label="language" onchange="location.href=this.value">
+            <% langMenu.forEach(function(x){ %>
+              <option value="<%= x.url %>" <%= x.active ? 'selected' : '' %>><%= x.label %></option>
+            <% }) %>
+          </select>
+        <% } %>
       </div>
-    </div>
 
-  </nav>
+      <% if (me) { %>
+        <a class="btn btn--ghost" href="/creator"><%= t('nav.creator') %></a>
+        <a class="btn btn--ghost" href="/connect/portal"><%= t('nav.payouts') %></a>
+        <!-- server.js 仕様：/logout は CSRF 例外 & app.all なので GETリンクでOK -->
+        <a class="btn btn--ghost" href="/logout"><%= t('nav.logout') %></a>
+      <% } else { %>
+        <a class="btn btn--primary" href="/auth/google"><%= t('nav.login') %></a>
+      <% } %>
+    </div>
+  </div>
 </header>

@@ -5,7 +5,6 @@
   "nav.language": "Language",
   "lang.ja": "日本語",
   "lang.en": "English",
-
   "home.title_full": "Instant Sale | Sell images in 3 steps",
   "home.hero.title_prefix": "Sell your images in ",
   "home.hero.title_accent": "3 steps",
@@ -13,7 +12,6 @@
   "home.hero.lead": "Upload → Set price → Get a shareable link. Secure Stripe checkout with automatic download.",
   "home.hero.cta_authed": "Upload and start selling",
   "home.hero.cta_guest": "Sign in to start",
-
   "howto.title": "How it works",
   "howto.step1.title": "Upload your image",
   "howto.step1.desc": "We auto-generate preview/OGP and a watermarked full image.",
@@ -21,7 +19,6 @@
   "howto.step2.desc": "Just set a tax-inclusive price. Currency/minimum are preconfigured. Optional creator name.",
   "howto.step3.title": "Share the link",
   "howto.step3.desc": "A product URL is issued. Buyers pay via Stripe and get the original automatically. Payouts are processed accordingly.",
-
   "upload.title_full": "Upload | Instant Sale",
   "upload.h1": "Create an instant sales link",
   "upload.field.file": "File to sell",
@@ -33,7 +30,6 @@
   "upload.price.fee": "Platform fee",
   "upload.price.profit": "Your payout (after fee)",
   "upload.attest": "I am the rights holder (or duly authorized to sell this image).",
-
   "upload.license.h2": "License",
   "upload.license.editorial.title": "Non-commercial use",
   "upload.license.editorial.desc": "Personal use only. e.g., SNS avatar, blog, wallpaper.",
@@ -45,7 +41,6 @@
   "upload.license.exclusive.desc": "e.g., advertising creatives, packaged sales.",
   "upload.license.notice_html": "See <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">Image License Policy</a> for common rules.",
   "upload.submit": "Create product page",
-
   "upload.modal.title": "Uploading…",
   "upload.modal.phase_uploading": "Uploading your file",
   "upload.modal.phase_processing": "We are currently creating a sales page...",
@@ -56,14 +51,12 @@
   "upload.modal.copied": "Copied",
   "upload.modal.btn_close": "Close",
   "upload.modal.hint": "Keep this URL safe. You can revisit your page anytime with this link.",
-
   "footer": {
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "tokushoho": "Legal Notice (Japan)",
     "image_license": "Image License"
   },
-
   "terms": {
     "title": "Terms of Service",
     "h1": "Terms of Service",
@@ -113,7 +106,6 @@
     "law_html": "These Terms are governed by {{law}}. The exclusive agreed jurisdiction is {{court}}.",
     "contact_prefix": "For inquiries about these Terms: "
   },
-
   "privacy": {
     "title": "Privacy Policy",
     "h1": "Privacy Policy",
@@ -151,7 +143,6 @@
     "retention_html": "We retain data only as long as necessary for legal or operational purposes, and delete it appropriately when no longer needed.",
     "contact_prefix": "For inquiries about this policy: "
   },
-
   "tokushoho": {
     "title": "Legal Notice (Japan)",
     "h1": "Legal Notice",
@@ -162,8 +153,8 @@
       "contact": "Contact",
       "website": "Website",
       "price": "Price",
-          "phone": "Phone",
-    "email": "Email",
+      "phone": "Phone",
+      "email": "Email",
       "otherFees": "Other fees",
       "paymentMethod": "Payment method",
       "paymentTiming": "Payment timing",
@@ -191,30 +182,27 @@
       "stripe_html": "Payments are processed by Stripe.<br>We do not store card numbers on our service."
     }
   },
-
   "image_license": {
-  "title": "Image License",
-  "h1": "Image License",
-  "intro_html": "This page describes the common license rules for images sold on {{site}}.",
-  "page": {
-    "last_updated_prefix": "Last updated: {{date}}",
-    "common_title": "Common Rules",
-    "common_rules_html": "<ul><li>Buyers may use the purchased image <b>within the scope of the license preset</b> written on each product page (personal / standard / limited commercial / exclusive).</li><li><b>Credit notation is not required</b> (platform policy).</li><li><b>Redistribution / resale is prohibited</b> (including wallpaper packs, template distribution, NFT, etc.).</li><li><b>AI training</b> (training data / fine-tuning / embedding) <b>is not allowed</b>.</li><li>Do not use for illegal, discriminatory, defamatory or offensive purposes; do not infringe privacy/portrait rights, third-party trademarks or copyrights.</li></ul>",
-    "presets_title": "License Presets",
-    "personal_title": "Non-commercial (personal)",
-    "personal_desc_html": "<ul><li>Personal use only (SNS icon / personal blog / wallpaper, etc.).</li><li><b>No profit-seeking usage</b> (ads / promotion / sales / client work are not allowed).</li></ul>",
-    "standard_title": "Commercial use",
-    "standard_desc_html": "<ul><li>Allowed for SNS posts, corporate SNS, website materials, thumbnails, etc.</li><li>Not allowed for mass production / logo use / trademark registration / resale as materials.</li></ul>",
-    "lite_title": "Limited commercial",
-    "lite_desc_html": "<ul><li>Allowed for small-lot sales such as doujin goods, novelty items, etc.</li><li>Mass production, large-scale retail, or brand/logo usage is not covered.</li></ul>",
-    "exclusive_title": "Full commercial",
-    "exclusive_desc_html": "<ul><li>Allowed for advertising creatives, packaged sales, etc.</li><li>If you need exclusive usage or transfer of rights, please contact us in advance.</li></ul>"
-  }
-},
-
+    "title": "Image License",
+    "h1": "Image License",
+    "intro_html": "This page describes the common license rules for images sold on {{site}}.",
+    "page": {
+      "last_updated_prefix": "Last updated: {{date}}",
+      "common_title": "Common Rules",
+      "common_rules_html": "<ul><li>Buyers may use the purchased image <b>within the scope of the license preset</b> written on each product page (personal / standard / limited commercial / exclusive).</li><li><b>Credit notation is not required</b> (platform policy).</li><li><b>Redistribution / resale is prohibited</b> (including wallpaper packs, template distribution, NFT, etc.).</li><li><b>AI training</b> (training data / fine-tuning / embedding) <b>is not allowed</b>.</li><li>Do not use for illegal, discriminatory, defamatory or offensive purposes; do not infringe privacy/portrait rights, third-party trademarks or copyrights.</li></ul>",
+      "presets_title": "License Presets",
+      "personal_title": "Non-commercial (personal)",
+      "personal_desc_html": "<ul><li>Personal use only (SNS icon / personal blog / wallpaper, etc.).</li><li><b>No profit-seeking usage</b> (ads / promotion / sales / client work are not allowed).</li></ul>",
+      "standard_title": "Commercial use",
+      "standard_desc_html": "<ul><li>Allowed for SNS posts, corporate SNS, website materials, thumbnails, etc.</li><li>Not allowed for mass production / logo use / trademark registration / resale as materials.</li></ul>",
+      "lite_title": "Limited commercial",
+      "lite_desc_html": "<ul><li>Allowed for small-lot sales such as doujin goods, novelty items, etc.</li><li>Mass production, large-scale retail, or brand/logo usage is not covered.</li></ul>",
+      "exclusive_title": "Full commercial",
+      "exclusive_desc_html": "<ul><li>Allowed for advertising creatives, packaged sales, etc.</li><li>If you need exclusive usage or transfer of rights, please contact us in advance.</li></ul>"
+    }
+  },
   "upload.agree_terms_html": "I agree to the <a href=\"/terms\" target=\"_blank\" rel=\"noopener\">Terms of Service</a>.",
-
-    "product": {
+  "product": {
     "tax_note": "Prices include tax.",
     "seller_label": "Seller:",
     "legal_link": "Legal disclosure (Act on Specified Commercial Transactions)",
@@ -223,36 +211,35 @@
     "license_h2": "License & Usage",
     "license_notice_html": "See the <a href=\"/image-license\" target=\"_blank\" rel=\"noopener\">Image License Policy</a> for common rules."
   },
-
   "og": {
     "sale_title_suffix": "Instant download",
     "sale_desc": "Buy high-res now (¥{{price}})"
-  }
-,
+  },
   "checkout.done_title": "Thank you for your purchase 🎉",
   "checkout.done_desc": "You can download the high-resolution file using the button below.",
   "checkout.expire_note_html": "※ Expiration: <strong>{{minutes}} min</strong> (until {{time}})",
   "checkout.download_btn": "Download",
-
   "download.title": "Download | {{title}}",
   "download.notice_line1_html": "Long-press the displayed image to save it.",
   "download.notice_line2": "You will not be able to download after closing this page.",
   "download.expire_note": "Expires in {{minutes}} min, until {{time}}",
   "download.img_alt": "Download image of {{title}}",
-
   "terms.fees.expiration_title": "Unclaimed Earnings Policy (180-Day Expiration)",
   "terms.fees.expiration_html": "To receive earnings, sellers must complete Stripe’s payout setup (create a Stripe Express account, complete identity verification, and register/activate a bank account). If the payout setup is not completed within <strong>180 days</strong> from the payment completion date, such earnings may, at our discretion, <strong>expire</strong>, and the seller forfeits the right to receive them. Expired earnings are not returned.",
   "terms.fees.expiration_note_html": "While the payout setup remains incomplete, earnings are held by us in accordance with our policy. If the seller completes the payout setup during the hold period, we will process the payout within a reasonable timeframe. Chargebacks and other adjustments follow Stripe’s rules and processes.",
-
   "tokushoho.label.payout_notice": "Special Notice on Payouts",
   "tokushoho.value.payout_notice_html": "Sellers must complete Stripe’s payout setup (Stripe Express account, identity verification, and bank account registration/activation). Earnings for which the payout setup is not completed within <strong>180 days</strong> from payment may <strong>expire</strong>.",
-
   "privacy.collected.payout.h3": "Information Related to Payments & Payout Setup",
   "privacy.collected.payout.item1": "Stripe Connect connection status (connected account ID, payout eligibility, last updated time, etc.)",
   "privacy.collected.payout.item2": "Internal statuses necessary to determine/hold/expire unclaimed earnings (180-day rule)",
   "privacy.collected.payout.item3": "Note: Sensitive card information is stored by Stripe, not by our service.",
-
   "privacy.usage.expiration_ops_html": "Operating the 180-day unclaimed-earnings policy: verifying Stripe payout setup, holding/unholding balances, notifying users, and expiring unclaimed earnings.",
-
-  "image_license.note.payout_expiration_html": "Note: Seller earnings are held until the Stripe payout setup is completed. If the payout setup is not completed within <strong>180 days</strong> from payment, such earnings may <strong>expire</strong>."
+  "image_license.note.payout_expiration_html": "Note: Seller earnings are held until the Stripe payout setup is completed. If the payout setup is not completed within <strong>180 days</strong> from payment, such earnings may <strong>expire</strong>.",
+  "nav.home": "Home",
+  "nav.license": "License",
+  "nav.terms": "Terms",
+  "nav.privacy": "Privacy",
+  "nav.creator": "Creator",
+  "nav.payouts": "Payouts",
+  "nav.login": "Log in"
 }
