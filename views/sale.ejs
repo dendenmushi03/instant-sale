@@ -148,11 +148,16 @@
   var btnClose = modal.querySelector('.lightbox__close');
   var btnFit   = modal.querySelector('.lightbox__fit');
   var img      = document.getElementById('viewerImg');
-  var srcFull  = "/view/<%= item.slug %>";   // 等倍生成エンドポイント
+  var srcBase  = "/view/<%= item.slug %>";   // 等倍生成エンドポイント
   var fitMode  = false; // false=等倍, true=画面フィット
 
+  function buildFullSrc(withBust){
+    return withBust ? (srcBase + '?t=' + Date.now()) : srcBase;
+  }
+
   // 事前プリロードで初回の空白を防ぐ
-  var pre = new Image(); pre.src = srcFull;
+  var pre = new Image();
+  pre.src = buildFullSrc(false);
 
   function applyMode(){
     if (fitMode) {
@@ -169,15 +174,12 @@
   }
 
   function show(){
+    var srcFull = buildFullSrc(true); // 表示時にだけキャッシュ回避を付与
     if (img.getAttribute('src') !== srcFull) img.setAttribute('src', srcFull);
-    fitMode = false; applyMode();     // いつも等倍で開く
-try {
-    var url = '/view/<%= item.slug %>?t=' + Date.now(); // キャッシュ回避
-    var img = modal.querySelector('.lightbox__img');
-    if (img && img.src !== url) img.src = url;
-  } catch(_) {}
-  modal.hidden = false;
-  document.body.style.overflow = 'hidden';
+    fitMode = false;
+    applyMode();     // いつも等倍で開く
+    modal.hidden = false;
+    document.body.classList.add('modal-open');
 
     var inner = modal.querySelector('.lightbox__inner');
     if (inner) inner.scrollTo({left:0, top:0, behavior:'auto'}); // 左上から開始
@@ -185,7 +187,7 @@ try {
 
   function hide(){
     modal.hidden = true;
-    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
   }
 
   opener.addEventListener('click', function(e){ e.preventDefault(); show(); });
