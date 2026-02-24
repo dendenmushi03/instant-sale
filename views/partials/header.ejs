@@ -11,7 +11,7 @@
     <% if (me) { %>
       <span class="nav__user"><%= me.name || me.email %></span>
 
-<form method="post" action="/logout" class="inline">
+<form method="post" action="/logout" class="inline" aria-label="logout">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <button class="btn btn--ghost" type="submit"><%= t ? t('nav.logout') : 'Logout' %></button>
 </form>
