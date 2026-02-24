@@ -184,28 +184,39 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
 <div id="resultInModal" class="modal__result">
   <div class="modal__result-title"><%= t('upload.modal.created') %></div>
-  
-      <input id="resultUrlInModal" type="text" readonly>
 
-      <div class="tweet-controls">
-        <label for="tweetTemplate"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
-        <select id="tweetTemplate">
-          <% if (lng === 'en') { %>
-            <option value="promo">Promotion (Standard)</option>
-            <option value="support">Support request (Buy to support)</option>
-            <option value="limited">Limited feel (today/limited quantity)</option>
-          <% } else { %>
-            <option value="promo">宣伝（標準）</option>
-            <option value="support">支援お願い（応援購入）</option>
-            <option value="limited">限定感（本日限定/数量限定風）</option>
-          <% } %>
-        </select>
-        <textarea id="tweetText" rows="5"></textarea>
-        <button type="button" id="copyTweetText" class="btn btn--primary"><%= (lng === 'en') ? 'Copy post text' : '本文をコピー' %></button>
-        <small><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
-      </div>
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="sale-page-url">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Sale page URL' : '販売ページURL' %></div>
+    <input id="resultUrlInModal" type="text" readonly>
+  </section>
 
-      <div class="modal__result-actions">
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="post-template">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Post text' : '投稿文テンプレ' %></div>
+    <div class="tweet-controls">
+      <label for="tweetTemplate"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
+      <select id="tweetTemplate">
+        <% if (lng === 'en') { %>
+          <option value="promo">Promotion (Standard)</option>
+          <option value="support">Support request (Buy to support)</option>
+          <option value="limited">Limited feel (today/limited quantity)</option>
+        <% } else { %>
+          <option value="promo">宣伝（標準）</option>
+          <option value="support">支援お願い（応援購入）</option>
+          <option value="limited">限定感（本日限定/数量限定風）</option>
+        <% } %>
+      </select>
+      <textarea id="tweetText" rows="5"></textarea>
+      <button type="button" id="copyTweetText" class="btn btn--primary"><%= (lng === 'en') ? 'Copy post text' : '本文をコピー' %></button>
+      <small><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
+    </div>
+  </section>
+
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="actions">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Actions' : '操作' %></div>
+    <div class="modal__result-actions">
 
 <a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener">
   <img src="/public/x-icon.png" alt="X">
@@ -220,11 +231,12 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 <a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open_sale') %></a>
 <button type="button" id="closeModal" class="btn btn--ghost"><%= t('upload.modal.btn_close') %></button>
 
-      </div>
-
- <p class="muted"><%= t('upload.modal.hint') %></p>
-
     </div>
+  </section>
+
+  <p class="muted"><%= t('upload.modal.hint') %></p>
+
+</div>
   </div>
 </div>
 
