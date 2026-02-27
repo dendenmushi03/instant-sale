@@ -66,8 +66,8 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
 
   <div class="formGrid">
-    <section class="card formCard formCard--primary">
-      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Sale data' : '販売データ' %></h2>
+    <section class="card formCard">
+      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 1 — Image' : 'Step 1：画像' %></h2>
 
       <div class="fileField">
         <label><%= t('upload.field.file') %></label>
@@ -77,6 +77,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
           <div id="imageFileName" class="fileName"><%= (lng === 'en') ? 'No file selected' : '未選択' %></div>
         </div>
       </div>
+    </section>
+
+    <section class="card formCard formCard--primary">
+      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 2 — Sale details' : 'Step 2：販売データ' %></h2>
 
       <label><%= t('upload.field.title') %>
         <input type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
@@ -122,22 +126,8 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       </div>
     </section>
 
-    <section class="card formCard formCard--confirm">
-      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Confirmation' : '確認' %></h2>
-
-      <label>
-        <input type="checkbox" name="attestOwner" required />
-        <%= t('upload.attest') %>
-      </label>
-
-      <label>
-        <input type="checkbox" name="agreeTerms" required />
-        <%- t('upload.agree_terms_html') %>
-      </label>
-    </section>
-
     <section class="card formCard formCard--license">
-      <h2 class="formSectionTitle"><%= t('upload.license.h2') %></h2>
+      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 3 — License' : 'Step 3：ライセンス' %></h2>
 
       <div class="licenseList">
         <label class="licenseRow">
@@ -177,6 +167,20 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       <p class="muted">
         <%- t('upload.license.notice_html') %>
       </p>
+    </section>
+
+    <section class="card formCard formCard--confirm">
+      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Final — Confirmation' : '最終確認' %></h2>
+
+      <label>
+        <input type="checkbox" name="attestOwner" required />
+        <%= t('upload.attest') %>
+      </label>
+
+      <label>
+        <input type="checkbox" name="agreeTerms" required />
+        <%- t('upload.agree_terms_html') %>
+      </label>
     </section>
   </div>
 
