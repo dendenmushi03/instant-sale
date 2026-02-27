@@ -61,115 +61,128 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       <!-- CSRF token -->
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-<div class="fileField">
-  <label><%= t('upload.field.file') %></label>
-  <div class="fileRow">
-    <input id="imageInput" class="fileInput" type="file" name="image" accept="image/*" required />
-    <label for="imageInput" class="fileBtn"><%= (lng === 'en') ? 'Choose file' : 'ファイルを選ぶ' %></label>
-    <div id="imageFileName" class="fileName"><%= (lng === 'en') ? 'No file selected' : '未選択' %></div>
-  </div>
-</div>
+  <p class="pageLead"><%= (lng === 'en') ? 'Upload an image, set a price, and get a shareable sales URL.' : '画像をアップロードして、価格を設定すると販売ページURLが発行されます。' %></p>
 
-<label><%= t('upload.field.title') %>
-  <input type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
-</label>
+  <div class="formGrid">
+    <section class="card formCard formCard--primary">
+      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Sale data' : '販売データ' %></h2>
 
-<label><%= t('upload.field.creator') %>
-  <input type="text" name="creatorName" placeholder="<%= t('upload.field.creator_ph') %>" />
-</label>
-
-<div class="priceRow" id="priceRow"
-     data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
-
-  <label class="priceCol priceCol--wide">
-    <span class="priceLabel"><%= t('upload.price.price') %></span>
-    
-<input id="priceInput" type="number" name="price"
-       min="<%= (typeof minPrice === 'number' ? minPrice : 300) %>"
-       step="1"
-       placeholder="¥<%= (typeof minPrice === 'number' ? minPrice : 300) %>〜"
-       inputmode="numeric"
-       autocomplete="off"
-       required />
-
-          </label>
-
-  <div class="op">−</div>
-
-  <div class="priceCol">
-    <span class="priceLabel">
-      <%= t('upload.price.fee') %>（<span id="feeRateText"></span>）
-    </span>
-    <input id="feeVal" type="text" class="readonlyBox" value="¥0" readonly aria-readonly="true" />
-  </div>
-
-  <div class="op">＝</div>
-
-  <div class="priceCol priceCol--wide">
-    <span class="priceLabel"><%= t('upload.price.profit') %></span>
-    <input id="profitVal" type="text" class="readonlyBox readonlyBox--em" value="¥0" readonly aria-readonly="true" />
-  </div>
-
-  <input type="hidden" name="currency" value="jpy" />
-</div>
-
-<label>
-  <input type="checkbox" name="attestOwner" required />
-  <%= t('upload.attest') %>
-</label>
-
-<label>
-  <input type="checkbox" name="agreeTerms" required />
-  <%- t('upload.agree_terms_html') %>
-</label>
-
-<section class="card">
-  <h2><%= t('upload.license.h2') %></h2>
-
-  <div class="licenseList">
-    <label class="licenseRow">
-      <!-- ※ バックエンドは 'editorial' を期待。現状 'personal' だったので修正 -->
-      <input type="radio" name="licensePreset" value="editorial" checked>
-      <div class="licenseMain">
-        <div class="licenseTitle"><%= t('upload.license.editorial.title') %></div>
-        <div class="licenseDesc"><%= t('upload.license.editorial.desc') %></div>
+      <div class="fileField">
+        <label><%= t('upload.field.file') %></label>
+        <div class="fileRow">
+          <input id="imageInput" class="fileInput" type="file" name="image" accept="image/*" required />
+          <label for="imageInput" class="fileBtn"><%= (lng === 'en') ? 'Choose file' : 'ファイルを選ぶ' %></label>
+          <div id="imageFileName" class="fileName"><%= (lng === 'en') ? 'No file selected' : '未選択' %></div>
+        </div>
       </div>
-    </label>
 
-    <label class="licenseRow">
-      <input type="radio" name="licensePreset" value="standard">
-      <div class="licenseMain">
-        <div class="licenseTitle"><%= t('upload.license.standard.title') %></div>
-        <div class="licenseDesc"><%= t('upload.license.standard.desc') %></div>
-      </div>
-    </label>
+      <label><%= t('upload.field.title') %>
+        <input type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
+      </label>
 
-    <label class="licenseRow">
-      <input type="radio" name="licensePreset" value="commercial-lite">
-      <div class="licenseMain">
-        <div class="licenseTitle"><%= t('upload.license.commercial_lite.title') %></div>
-        <div class="licenseDesc"><%= t('upload.license.commercial_lite.desc') %></div>
-      </div>
-    </label>
+      <label><%= t('upload.field.creator') %>
+        <input type="text" name="creatorName" placeholder="<%= t('upload.field.creator_ph') %>" />
+      </label>
 
-    <label class="licenseRow">
-      <input type="radio" name="licensePreset" value="exclusive">
-      <div class="licenseMain">
-        <div class="licenseTitle"><%= t('upload.license.exclusive.title') %></div>
-        <div class="licenseDesc"><%= t('upload.license.exclusive.desc') %></div>
+      <div class="priceRow" id="priceRow"
+           data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
+
+        <label class="priceCol priceCol--wide">
+          <span class="priceLabel"><%= t('upload.price.price') %></span>
+          
+          <input id="priceInput" type="number" name="price"
+                 min="<%= (typeof minPrice === 'number' ? minPrice : 300) %>"
+                 step="1"
+                 placeholder="¥<%= (typeof minPrice === 'number' ? minPrice : 300) %>〜"
+                 inputmode="numeric"
+                 autocomplete="off"
+                 required />
+
+        </label>
+
+        <div class="op">−</div>
+
+        <div class="priceCol">
+          <span class="priceLabel">
+            <%= t('upload.price.fee') %>（<span id="feeRateText"></span>）
+          </span>
+          <input id="feeVal" type="text" class="readonlyBox" value="¥0" readonly aria-readonly="true" />
+        </div>
+
+        <div class="op">＝</div>
+
+        <div class="priceCol priceCol--wide">
+          <span class="priceLabel"><%= t('upload.price.profit') %></span>
+          <input id="profitVal" type="text" class="readonlyBox readonlyBox--em" value="¥0" readonly aria-readonly="true" />
+        </div>
+
+        <input type="hidden" name="currency" value="jpy" />
       </div>
-    </label>
+    </section>
+
+    <section class="card formCard formCard--confirm">
+      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Confirmation' : '確認' %></h2>
+
+      <label>
+        <input type="checkbox" name="attestOwner" required />
+        <%= t('upload.attest') %>
+      </label>
+
+      <label>
+        <input type="checkbox" name="agreeTerms" required />
+        <%- t('upload.agree_terms_html') %>
+      </label>
+    </section>
+
+    <section class="card formCard formCard--license">
+      <h2 class="formSectionTitle"><%= t('upload.license.h2') %></h2>
+
+      <div class="licenseList">
+        <label class="licenseRow">
+          <!-- ※ バックエンドは 'editorial' を期待。現状 'personal' だったので修正 -->
+          <input type="radio" name="licensePreset" value="editorial" checked>
+          <div class="licenseMain">
+            <div class="licenseTitle"><%= t('upload.license.editorial.title') %></div>
+            <div class="licenseDesc"><%= t('upload.license.editorial.desc') %></div>
+          </div>
+        </label>
+
+        <label class="licenseRow">
+          <input type="radio" name="licensePreset" value="standard">
+          <div class="licenseMain">
+            <div class="licenseTitle"><%= t('upload.license.standard.title') %></div>
+            <div class="licenseDesc"><%= t('upload.license.standard.desc') %></div>
+          </div>
+        </label>
+
+        <label class="licenseRow">
+          <input type="radio" name="licensePreset" value="commercial-lite">
+          <div class="licenseMain">
+            <div class="licenseTitle"><%= t('upload.license.commercial_lite.title') %></div>
+            <div class="licenseDesc"><%= t('upload.license.commercial_lite.desc') %></div>
+          </div>
+        </label>
+
+        <label class="licenseRow">
+          <input type="radio" name="licensePreset" value="exclusive">
+          <div class="licenseMain">
+            <div class="licenseTitle"><%= t('upload.license.exclusive.title') %></div>
+            <div class="licenseDesc"><%= t('upload.license.exclusive.desc') %></div>
+          </div>
+        </label>
+      </div>
+
+      <p class="muted">
+        <%- t('upload.license.notice_html') %>
+      </p>
+    </section>
   </div>
 
-  <p class="muted">
-    <%- t('upload.license.notice_html') %>
-  </p>
+  <div class="formFooter">
+    <button type="submit" class="btn btn--primary"><%= t('upload.submit') %></button>
+  </div>
 
-</section>
-
-<button type="submit" class="btn btn--primary"><%= t('upload.submit') %></button>
-
-  </form>
+</form>
 
   </main>
 
