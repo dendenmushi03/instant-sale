@@ -17,7 +17,10 @@
   
   <main class="container">
 
-<h1><%= t('upload.h1') %></h1>
+<section class="creatorHero">
+<h1 class="creatorHero__title"><%= (lng === 'en') ? 'List your artwork' : '作品を出品する' %></h1>
+<p class="creatorHero__lead"><%= (lng === 'en') ? 'Upload image → set price → publish a shareable sales link.' : '画像をアップロード → 価格設定 → リンク発行。' %></p>
+</section>
 
 <%
 // i18nを簡易対応（辞書を増やさず、lngで文言を出し分け）
@@ -32,7 +35,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
 <% if (typeof connect !== 'undefined' && connect && connect.hasAccount && connect.payoutsEnabled) { %>
   <!-- ✅ 完了カード -->
-  <section class="status-card status-card--success">
+  <section class="status-card status-banner status-card--success">
     <div class="status-card__inner">
       <div class="status-card__icon">✅</div>
       <div class="status-card__body">
@@ -44,7 +47,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   </section>
 <% } else { %>
   <!-- ⚠️ 未完了カード -->
-  <section class="status-card status-card--warning">
+  <section class="status-card status-banner status-card--warning">
     <div class="status-card__inner">
       <div class="status-card__icon">⚠️</div>
       <div class="status-card__body">
@@ -61,7 +64,6 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       <!-- CSRF token -->
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-  <p class="pageLead"><%= (lng === 'en') ? 'Upload an image, set a price, and get a shareable sales URL.' : '画像をアップロードして、価格を設定すると販売ページURLが発行されます。' %></p>
 
   <div class="formGrid">
     <section class="card formCard formCard--primary">
