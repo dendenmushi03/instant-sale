@@ -73,11 +73,31 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       </h2>
 
       <div class="fileField">
-        <label><%= t('upload.field.file') %></label>
-        <div class="fileRow">
-          <input id="imageInput" class="fileInput" type="file" name="image" accept="image/*" required />
-          <label for="imageInput" class="fileBtn"><%= (lng === 'en') ? 'Choose file' : 'ファイルを選ぶ' %></label>
-          <div id="imageFileName" class="fileName"><%= (lng === 'en') ? 'No file selected' : '未選択' %></div>
+        <div class="filePreview" id="filePreview" aria-label="preview">
+          <div class="filePreview__ph" id="filePreviewPh">
+            <div class="filePreview__icon" aria-hidden="true"></div>
+            <div class="filePreview__text">
+              <div class="filePreview__title"><%= (lng==='en') ? 'Artwork preview' : '作品プレビュー' %></div>
+              <div class="filePreview__sub"><%= (lng==='en') ? 'Select an image to preview here.' : '画像を選ぶとここに表示されます。' %></div>
+            </div>
+          </div>
+          <img id="filePreviewImg" class="filePreview__img" alt="preview" hidden />
+        </div>
+
+        <div class="filePanel">
+          <label><%= t('upload.field.file') %></label>
+
+          <div class="fileRow">
+            <input id="imageInput" class="fileInput" type="file" name="image" accept="image/*" required />
+            <label for="imageInput" class="fileBtn"><%= (lng === 'en') ? 'Choose file' : 'ファイルを選ぶ' %></label>
+            <div id="imageFileName" class="fileName"><%= (lng === 'en') ? 'No file selected' : '未選択' %></div>
+          </div>
+
+          <p class="fileNote muted">
+            <%= (lng==='en')
+              ? 'JPEG/PNG/WebP/GIF supported. Up to 20MB.'
+              : 'JPEG/PNG/WebP/GIF 対応。最大20MB。' %>
+          </p>
         </div>
       </div>
     </section>
@@ -329,14 +349,42 @@ let lastCreatedUrl = "";
 
 const imageInput = document.getElementById('imageInput');
 const imageFileName = document.getElementById('imageFileName');
+const previewImg = document.getElementById('filePreviewImg');
+const previewPh  = document.getElementById('filePreviewPh');
 const emptyFileLabel = (LNG === 'en') ? 'No file selected' : '未選択';
+let lastObjUrl = null;
 if (imageInput && imageFileName) {
   const syncFileName = () => {
     const f = imageInput.files && imageInput.files[0];
     imageFileName.textContent = f ? f.name : emptyFileLabel;
   };
+
+  const syncPreview = () => {
+    if (!previewImg || !previewPh) return;
+    const f = imageInput.files && imageInput.files[0];
+    if (!f) {
+      if (lastObjUrl) {
+        try { URL.revokeObjectURL(lastObjUrl); } catch(_) {}
+        lastObjUrl = null;
+      }
+      previewImg.hidden = true;
+      previewImg.removeAttribute('src');
+      previewPh.style.display = '';
+      return;
+    }
+    if (lastObjUrl) {
+      try { URL.revokeObjectURL(lastObjUrl); } catch(_) {}
+    }
+    lastObjUrl = URL.createObjectURL(f);
+    previewImg.src = lastObjUrl;
+    previewImg.hidden = false;
+    previewPh.style.display = 'none';
+  };
+
   imageInput.addEventListener('change', syncFileName);
+  imageInput.addEventListener('change', syncPreview);
   syncFileName();
+  syncPreview();
 }
 
   // === 横一列UI：価格 → 手数料 → 利益 のリアルタイム計算 ===
