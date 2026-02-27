@@ -88,13 +88,23 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
         <span class="stepTitle"><%= (lng === 'en') ? 'Sale details' : '販売データ' %></span>
       </h2>
 
-      <label><%= t('upload.field.title') %>
-        <input type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
+      <label class="field">
+        <span class="fieldLabel"><%= t('upload.field.title') %></span>
+        <span class="fieldHelp"><%= (lng==='en') ? 'Displayed on the sale page.' : '販売ページに表示されます。' %></span>
+        <input class="textInput" type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
       </label>
 
-      <label><%= t('upload.field.creator') %>
-        <input type="text" name="creatorName" placeholder="<%= t('upload.field.creator_ph') %>" />
+      <label class="field">
+        <span class="fieldLabel"><%= t('upload.field.creator') %></span>
+        <span class="fieldHelp"><%= (lng==='en') ? 'Optional. Shown as “by …”.' : '任意。販売ページで「by ○○」として表示。' %></span>
+        <input class="textInput" type="text" name="creatorName" placeholder="<%= t('upload.field.creator_ph') %>" />
       </label>
+
+      <p class="priceHelp muted">
+        <%= (lng==='en')
+          ? 'Platform fee is automatically calculated. You receive the profit amount.'
+          : '手数料は自動計算され、利益額がそのまま受取額になります。' %>
+      </p>
 
       <div class="priceRow" id="priceRow"
            data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
@@ -102,7 +112,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
         <label class="priceCol priceCol--wide">
           <span class="priceLabel"><%= t('upload.price.price') %></span>
           
-          <input id="priceInput" type="number" name="price"
+          <input class="textInput" id="priceInput" type="number" name="price"
                  min="<%= (typeof minPrice === 'number' ? minPrice : 300) %>"
                  step="1"
                  placeholder="¥<%= (typeof minPrice === 'number' ? minPrice : 300) %>〜"
