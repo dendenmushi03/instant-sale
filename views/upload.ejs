@@ -61,9 +61,14 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       <!-- CSRF token -->
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-<label><%= t('upload.field.file') %>
-  <input type="file" name="image" accept="image/*" required />
-</label>
+<div class="fileField">
+  <label><%= t('upload.field.file') %></label>
+  <div class="fileRow">
+    <input id="imageInput" class="fileInput" type="file" name="image" accept="image/*" required />
+    <label for="imageInput" class="fileBtn"><%= (lng === 'en') ? 'Choose file' : 'ファイルを選ぶ' %></label>
+    <div id="imageFileName" class="fileName"><%= (lng === 'en') ? 'No file selected' : '未選択' %></div>
+  </div>
+</div>
 
 <label><%= t('upload.field.title') %>
   <input type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
@@ -266,6 +271,18 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   // クライアント側で言語を使えるように（en/ja）
 const LNG = "<%= (lng || 'ja') %>";
 let lastCreatedUrl = "";
+
+const imageInput = document.getElementById('imageInput');
+const imageFileName = document.getElementById('imageFileName');
+const emptyFileLabel = (LNG === 'en') ? 'No file selected' : '未選択';
+if (imageInput && imageFileName) {
+  const syncFileName = () => {
+    const f = imageInput.files && imageInput.files[0];
+    imageFileName.textContent = f ? f.name : emptyFileLabel;
+  };
+  imageInput.addEventListener('change', syncFileName);
+  syncFileName();
+}
 
   // === 横一列UI：価格 → 手数料 → 利益 のリアルタイム計算 ===
   const priceInput = document.getElementById('priceInput');
