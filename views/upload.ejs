@@ -208,9 +208,9 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   <div class="modalDivider"></div>
   <section class="modalBlock" aria-label="sale-page-url">
     <div class="modalBlock__title"><%= (lng === 'en') ? 'Sale page URL' : '販売ページURL' %></div>
-    <div class="urlRow">
+    <div class="modalUrlRow">
       <input id="resultUrlInModal" type="text" readonly>
-      <button type="button" id="copyResultUrl" class="btn btn--primary"><%= t('upload.modal.btn_copy') %></button>
+      <button type="button" id="copyResultUrl" class="btn btn--primary"><%= (lng === 'en') ? 'Copy' : 'コピー' %></button>
     </div>
   </section>
 
