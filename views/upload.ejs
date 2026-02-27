@@ -17,7 +17,10 @@
   
   <main class="container">
 
-<h1><%= t('upload.h1') %></h1>
+<section class="creatorHero">
+<h1 class="creatorHero__title"><%= (lng === 'en') ? 'List your artwork' : '作品を出品する' %></h1>
+<p class="creatorHero__lead"><%= (lng === 'en') ? 'Upload image → set price → publish a shareable sales link.' : '画像をアップロード → 価格設定 → リンク発行。' %></p>
+</section>
 
 <%
 // i18nを簡易対応（辞書を増やさず、lngで文言を出し分け）
@@ -32,7 +35,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
 <% if (typeof connect !== 'undefined' && connect && connect.hasAccount && connect.payoutsEnabled) { %>
   <!-- ✅ 完了カード -->
-  <section class="status-card status-card--success">
+  <section class="status-card status-banner status-card--success">
     <div class="status-card__inner">
       <div class="status-card__icon">✅</div>
       <div class="status-card__body">
@@ -44,7 +47,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   </section>
 <% } else { %>
   <!-- ⚠️ 未完了カード -->
-  <section class="status-card status-card--warning">
+  <section class="status-card status-banner status-card--warning">
     <div class="status-card__inner">
       <div class="status-card__icon">⚠️</div>
       <div class="status-card__body">
@@ -61,110 +64,187 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       <!-- CSRF token -->
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-<label><%= t('upload.field.file') %>
-  <input type="file" name="image" accept="image/*" required />
-</label>
 
-<label><%= t('upload.field.title') %>
-  <input type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
-</label>
+  <div class="formGrid">
+    <section class="card formCard">
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 1</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'Choose image' : '画像を選ぶ' %></span>
+      </h2>
 
-<label><%= t('upload.field.creator') %>
-  <input type="text" name="creatorName" placeholder="<%= t('upload.field.creator_ph') %>" />
-</label>
+      <div class="fileField">
+        <div class="filePreview" id="filePreview" aria-label="preview">
+          <div class="filePreview__ph" id="filePreviewPh">
+            <div class="filePreview__icon" aria-hidden="true"></div>
+            <div class="filePreview__text">
+              <div class="filePreview__title"><%= (lng==='en') ? 'Artwork preview' : '作品プレビュー' %></div>
+              <div class="filePreview__sub"><%= (lng==='en') ? 'Select an image to preview here.' : '画像を選ぶとここに表示されます。' %></div>
+            </div>
+          </div>
+          <img id="filePreviewImg" class="filePreview__img" alt="preview" hidden />
+        </div>
 
-<div class="priceRow" id="priceRow"
-     data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
+        <div class="filePanel">
+          <label><%= t('upload.field.file') %></label>
 
-  <label class="priceCol priceCol--wide">
-    <span class="priceLabel"><%= t('upload.price.price') %></span>
-    
-<input id="priceInput" type="number" name="price"
-       min="<%= (typeof minPrice === 'number' ? minPrice : 300) %>"
-       step="1"
-       placeholder="¥<%= (typeof minPrice === 'number' ? minPrice : 300) %>〜"
-       inputmode="numeric"
-       autocomplete="off"
-       required />
+          <div class="fileRow">
+            <input id="imageInput" class="fileInput" type="file" name="image" accept="image/*" required />
+            <label for="imageInput" class="fileBtn"><%= (lng === 'en') ? 'Choose file' : 'ファイルを選ぶ' %></label>
+            <div id="imageFileName" class="fileName"><%= (lng === 'en') ? 'No file selected' : '未選択' %></div>
+          </div>
 
-          </label>
+          <p class="fileNote muted">
+            <%= (lng==='en')
+              ? 'JPEG/PNG/WebP/GIF supported. Up to 20MB.'
+              : 'JPEG/PNG/WebP/GIF 対応。最大20MB。' %>
+          </p>
+        </div>
+      </div>
+    </section>
 
-  <div class="op">−</div>
+    <section class="card formCard formCard--primary">
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 2</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'Sale details' : '販売データ' %></span>
+      </h2>
 
-  <div class="priceCol">
-    <span class="priceLabel">
-      <%= t('upload.price.fee') %>（<span id="feeRateText"></span>）
-    </span>
-    <input id="feeVal" type="text" class="readonlyBox" value="¥0" readonly aria-readonly="true" />
+      <label class="field">
+        <span class="fieldLabel"><%= t('upload.field.title') %></span>
+        <span class="fieldHelp"><%= (lng==='en') ? 'Displayed on the sale page.' : '販売ページに表示されます。' %></span>
+        <input class="textInput" type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
+      </label>
+
+      <label class="field">
+        <span class="fieldLabel"><%= t('upload.field.creator') %></span>
+        <span class="fieldHelp"><%= (lng==='en') ? 'Optional. Shown as “by …”.' : '任意。販売ページで「by ○○」として表示。' %></span>
+        <input class="textInput" type="text" name="creatorName" placeholder="<%= t('upload.field.creator_ph') %>" />
+      </label>
+
+      <p class="priceHelp muted">
+        <%= (lng==='en')
+          ? 'Platform fee is automatically calculated. You receive the profit amount.'
+          : '手数料は自動計算され、利益額がそのまま受取額になります。' %>
+      </p>
+
+      <div class="priceRow" id="priceRow"
+           data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
+
+        <label class="priceCol priceCol--wide">
+          <span class="priceLabel"><%= t('upload.price.price') %></span>
+          
+          <input class="textInput" id="priceInput" type="number" name="price"
+                 min="<%= (typeof minPrice === 'number' ? minPrice : 300) %>"
+                 step="1"
+                 placeholder="¥<%= (typeof minPrice === 'number' ? minPrice : 300) %>〜"
+                 inputmode="numeric"
+                 autocomplete="off"
+                 required />
+
+        </label>
+
+        <div class="op">−</div>
+
+        <div class="priceCol">
+          <span class="priceLabel">
+            <%= t('upload.price.fee') %>（<span id="feeRateText"></span>）
+          </span>
+          <input id="feeVal" type="text" class="readonlyBox" value="¥0" readonly aria-readonly="true" />
+        </div>
+
+        <div class="op">＝</div>
+
+        <div class="priceCol priceCol--wide">
+          <span class="priceLabel"><%= t('upload.price.profit') %></span>
+          <input id="profitVal" type="text" class="readonlyBox readonlyBox--em" value="¥0" readonly aria-readonly="true" />
+        </div>
+
+        <input type="hidden" name="currency" value="jpy" />
+      </div>
+    </section>
+
+    <section class="card formCard formCard--license">
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 3</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'License' : 'ライセンス' %></span>
+      </h2>
+
+      <div class="licenseList">
+        <label class="licenseRow">
+          <!-- ※ バックエンドは 'editorial' を期待。現状 'personal' だったので修正 -->
+          <input type="radio" name="licensePreset" value="editorial" checked>
+          <div class="licenseMain">
+            <div class="licenseTitle"><%= t('upload.license.editorial.title') %></div>
+            <div class="licenseDesc"><%= t('upload.license.editorial.desc') %></div>
+          </div>
+        </label>
+
+        <label class="licenseRow">
+          <input type="radio" name="licensePreset" value="standard">
+          <div class="licenseMain">
+            <div class="licenseTitle"><%= t('upload.license.standard.title') %></div>
+            <div class="licenseDesc"><%= t('upload.license.standard.desc') %></div>
+          </div>
+        </label>
+
+        <label class="licenseRow">
+          <input type="radio" name="licensePreset" value="commercial-lite">
+          <div class="licenseMain">
+            <div class="licenseTitle"><%= t('upload.license.commercial_lite.title') %></div>
+            <div class="licenseDesc"><%= t('upload.license.commercial_lite.desc') %></div>
+          </div>
+        </label>
+
+        <label class="licenseRow">
+          <input type="radio" name="licensePreset" value="exclusive">
+          <div class="licenseMain">
+            <div class="licenseTitle"><%= t('upload.license.exclusive.title') %></div>
+            <div class="licenseDesc"><%= t('upload.license.exclusive.desc') %></div>
+          </div>
+        </label>
+      </div>
+
+      <p class="muted">
+        <%- t('upload.license.notice_html') %>
+      </p>
+    </section>
+
+    <section class="card formCard formCard--confirm">
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 4</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'Confirmation' : '確認' %></span>
+      </h2>
+
+      <p class="confirmLead">
+        <%= (lng === 'en')
+          ? 'Final check before publishing your sale link.'
+          : '販売リンク発行前の最終確認です。' %>
+      </p>
+
+      <div class="checkList">
+        <label class="checkRow">
+          <input type="checkbox" name="attestOwner" required />
+          <span class="checkText"><%= t('upload.attest') %></span>
+        </label>
+
+        <label class="checkRow">
+          <input type="checkbox" name="agreeTerms" required />
+          <span class="checkText"><%- t('upload.agree_terms_html') %></span>
+        </label>
+      </div>
+
+      <p class="confirmNote muted">
+        <%= (lng === 'en')
+          ? 'You can edit your listing later, but please confirm rights and terms before publishing.'
+          : '出品後に内容は変更できますが、権利と規約は発行前にご確認ください。' %>
+      </p>
+    </section>
   </div>
 
-  <div class="op">＝</div>
-
-  <div class="priceCol priceCol--wide">
-    <span class="priceLabel"><%= t('upload.price.profit') %></span>
-    <input id="profitVal" type="text" class="readonlyBox readonlyBox--em" value="¥0" readonly aria-readonly="true" />
+  <div class="formFooter">
+    <button type="submit" class="btn btn--primary"><%= t('upload.submit') %></button>
   </div>
 
-  <input type="hidden" name="currency" value="jpy" />
-</div>
-
-<label>
-  <input type="checkbox" name="attestOwner" required />
-  <%= t('upload.attest') %>
-</label>
-
-<label>
-  <input type="checkbox" name="agreeTerms" required />
-  <%- t('upload.agree_terms_html') %>
-</label>
-
-<section class="card">
-  <h2><%= t('upload.license.h2') %></h2>
-
-  <div class="licenseList">
-    <label class="licenseRow">
-      <!-- ※ バックエンドは 'editorial' を期待。現状 'personal' だったので修正 -->
-      <input type="radio" name="licensePreset" value="editorial" checked>
-      <div class="licenseMain">
-        <div class="licenseTitle"><%= t('upload.license.editorial.title') %></div>
-        <div class="licenseDesc"><%= t('upload.license.editorial.desc') %></div>
-      </div>
-    </label>
-
-    <label class="licenseRow">
-      <input type="radio" name="licensePreset" value="standard">
-      <div class="licenseMain">
-        <div class="licenseTitle"><%= t('upload.license.standard.title') %></div>
-        <div class="licenseDesc"><%= t('upload.license.standard.desc') %></div>
-      </div>
-    </label>
-
-    <label class="licenseRow">
-      <input type="radio" name="licensePreset" value="commercial-lite">
-      <div class="licenseMain">
-        <div class="licenseTitle"><%= t('upload.license.commercial_lite.title') %></div>
-        <div class="licenseDesc"><%= t('upload.license.commercial_lite.desc') %></div>
-      </div>
-    </label>
-
-    <label class="licenseRow">
-      <input type="radio" name="licensePreset" value="exclusive">
-      <div class="licenseMain">
-        <div class="licenseTitle"><%= t('upload.license.exclusive.title') %></div>
-        <div class="licenseDesc"><%= t('upload.license.exclusive.desc') %></div>
-      </div>
-    </label>
-  </div>
-
-  <p class="muted">
-    <%- t('upload.license.notice_html') %>
-  </p>
-
-</section>
-
-<button type="submit" class="btn btn--primary"><%= t('upload.submit') %></button>
-
-  </form>
+</form>
 
   </main>
 
@@ -174,6 +254,7 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 <div id="progressModal" class="modal" aria-hidden="true">
   <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="progressTitle">
     
+<div class="modalProgress" id="modalProgress">
 <h3 id="progressTitle" class="modal__title"><%= t('upload.modal.title') %></h3>
 <p id="progressPhase" class="modal__phase"><%= t('upload.modal.phase_uploading') %></p>
 
@@ -181,31 +262,46 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       <div id="progressBar" class="progress__bar"></div>
     </div>
     <p id="progressPct" class="progress__pct">0%</p>
+</div>
 
 <div id="resultInModal" class="modal__result">
   <div class="modal__result-title"><%= t('upload.modal.created') %></div>
-  
+
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="sale-page-url">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Sale page URL' : '販売ページURL' %></div>
+    <div class="modalUrlRow">
       <input id="resultUrlInModal" type="text" readonly>
+      <button type="button" id="copyResultUrl" class="btn btn--primary"><%= (lng === 'en') ? 'Copy' : 'コピー' %></button>
+    </div>
+  </section>
 
-      <div class="tweet-controls">
-        <label for="tweetTemplate"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
-        <select id="tweetTemplate">
-          <% if (lng === 'en') { %>
-            <option value="promo">Promotion (Standard)</option>
-            <option value="support">Support request (Buy to support)</option>
-            <option value="limited">Limited feel (today/limited quantity)</option>
-          <% } else { %>
-            <option value="promo">宣伝（標準）</option>
-            <option value="support">支援お願い（応援購入）</option>
-            <option value="limited">限定感（本日限定/数量限定風）</option>
-          <% } %>
-        </select>
-        <textarea id="tweetText" rows="5"></textarea>
-        <button type="button" id="copyTweetText" class="btn btn--primary"><%= (lng === 'en') ? 'Copy post text' : '本文をコピー' %></button>
-        <small><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
-      </div>
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="post-template">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Post text' : '投稿文テンプレ' %></div>
+    <div class="tweet-controls">
+      <label for="tweetTemplate"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ' %></label>
+      <select id="tweetTemplate">
+        <% if (lng === 'en') { %>
+          <option value="promo">Promotion (Standard)</option>
+          <option value="support">Support request (Buy to support)</option>
+          <option value="limited">Limited feel (today/limited quantity)</option>
+        <% } else { %>
+          <option value="promo">宣伝（標準）</option>
+          <option value="support">支援お願い（応援購入）</option>
+          <option value="limited">限定感（本日限定/数量限定風）</option>
+        <% } %>
+      </select>
+      <textarea id="tweetText" rows="5"></textarea>
+      <button type="button" id="copyTweetText" class="btn btn--primary"><%= (lng === 'en') ? 'Copy post text' : '本文をコピー' %></button>
+      <small><%= (lng === 'en') ? 'Feel free to edit before posting.' : '必要なら投稿前に編集してOKです。' %></small>
+    </div>
+  </section>
 
-      <div class="modal__result-actions">
+  <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="actions">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Actions' : '操作' %></div>
+    <div class="modal__result-actions">
 
 <a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener">
   <img src="/public/x-icon.png" alt="X">
@@ -216,15 +312,15 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   <% } %>
 </a>
 
-<button type="button" id="copyResultUrl" class="btn btn--primary"><%= t('upload.modal.btn_copy') %></button>
 <a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open_sale') %></a>
 <button type="button" id="closeModal" class="btn btn--ghost"><%= t('upload.modal.btn_close') %></button>
 
-      </div>
-
- <p class="muted"><%= t('upload.modal.hint') %></p>
-
     </div>
+  </section>
+
+  <p class="muted"><%= t('upload.modal.hint') %></p>
+
+</div>
   </div>
 </div>
 
@@ -250,6 +346,46 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   // クライアント側で言語を使えるように（en/ja）
 const LNG = "<%= (lng || 'ja') %>";
 let lastCreatedUrl = "";
+
+const imageInput = document.getElementById('imageInput');
+const imageFileName = document.getElementById('imageFileName');
+const previewImg = document.getElementById('filePreviewImg');
+const previewPh  = document.getElementById('filePreviewPh');
+const emptyFileLabel = (LNG === 'en') ? 'No file selected' : '未選択';
+let lastObjUrl = null;
+if (imageInput && imageFileName) {
+  const syncFileName = () => {
+    const f = imageInput.files && imageInput.files[0];
+    imageFileName.textContent = f ? f.name : emptyFileLabel;
+  };
+
+  const syncPreview = () => {
+    if (!previewImg || !previewPh) return;
+    const f = imageInput.files && imageInput.files[0];
+    if (!f) {
+      if (lastObjUrl) {
+        try { URL.revokeObjectURL(lastObjUrl); } catch(_) {}
+        lastObjUrl = null;
+      }
+      previewImg.hidden = true;
+      previewImg.removeAttribute('src');
+      previewPh.style.display = '';
+      return;
+    }
+    if (lastObjUrl) {
+      try { URL.revokeObjectURL(lastObjUrl); } catch(_) {}
+    }
+    lastObjUrl = URL.createObjectURL(f);
+    previewImg.src = lastObjUrl;
+    previewImg.hidden = false;
+    previewPh.style.display = 'none';
+  };
+
+  imageInput.addEventListener('change', syncFileName);
+  imageInput.addEventListener('change', syncPreview);
+  syncFileName();
+  syncPreview();
+}
 
   // === 横一列UI：価格 → 手数料 → 利益 のリアルタイム計算 ===
   const priceInput = document.getElementById('priceInput');
@@ -364,6 +500,7 @@ if (nowVal < minVal) {
     const bar   = document.getElementById('progressBar');
     const pct   = document.getElementById('progressPct');
     const phase = document.getElementById('progressPhase');
+    const modalProgress = document.getElementById('modalProgress');
 
 const resultBox = document.getElementById('ajaxResultBox');      // あってもなくてもOK
 // const resultUrl = document.getElementById('ajaxResultUrl');   // 未使用なら削除でOK
@@ -378,6 +515,7 @@ bar.style.width = '0%';
 
 pct.textContent = '0%';
 phase.textContent = I18N.uploading;
+if (modalProgress) modalProgress.classList.remove('is-hidden');
 
 modal.style.display = 'flex';
 document.body.classList.add('modal-open');   // ← 追加（スマホで背景を止める）
@@ -455,6 +593,7 @@ if (resultBox) resultBox.style.display = 'none';
   if (resultWrap && resultInput && openBtn) {
     resultInput.value = res.createdUrl;
     openBtn.href = res.createdUrl;
+    if (modalProgress) modalProgress.classList.add('is-hidden');
     resultWrap.style.display = 'block';
 
     const syncTweetIntent = () => {
@@ -523,6 +662,10 @@ closeBtn.onclick = () => {
   modal.style.display = 'none';
   document.body.classList.remove('modal-open'); // 背景ロック解除
   resultWrap.style.display = 'none';
+  if (modalProgress) modalProgress.classList.remove('is-hidden');
+  bar.style.width = '0%';
+  pct.textContent = '0%';
+  phase.textContent = I18N.uploading;
   if (tweetTemplate) tweetTemplate.value = 'promo';
   if (tweetText) tweetText.value = buildTweetText('promo', lastCreatedUrl);
 };
