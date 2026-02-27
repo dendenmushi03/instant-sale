@@ -184,15 +184,29 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
         <span class="stepTitle"><%= (lng === 'en') ? 'Confirmation' : '確認' %></span>
       </h2>
 
-      <label>
-        <input type="checkbox" name="attestOwner" required />
-        <%= t('upload.attest') %>
-      </label>
+      <p class="confirmLead">
+        <%= (lng === 'en')
+          ? 'Final check before publishing your sale link.'
+          : '販売リンク発行前の最終確認です。' %>
+      </p>
 
-      <label>
-        <input type="checkbox" name="agreeTerms" required />
-        <%- t('upload.agree_terms_html') %>
-      </label>
+      <div class="checkList">
+        <label class="checkRow">
+          <input type="checkbox" name="attestOwner" required />
+          <span class="checkText"><%= t('upload.attest') %></span>
+        </label>
+
+        <label class="checkRow">
+          <input type="checkbox" name="agreeTerms" required />
+          <span class="checkText"><%- t('upload.agree_terms_html') %></span>
+        </label>
+      </div>
+
+      <p class="confirmNote muted">
+        <%= (lng === 'en')
+          ? 'You can edit your listing later, but please confirm rights and terms before publishing.'
+          : '出品後に内容は変更できますが、権利と規約は発行前にご確認ください。' %>
+      </p>
     </section>
   </div>
 
