@@ -1194,3 +1194,7 @@ body.menu-open{
 /* sale buyCard resilience tweaks */
 .buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
 .buyCard__meta--spaced{margin-top:8px}
+
+.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+@media (max-width:768px){.sectionHead{align-items:flex-start}}
+.licenseBody p{margin:.55rem 0}

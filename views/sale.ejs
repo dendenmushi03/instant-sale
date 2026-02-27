@@ -110,25 +110,26 @@
 
         <!-- ライセンスはこのままでOK（余白だけCSSで調整） -->
         <section class="card section-license">
-          <h3 class="section-title"><%= t('product.license_h2') %></h3>
-
-          <div class="license-badge">
+          <div class="sectionHead">
+            <h3 class="section-title"><%= t('product.license_h2') %></h3>
             <span class="pill"><%= licenseView.label %></span>
           </div>
 
-          <p class="license-desc"><%= licenseView.desc %></p>
+          <div class="licenseBody">
+            <p class="license-desc"><%= licenseView.desc %></p>
 
-          <% if (item.licenseNotes) { %>
-            <p class="license-notes"><%= item.licenseNotes %></p>
-          <% } %>
+            <% if (item.licenseNotes) { %>
+              <p class="license-notes"><%= item.licenseNotes %></p>
+            <% } %>
 
-          <% if (item.aiGenerated) { %>
-            <p class="license-ai">※ 生成AI作品（モデル名：<%= item.aiModelName || '—' %>）</p>
-          <% } %>
+            <% if (item.aiGenerated) { %>
+              <p class="license-ai">※ 生成AI作品（モデル名：<%= item.aiModelName || '—' %>）</p>
+            <% } %>
 
-          <p class="license-policy">
-            <%- t('product.license_notice_html') %>
-          </p>
+            <p class="license-policy">
+              <%- t('product.license_notice_html') %>
+            </p>
+          </div>
         </section>
       </div>
       </div>
