@@ -67,7 +67,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
   <div class="formGrid">
     <section class="card formCard">
-      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 1 — Image' : 'Step 1：画像' %></h2>
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 1</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'Choose image' : '画像を選ぶ' %></span>
+      </h2>
 
       <div class="fileField">
         <label><%= t('upload.field.file') %></label>
@@ -80,7 +83,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </section>
 
     <section class="card formCard formCard--primary">
-      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 2 — Sale details' : 'Step 2：販売データ' %></h2>
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 2</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'Sale details' : '販売データ' %></span>
+      </h2>
 
       <label><%= t('upload.field.title') %>
         <input type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
@@ -127,7 +133,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </section>
 
     <section class="card formCard formCard--license">
-      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 3 — License' : 'Step 3：ライセンス' %></h2>
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 3</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'License' : 'ライセンス' %></span>
+      </h2>
 
       <div class="licenseList">
         <label class="licenseRow">
@@ -170,7 +179,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </section>
 
     <section class="card formCard formCard--confirm">
-      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Final — Confirmation' : '最終確認' %></h2>
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 4</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'Confirmation' : '確認' %></span>
+      </h2>
 
       <label>
         <input type="checkbox" name="attestOwner" required />
