@@ -163,42 +163,67 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </section>
 
     <section class="card formCard formCard--license">
-      <h2 class="formSectionTitle">
-        <span class="stepBadge">Step 3</span>
-        <span class="stepTitle"><%= (lng === 'en') ? 'License' : 'ライセンス' %></span>
-      </h2>
+      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 3 / License' : 'Step 3 / ライセンス' %></h2>
 
       <div class="licenseList">
         <label class="licenseRow">
           <!-- ※ バックエンドは 'editorial' を期待。現状 'personal' だったので修正 -->
           <input type="radio" name="licensePreset" value="editorial" checked>
           <div class="licenseMain">
-            <div class="licenseTitle"><%= t('upload.license.editorial.title') %></div>
+            <div class="licenseHead">
+              <div class="licenseTitle"><%= t('upload.license.editorial.title') %></div>
+              <span class="licenseTag"><%= (lng === 'en') ? 'Personal' : '個人向け' %></span>
+            </div>
             <div class="licenseDesc"><%= t('upload.license.editorial.desc') %></div>
+            <ul class="licenseBullets">
+              <li><%= (lng==='en') ? 'No commercial use' : '商用利用は不可' %></li>
+              <li><%= (lng==='en') ? 'SNS / wallpaper etc.' : 'SNS・壁紙などに' %></li>
+            </ul>
           </div>
         </label>
 
         <label class="licenseRow">
           <input type="radio" name="licensePreset" value="standard">
           <div class="licenseMain">
-            <div class="licenseTitle"><%= t('upload.license.standard.title') %></div>
+            <div class="licenseHead">
+              <div class="licenseTitle"><%= t('upload.license.standard.title') %></div>
+              <span class="licenseTag"><%= (lng === 'en') ? 'Popular' : '標準' %></span>
+            </div>
             <div class="licenseDesc"><%= t('upload.license.standard.desc') %></div>
+            <ul class="licenseBullets">
+              <li><%= (lng==='en') ? 'Commercial use allowed' : '商用利用OK' %></li>
+              <li><%= (lng==='en') ? 'Good for regular sales' : '通常販売におすすめ' %></li>
+            </ul>
           </div>
         </label>
 
         <label class="licenseRow">
           <input type="radio" name="licensePreset" value="commercial-lite">
           <div class="licenseMain">
-            <div class="licenseTitle"><%= t('upload.license.commercial_lite.title') %></div>
+            <div class="licenseHead">
+              <div class="licenseTitle"><%= t('upload.license.commercial_lite.title') %></div>
+              <span class="licenseTag"><%= (lng === 'en') ? 'Business' : '商用' %></span>
+            </div>
             <div class="licenseDesc"><%= t('upload.license.commercial_lite.desc') %></div>
+            <ul class="licenseBullets">
+              <li><%= (lng==='en') ? 'Light business usage' : '軽めのビジネス利用向け' %></li>
+              <li><%= (lng==='en') ? 'Use in products/promotions' : '商品・販促利用にも対応' %></li>
+            </ul>
           </div>
         </label>
 
         <label class="licenseRow">
           <input type="radio" name="licensePreset" value="exclusive">
           <div class="licenseMain">
-            <div class="licenseTitle"><%= t('upload.license.exclusive.title') %></div>
+            <div class="licenseHead">
+              <div class="licenseTitle"><%= t('upload.license.exclusive.title') %></div>
+              <span class="licenseTag"><%= (lng === 'en') ? 'Premium' : '限定' %></span>
+            </div>
             <div class="licenseDesc"><%= t('upload.license.exclusive.desc') %></div>
+            <ul class="licenseBullets">
+              <li><%= (lng==='en') ? 'High-value / limited feel' : '高単価・限定向け' %></li>
+              <li><%= (lng==='en') ? 'Best for one-off deals' : '1点もの販売に最適' %></li>
+            </ul>
           </div>
         </label>
       </div>
