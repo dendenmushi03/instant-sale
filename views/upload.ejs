@@ -234,36 +234,29 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </section>
 
     <section class="card formCard formCard--confirm">
-      <h2 class="formSectionTitle">
-        <span class="stepBadge">Step 4</span>
-        <span class="stepTitle"><%= (lng === 'en') ? 'Confirmation' : '確認' %></span>
-      </h2>
+      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 4 / Final check' : 'Step 4 / 最終確認' %></h2>
 
-      <p class="confirmLead">
-        <%= (lng === 'en')
-          ? 'Final check before publishing your sale link.'
-          : '販売リンク発行前の最終確認です。' %>
+      <p class="formSectionLead">
+        <%= (lng === 'en') ? 'Please check the boxes to publish.' : 'チェック後に出品ボタンを押してください。' %>
       </p>
 
       <div class="checkList">
-        <label class="checkRow">
-          <input type="checkbox" name="attestOwner" required />
-          <span class="checkText"><%= t('upload.attest') %></span>
+        <label class="checkItem">
+          <input class="checkItem__box" type="checkbox" name="attestOwner" required />
+          <span class="checkItem__text"><%= t('upload.attest') %></span>
         </label>
 
-        <label class="checkRow">
-          <input type="checkbox" name="agreeTerms" required />
-          <span class="checkText"><%- t('upload.agree_terms_html') %></span>
+        <label class="checkItem">
+          <input class="checkItem__box" type="checkbox" name="agreeTerms" required />
+          <span class="checkItem__text"><%- t('upload.agree_terms_html') %></span>
         </label>
       </div>
-
-      <p class="confirmNote muted">
-        <%= (lng === 'en')
-          ? 'You can edit your listing later, but please confirm rights and terms before publishing.'
-          : '出品後に内容は変更できますが、権利と規約は発行前にご確認ください。' %>
-      </p>
     </section>
   </div>
+
+  <p class="formHint">
+    <%= (lng === 'en') ? 'After publishing, a shareable sale link will be generated.' : '出品すると共有できる販売リンクが自動生成されます。' %>
+  </p>
 
   <div class="formFooter">
     <button type="submit" class="btn btn--primary"><%= t('upload.submit') %></button>
