@@ -5670,10 +5670,6 @@ body.menu-open{
   border-color:rgba(20,20,20,.14);
   box-shadow:var(--shadow-soft);
 }
-.homeFaq{margin-top:16px}
-.homeFaq details + details{margin-top:8px}
-.homeFaq summary{cursor:pointer;font-weight:800}
-.homeFaq p{margin:6px 0 0}
 
 @media (max-width:960px){
   .homeHero{padding:30px 24px}
@@ -5765,4 +5761,59 @@ body.menu-open{
 @media (max-width:640px){
   .homeShowcase{padding:14px}
   .showcaseGrid{gap:10px}
+}
+
+
+/* home faq: minimal and trustworthy */
+.homeFaq{
+  margin-top:18px;
+  padding:20px;
+  border-radius:18px;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  box-shadow:0 1px 0 rgba(20,20,20,.06);
+}
+.homeFaq__title{margin:0 0 12px}
+.faqList{display:grid;gap:10px}
+.faqItem{
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:rgba(255,255,255,.72);
+  overflow:hidden;
+}
+.faqItem > summary{
+  list-style:none;
+  position:relative;
+  cursor:pointer;
+  padding:12px 42px 12px 14px;
+  font-weight:800;
+  line-height:1.45;
+}
+.faqItem > summary::-webkit-details-marker{display:none}
+.faqItem > summary::after{
+  content:'＋';
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:rgba(20,20,20,.62);
+  font-weight:900;
+}
+.faqItem[open]{
+  border-color:var(--border-strong);
+  background:rgba(255,255,255,.92);
+}
+.faqItem[open] > summary::after{content:'−';color:rgba(20,20,20,.86)}
+.faqItem > summary:hover{background:rgba(20,20,20,.03)}
+.faqItem__body{
+  margin:0;
+  padding:0 14px 13px;
+  font-size:14px;
+  line-height:1.7;
+}
+
+@media (max-width:640px){
+  .homeFaq{padding:16px}
+  .faqItem > summary{padding:11px 40px 11px 12px}
+  .faqItem__body{padding:0 12px 12px}
 }

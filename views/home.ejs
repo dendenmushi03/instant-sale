@@ -131,6 +131,26 @@
     </div>
   </section>
 
+  <section class="homeFaq" id="faq" aria-label="Frequently asked questions">
+    <h2 class="homeFaq__title"><%= lng === 'en' ? 'FAQ' : 'よくある質問' %></h2>
+    <div class="faqList">
+      <details class="faqItem">
+        <summary><%= lng === 'en' ? 'What happens to the SAMPLE watermark?' : '透かし（SAMPLE）はどうなる？' %></summary>
+        <p class="faqItem__body muted"><%= lng === 'en' ? 'The image on the sales page is a watermarked preview. After purchase, you can download the high-resolution file without the watermark.' : '販売ページの画像はプレビュー用の透かし入りです。購入後に高解像度（透かしなし）をダウンロードできます。' %></p>
+      </details>
+
+      <details class="faqItem">
+        <summary><%= lng === 'en' ? 'How do I receive files after purchase?' : '購入後はどうやって受け取る？' %></summary>
+        <p class="faqItem__body muted"><%= lng === 'en' ? 'After Stripe checkout, a download link is issued automatically (available for a limited time).' : 'Stripeで決済後、ダウンロードリンクが自動発行されます（一定時間有効）。' %></p>
+      </details>
+
+      <details class="faqItem">
+        <summary><%= lng === 'en' ? 'What do I need to start selling?' : '出品に必要な準備は？' %></summary>
+        <p class="faqItem__body muted"><%= lng === 'en' ? 'Just upload an image and set a price. To receive payouts, you need to complete Stripe payout setup.' : '画像をアップロードして価格を決めるだけです。売上受取にはStripeの受取設定が必要です。' %></p>
+      </details>
+    </div>
+  </section>
+
   <section id="howto" class="card howto howto--rich">
     <h2 style="margin-top:0"><%= t('howto.title') %></h2>
 
@@ -161,21 +181,6 @@
     </div>
   </section>
 
-  <section class="card homeFaq" aria-label="FAQ and Notes">
-    <h2 style="margin-top:0"><%= lng === 'en' ? 'FAQ / Notes' : 'FAQ / 注意事項' %></h2>
-    <details>
-      <summary><%= lng === 'en' ? 'Can I start for free?' : '無料で始められますか？' %></summary>
-      <p class="muted"><%= lng === 'en' ? 'Yes. You can sign in and set up your first listing before connecting any payout details.' : 'はい。ログイン後すぐに出品準備ができ、初期費用なしで始められます。' %></p>
-    </details>
-    <details>
-      <summary><%= lng === 'en' ? 'What happens after purchase?' : '購入後の受け渡しはどうなりますか？' %></summary>
-      <p class="muted"><%= lng === 'en' ? 'Buyers are guided to a download link automatically after checkout completion.' : '決済完了後に購入者へダウンロードリンクが自動表示されます。' %></p>
-    </details>
-    <details>
-      <summary><%= lng === 'en' ? 'Can I share links on social media?' : 'SNSで販売リンクを共有できますか？' %></summary>
-      <p class="muted"><%= lng === 'en' ? 'Absolutely. You can place your listing URL anywhere your audience discovers your works.' : '可能です。作品を見てもらう導線に販売リンクをそのまま設置できます。' %></p>
-    </details>
-  </section>
 
 </main>
 
