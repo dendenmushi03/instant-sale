@@ -36,24 +36,110 @@
 
 <main class="container">
 
-  <!-- ヒーロー -->
-  <section class="heroHome">
-<h1 class="heroHome__title">
-  <%= t('home.hero.title_prefix') %><span class="accent"><%= t('home.hero.title_accent') %></span><%= t('home.hero.title_suffix') %>
-</h1>
-<p class="heroHome__lead"><%= t('home.hero.lead') %></p>
+  <section class="homeHero">
+    <div class="homeHero__grid">
+      <div class="homeHero__copy">
+        <p class="homeHero__kicker"><%= lng === 'en' ? 'For AI creators' : 'AIクリエイター向け' %></p>
+        <h1 class="homeHero__title">
+          <%= t('home.hero.title_prefix') %><span class="accent"><%= t('home.hero.title_accent') %></span><%= t('home.hero.title_suffix') %>
+        </h1>
+        <p class="homeHero__lead"><%= t('home.hero.lead') %></p>
 
-<div class="heroHome__actions">
-  <% if (me) { %>
-    <a class="btn btn--primary" href="/creator"><%= t('home.hero.cta_authed') %></a>
-  <% } else { %>
-    <a class="btn btn--primary" href="/auth/google"><%= t('home.hero.cta_guest') %></a>
-  <% } %>
-</div>
+        <div class="homeHero__actions heroHome__actions heroCtas">
+          <% if (me) { %>
+            <a class="btn btn--primary" href="/creator"><%= lng === 'en' ? 'Go to creator page' : '出品ページへ' %></a>
+          <% } else { %>
+            <a class="btn btn--primary" href="/auth/google"><%= lng === 'en' ? 'Sign in to start listing' : 'ログインして出品を始める' %></a>
+          <% } %>
+          <a class="btn btn--soft btn--compact" href="#howto"><%= lng === 'en' ? 'How it works' : '使い方を見る' %></a>
+        </div>
 
+        <ul class="heroBadges" aria-label="highlights">
+          <li class="heroBadge"><%= lng === 'en' ? '3-step setup' : '3ステップで完了' %></li>
+          <li class="heroBadge"><%= lng === 'en' ? 'Secure Stripe checkout' : 'Stripeで安全決済' %></li>
+          <li class="heroBadge"><%= lng === 'en' ? 'Auto-generated link' : 'リンク自動発行' %></li>
+        </ul>
+
+        <p class="homeHero__note"><%= me ? (lng === 'en' ? 'Upload → Price → Link' : '画像→価格→リンク発行') : (lng === 'en' ? 'No card required. Link in 30s.' : 'クレカ不要・30秒でリンク発行') %></p>
+      </div>
+
+      <aside class="homeMock" aria-label="Product preview">
+        <article class="homeMock__card">
+          <span class="homeMock__badge">Preview (SAMPLE)</span>
+          <img class="homeMock__img" src="/public/og/instantsale_ogp.jpg" alt="Instant Sale preview" loading="lazy" />
+          <div class="homeMock__meta">
+            <strong><%= lng === 'en' ? 'After purchase: instant download link' : '購入後: ダウンロードリンクを即時表示' %></strong>
+            <span class="homeMock__price"><%= lng === 'en' ? '$3+' : '¥300〜' %></span>
+          </div>
+        </article>
+      </aside>
+    </div>
   </section>
 
-  <section id="howto" class="card howto">
+  <section class="homeShowcase" aria-label="Sample sales page preview">
+    <% const sampleHref = '#howto'; %>
+    <h2 class="homeShowcase__title"><%= lng === 'en' ? 'Preview' : '完成イメージ' %></h2>
+
+    <div class="homeShowcase__grid">
+      <a class="sampleSaleCard" href="<%= sampleHref %>">
+        <img class="sampleSaleCard__img" src="/public/og/instantsale_ogp.jpg" alt="Sample sale page preview" loading="lazy" />
+        <div class="sampleSaleCard__body">
+          <div class="sampleSaleCard__meta">
+            <strong><%= lng === 'en' ? 'Neon Portrait Pack' : 'ネオンポートレート素材' %></strong>
+            <span><%= lng === 'en' ? '$12' : '¥1,200' %></span>
+          </div>
+          <p class="muted" style="margin:8px 0 0;"><%= lng === 'en' ? 'Preview (SAMPLE) / Instant download after purchase' : 'Preview（SAMPLE） / 購入後すぐにDL' %></p>
+        </div>
+      </a>
+
+      <ul class="homeShowcase__points">
+        <li><%= lng === 'en' ? 'Watermarked preview, full-res download after purchase' : 'プレビューは透かし入り、購入後に高解像度を自動ダウンロード' %></li>
+        <li><%= lng === 'en' ? 'See fee & earnings instantly' : '価格設定と手数料がその場で分かる' %></li>
+        <li><%= lng === 'en' ? 'Share the link on social' : '販売リンクをSNSで共有するだけ' %></li>
+        <li><%= lng === 'en' ? 'Creator flow is only a few steps' : '出品までのフローは数ステップで完了' %></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="homeWhy">
+    <h2><%= lng === 'en' ? 'Why Instant Sale' : 'Why Instant Sale' %></h2>
+    <div class="homeWhy__grid">
+      <article class="whyCard">
+        <h3 class="whyCard__title"><%= lng === 'en' ? 'Instant sales link' : '即シェアできる販売リンク' %></h3>
+        <p class="whyCard__desc"><%= lng === 'en' ? 'Create one URL per work and start sharing on X, Instagram, or portfolio sites right away.' : '作品ごとに販売URLをすぐ発行。X・Instagram・ポートフォリオにそのまま掲載できます。' %></p>
+      </article>
+      <article class="whyCard">
+        <h3 class="whyCard__title"><%= lng === 'en' ? 'Automatic download delivery' : '自動でダウンロード提供' %></h3>
+        <p class="whyCard__desc"><%= lng === 'en' ? 'After payment, buyers get access immediately so you do not need manual DM delivery.' : '決済完了後に購入者へ自動でDL案内。手動対応のやり取りを減らせます。' %></p>
+      </article>
+      <article class="whyCard">
+        <h3 class="whyCard__title"><%= lng === 'en' ? 'Secure checkout' : '安心できる決済導線' %></h3>
+        <p class="whyCard__desc"><%= lng === 'en' ? 'Use a familiar checkout flow with clear pricing to keep trust and conversion high.' : '分かりやすい価格表示と安全な決済フローで、安心感と購入率を両立します。' %></p>
+      </article>
+    </div>
+  </section>
+
+  <section class="homeFaq" id="faq" aria-label="Frequently asked questions">
+    <h2 class="homeFaq__title"><%= lng === 'en' ? 'FAQ' : 'よくある質問' %></h2>
+    <div class="faqList">
+      <details class="faqItem">
+        <summary><%= lng === 'en' ? 'What happens to the SAMPLE watermark?' : '透かし（SAMPLE）はどうなる？' %></summary>
+        <p class="faqItem__body muted"><%= lng === 'en' ? 'The image on the sales page is a watermarked preview. After purchase, you can download the high-resolution file without the watermark.' : '販売ページの画像はプレビュー用の透かし入りです。購入後に高解像度（透かしなし）をダウンロードできます。' %></p>
+      </details>
+
+      <details class="faqItem">
+        <summary><%= lng === 'en' ? 'How do I receive files after purchase?' : '購入後はどうやって受け取る？' %></summary>
+        <p class="faqItem__body muted"><%= lng === 'en' ? 'After Stripe checkout, a download link is issued automatically (available for a limited time).' : 'Stripeで決済後、ダウンロードリンクが自動発行されます（一定時間有効）。' %></p>
+      </details>
+
+      <details class="faqItem">
+        <summary><%= lng === 'en' ? 'What do I need to start selling?' : '出品に必要な準備は？' %></summary>
+        <p class="faqItem__body muted"><%= lng === 'en' ? 'Just upload an image and set a price. To receive payouts, you need to complete Stripe payout setup.' : '画像をアップロードして価格を決めるだけです。売上受取にはStripeの受取設定が必要です。' %></p>
+      </details>
+    </div>
+  </section>
+
+  <section id="howto" class="card howto howto--rich">
     <h2 style="margin-top:0"><%= t('howto.title') %></h2>
 
     <div class="steps">
@@ -82,6 +168,7 @@
       </article>
     </div>
   </section>
+
 
 </main>
 
