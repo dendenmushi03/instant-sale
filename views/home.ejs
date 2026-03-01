@@ -72,6 +72,47 @@
     </div>
   </section>
 
+  <section class="homeShowcase" aria-label="Example sales pages">
+    <div class="homeShowcase__head">
+      <h2 class="homeShowcase__title"><%= lng === 'en' ? 'Example sales pages' : '販売ページの見た目（例）' %></h2>
+    </div>
+
+    <div class="showcaseGrid">
+      <a class="showcaseCard" href="<%= me ? '/upload' : '/auth/google' %>">
+        <img class="showcaseCard__img" src="/public/og/instantsale_ogp.jpg" alt="Sample sales page" loading="lazy" />
+        <div class="showcaseCard__body">
+          <h3 class="showcaseCard__title"><%= lng === 'en' ? 'Neon Street Pack' : 'ネオンストリート素材集' %></h3>
+          <div class="showcaseCard__meta">
+            <strong>¥300</strong>
+            <span class="showcasePill"><%= lng === 'en' ? 'Commercial use' : '商用可' %></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="showcaseCard" href="<%= me ? '/upload' : '/auth/google' %>">
+        <img class="showcaseCard__img" src="/public/og/instantsale_ogp.jpg" alt="Sample sales page" loading="lazy" />
+        <div class="showcaseCard__body">
+          <h3 class="showcaseCard__title"><%= lng === 'en' ? 'Portrait Light Preset' : 'ポートレート光エフェクト' %></h3>
+          <div class="showcaseCard__meta">
+            <strong>¥500</strong>
+            <span class="showcasePill"><%= lng === 'en' ? 'Personal use' : '個人利用' %></span>
+          </div>
+        </div>
+      </a>
+
+      <a class="showcaseCard" href="<%= me ? '/upload' : '/auth/google' %>">
+        <img class="showcaseCard__img" src="/public/og/instantsale_ogp.jpg" alt="Sample sales page" loading="lazy" />
+        <div class="showcaseCard__body">
+          <h3 class="showcaseCard__title"><%= lng === 'en' ? 'Concept Art Bundle' : 'コンセプトアートセット' %></h3>
+          <div class="showcaseCard__meta">
+            <strong>¥1200</strong>
+            <span class="showcasePill"><%= lng === 'en' ? 'Extended license' : '拡張ライセンス' %></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
   <section class="homeWhy">
     <h2><%= lng === 'en' ? 'Why Instant Sale' : 'Why Instant Sale' %></h2>
     <div class="homeWhy__grid">
