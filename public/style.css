@@ -5513,3 +5513,165 @@ body.menu-open{
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
 .licenseBody p{margin:.55rem 0}
+
+/* home refresh: premium hero + mock + value cards */
+.homeHero{
+  position:relative;
+  margin-top:10px;
+  padding:40px;
+  border-radius:26px;
+  border:1px solid rgba(20,20,20,.10);
+  background:
+    radial-gradient(1100px 520px at 8% -10%, rgba(255,255,255,.82), transparent 65%),
+    radial-gradient(920px 500px at 100% 0%, rgba(20,20,20,.08), transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.66));
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  isolation:isolate;
+}
+.homeHero::before{
+  content:"";
+  position:absolute;
+  inset:auto -90px -140px auto;
+  width:320px;
+  height:320px;
+  border-radius:999px;
+  background:radial-gradient(circle, rgba(20,20,20,.10), transparent 66%);
+  filter:blur(4px);
+  pointer-events:none;
+}
+.homeHero__grid{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(300px,420px);
+  gap:34px;
+  align-items:center;
+}
+.homeHero__copy{max-width:640px}
+.homeHero__kicker{
+  margin:0 0 12px;
+  font-size:12px;
+  line-height:1;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  font-weight:900;
+  color:rgba(20,20,20,.55);
+}
+.homeHero__title{margin:0 0 14px}
+.homeHero__lead{
+  margin:0;
+  color:rgba(20,20,20,.72);
+  font-size:17px;
+  max-width:62ch;
+}
+.homeHero__actions{margin-top:26px;display:flex;gap:12px;flex-wrap:wrap}
+.homeHero__actions .btn--primary{
+  min-width:220px;
+  height:52px;
+  padding:0 24px;
+  font-size:16px;
+}
+.homeHero__note{
+  margin:14px 0 0;
+  color:rgba(20,20,20,.62);
+  font-size:14px;
+  font-weight:600;
+}
+
+.homeMock{position:relative}
+.homeMock__card{
+  position:relative;
+  border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,255,255,.86));
+  border:1px solid rgba(20,20,20,.16);
+  box-shadow:var(--shadow-soft);
+  overflow:hidden;
+}
+.homeMock__badge{
+  position:absolute;
+  top:14px;
+  left:14px;
+  z-index:2;
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:7px 11px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#fff;
+  background:rgba(20,20,20,.78);
+}
+.homeMock__img{
+  width:100%;
+  aspect-ratio:4 / 3;
+  object-fit:cover;
+  border-bottom:1px solid rgba(20,20,20,.10);
+}
+.homeMock__meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:15px 16px 16px;
+  color:rgba(20,20,20,.78);
+  font-size:13px;
+}
+.homeMock__price{
+  flex:0 0 auto;
+  border-radius:999px;
+  border:1px solid rgba(20,20,20,.18);
+  background:rgba(20,20,20,.06);
+  padding:6px 11px;
+  line-height:1;
+  font-weight:900;
+  color:rgba(20,20,20,.90);
+}
+
+.homeWhy{margin-top:32px}
+.homeWhy h2{margin-bottom:16px}
+.homeWhy__grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+.whyCard{
+  border:1px solid rgba(20,20,20,.12);
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.90),rgba(255,255,255,.76));
+  padding:18px;
+  min-height:160px;
+}
+.whyCard__title{margin:0 0 8px;font-size:17px}
+.whyCard__desc{margin:0;color:rgba(20,20,20,.66);font-size:14px;line-height:1.7}
+
+.howto--rich{
+  margin-top:24px;
+  border-color:rgba(20,20,20,.14);
+  box-shadow:var(--shadow-soft);
+}
+.homeFaq{margin-top:16px}
+.homeFaq details + details{margin-top:8px}
+.homeFaq summary{cursor:pointer;font-weight:800}
+.homeFaq p{margin:6px 0 0}
+
+@media (max-width:960px){
+  .homeHero{padding:30px 24px}
+  .homeHero__grid{grid-template-columns:1fr;gap:22px}
+  .homeWhy__grid{grid-template-columns:1fr}
+}
+
+@media (max-width:640px){
+  .homeHero{
+    padding:22px 16px 18px;
+    border-radius:18px;
+  }
+  .homeHero__kicker{margin-bottom:10px}
+  .homeHero__lead{font-size:15px}
+  .homeHero__actions{margin-top:18px}
+  .homeHero__actions .btn--primary{width:100%;min-width:0}
+  .homeMock__meta{flex-direction:column;align-items:flex-start;gap:8px}
+  .homeMock__price{align-self:flex-start}
+}
