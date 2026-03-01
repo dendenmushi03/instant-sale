@@ -76,44 +76,28 @@
     </div>
   </section>
 
-  <section class="homeShowcase" aria-label="Example sales pages">
-    <div class="homeShowcase__head">
-      <h2 class="homeShowcase__title"><%= lng === 'en' ? 'Example sales pages' : '販売ページの見た目（例）' %></h2>
-    </div>
+  <section class="homeShowcase" aria-label="Sample sales page preview">
+    <% const sampleHref = '#howto'; %>
+    <h2 class="homeShowcase__title"><%= lng === 'en' ? 'Preview' : '完成イメージ' %></h2>
 
-    <div class="showcaseGrid">
-      <a class="showcaseCard" href="<%= me ? '/upload' : '/auth/google' %>">
-        <img class="showcaseCard__img" src="/public/og/instantsale_ogp.jpg" alt="Sample sales page" loading="lazy" />
-        <div class="showcaseCard__body">
-          <h3 class="showcaseCard__title"><%= lng === 'en' ? 'Neon Street Pack' : 'ネオンストリート素材集' %></h3>
-          <div class="showcaseCard__meta">
-            <strong>¥300</strong>
-            <span class="showcasePill"><%= lng === 'en' ? 'Commercial use' : '商用可' %></span>
+    <div class="homeShowcase__grid">
+      <a class="sampleSaleCard" href="<%= sampleHref %>">
+        <img class="sampleSaleCard__img" src="/public/og/instantsale_ogp.jpg" alt="Sample sale page preview" loading="lazy" />
+        <div class="sampleSaleCard__body">
+          <div class="sampleSaleCard__meta">
+            <strong><%= lng === 'en' ? 'Neon Portrait Pack' : 'ネオンポートレート素材' %></strong>
+            <span><%= lng === 'en' ? '$12' : '¥1,200' %></span>
           </div>
+          <p class="muted" style="margin:8px 0 0;"><%= lng === 'en' ? 'Preview (SAMPLE) / Instant download after purchase' : 'Preview（SAMPLE） / 購入後すぐにDL' %></p>
         </div>
       </a>
 
-      <a class="showcaseCard" href="<%= me ? '/upload' : '/auth/google' %>">
-        <img class="showcaseCard__img" src="/public/og/instantsale_ogp.jpg" alt="Sample sales page" loading="lazy" />
-        <div class="showcaseCard__body">
-          <h3 class="showcaseCard__title"><%= lng === 'en' ? 'Portrait Light Preset' : 'ポートレート光エフェクト' %></h3>
-          <div class="showcaseCard__meta">
-            <strong>¥500</strong>
-            <span class="showcasePill"><%= lng === 'en' ? 'Personal use' : '個人利用' %></span>
-          </div>
-        </div>
-      </a>
-
-      <a class="showcaseCard" href="<%= me ? '/upload' : '/auth/google' %>">
-        <img class="showcaseCard__img" src="/public/og/instantsale_ogp.jpg" alt="Sample sales page" loading="lazy" />
-        <div class="showcaseCard__body">
-          <h3 class="showcaseCard__title"><%= lng === 'en' ? 'Concept Art Bundle' : 'コンセプトアートセット' %></h3>
-          <div class="showcaseCard__meta">
-            <strong>¥1200</strong>
-            <span class="showcasePill"><%= lng === 'en' ? 'Extended license' : '拡張ライセンス' %></span>
-          </div>
-        </div>
-      </a>
+      <ul class="homeShowcase__points">
+        <li><%= lng === 'en' ? 'Watermarked preview, full-res download after purchase' : 'プレビューは透かし入り、購入後に高解像度を自動ダウンロード' %></li>
+        <li><%= lng === 'en' ? 'See fee & earnings instantly' : '価格設定と手数料がその場で分かる' %></li>
+        <li><%= lng === 'en' ? 'Share the link on social' : '販売リンクをSNSで共有するだけ' %></li>
+        <li><%= lng === 'en' ? 'Creator flow is only a few steps' : '出品までのフローは数ステップで完了' %></li>
+      </ul>
     </div>
   </section>
 

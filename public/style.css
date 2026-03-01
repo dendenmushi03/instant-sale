@@ -5837,3 +5837,68 @@ body.menu-open{
   .faqItem > summary{padding:11px 40px 11px 12px}
   .faqItem__body{padding:0 12px 12px}
 }
+
+/* home showcase: single sample sales page preview */
+.homeShowcase{
+  margin-top:22px;
+  padding:20px;
+  border-radius:20px;
+  border:1px solid rgba(20,20,20,.11);
+  background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.74));
+}
+.homeShowcase__title{margin:0 0 14px;font-size:clamp(22px,2.8vw,30px)}
+.homeShowcase__grid{display:grid;gap:14px}
+
+.sampleSaleCard{
+  display:block;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid rgba(20,20,20,.15);
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.84));
+  box-shadow:0 2px 0 rgba(20,20,20,.05);
+  transition:transform .16s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.sampleSaleCard:hover{
+  transform:translateY(-1px);
+  border-color:rgba(20,20,20,.24);
+  box-shadow:0 14px 28px rgba(20,20,20,.12);
+  opacity:1;
+}
+.sampleSaleCard__img{
+  width:100%;
+  aspect-ratio:4 / 3;
+  object-fit:cover;
+  border-bottom:1px solid rgba(20,20,20,.10);
+}
+.sampleSaleCard__body{padding:14px 15px 15px}
+.sampleSaleCard__meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  font-size:15px;
+}
+.sampleSaleCard__meta strong{font-size:17px;line-height:1.25}
+.sampleSaleCard__meta span{font-weight:900;letter-spacing:-.01em}
+
+.homeShowcase__points{
+  margin:0;
+  padding:0 0 0 1.1em;
+  color:rgba(20,20,20,.72);
+  display:grid;
+  gap:8px;
+}
+.homeShowcase__points li{line-height:1.6}
+
+@media (min-width:961px){
+  .homeShowcase__grid{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:stretch}
+}
+
+@media (max-width:960px){
+  .homeShowcase__grid{grid-template-columns:1fr}
+}
+
+@media (max-width:640px){
+  .homeShowcase{padding:14px}
+  .sampleSaleCard__body{padding:12px 13px 13px}
+}
