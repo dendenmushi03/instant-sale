@@ -36,24 +36,58 @@
 
 <main class="container">
 
-  <!-- ヒーロー -->
-  <section class="heroHome">
-<h1 class="heroHome__title">
-  <%= t('home.hero.title_prefix') %><span class="accent"><%= t('home.hero.title_accent') %></span><%= t('home.hero.title_suffix') %>
-</h1>
-<p class="heroHome__lead"><%= t('home.hero.lead') %></p>
+  <section class="homeHero">
+    <div class="homeHero__grid">
+      <div class="homeHero__copy">
+        <p class="homeHero__kicker"><%= lng === 'en' ? 'For AI creators' : 'AIクリエイター向け' %></p>
+        <h1 class="homeHero__title">
+          <%= t('home.hero.title_prefix') %><span class="accent"><%= t('home.hero.title_accent') %></span><%= t('home.hero.title_suffix') %>
+        </h1>
+        <p class="homeHero__lead"><%= t('home.hero.lead') %></p>
 
-<div class="heroHome__actions">
-  <% if (me) { %>
-    <a class="btn btn--primary" href="/creator"><%= t('home.hero.cta_authed') %></a>
-  <% } else { %>
-    <a class="btn btn--primary" href="/auth/google"><%= t('home.hero.cta_guest') %></a>
-  <% } %>
-</div>
+        <div class="homeHero__actions">
+          <% if (me) { %>
+            <a class="btn btn--primary" href="/creator"><%= t('home.hero.cta_authed') %></a>
+          <% } else { %>
+            <a class="btn btn--primary" href="/auth/google"><%= t('home.hero.cta_guest') %></a>
+          <% } %>
+        </div>
 
+        <p class="homeHero__note"><%= lng === 'en' ? 'Start listing in minutes. No credit card required.' : 'ログイン後すぐ出品できます。クレジットカード登録は不要です。' %></p>
+      </div>
+
+      <aside class="homeMock" aria-label="Product preview">
+        <article class="homeMock__card">
+          <span class="homeMock__badge">Preview (SAMPLE)</span>
+          <img class="homeMock__img" src="/public/og/instantsale_ogp.jpg" alt="Instant Sale preview" loading="lazy" />
+          <div class="homeMock__meta">
+            <strong><%= lng === 'en' ? 'After purchase: instant download link' : '購入後: ダウンロードリンクを即時表示' %></strong>
+            <span class="homeMock__price"><%= lng === 'en' ? '$3+' : '¥300〜' %></span>
+          </div>
+        </article>
+      </aside>
+    </div>
   </section>
 
-  <section id="howto" class="card howto">
+  <section class="homeWhy">
+    <h2><%= lng === 'en' ? 'Why Instant Sale' : 'Why Instant Sale' %></h2>
+    <div class="homeWhy__grid">
+      <article class="whyCard">
+        <h3 class="whyCard__title"><%= lng === 'en' ? 'Instant sales link' : '即シェアできる販売リンク' %></h3>
+        <p class="whyCard__desc"><%= lng === 'en' ? 'Create one URL per work and start sharing on X, Instagram, or portfolio sites right away.' : '作品ごとに販売URLをすぐ発行。X・Instagram・ポートフォリオにそのまま掲載できます。' %></p>
+      </article>
+      <article class="whyCard">
+        <h3 class="whyCard__title"><%= lng === 'en' ? 'Automatic download delivery' : '自動でダウンロード提供' %></h3>
+        <p class="whyCard__desc"><%= lng === 'en' ? 'After payment, buyers get access immediately so you do not need manual DM delivery.' : '決済完了後に購入者へ自動でDL案内。手動対応のやり取りを減らせます。' %></p>
+      </article>
+      <article class="whyCard">
+        <h3 class="whyCard__title"><%= lng === 'en' ? 'Secure checkout' : '安心できる決済導線' %></h3>
+        <p class="whyCard__desc"><%= lng === 'en' ? 'Use a familiar checkout flow with clear pricing to keep trust and conversion high.' : '分かりやすい価格表示と安全な決済フローで、安心感と購入率を両立します。' %></p>
+      </article>
+    </div>
+  </section>
+
+  <section id="howto" class="card howto howto--rich">
     <h2 style="margin-top:0"><%= t('howto.title') %></h2>
 
     <div class="steps">
@@ -81,6 +115,22 @@
         <p class="muted" style="margin:0 0 10px;"><%= t('howto.step3.desc') %></p>
       </article>
     </div>
+  </section>
+
+  <section class="card homeFaq" aria-label="FAQ and Notes">
+    <h2 style="margin-top:0"><%= lng === 'en' ? 'FAQ / Notes' : 'FAQ / 注意事項' %></h2>
+    <details>
+      <summary><%= lng === 'en' ? 'Can I start for free?' : '無料で始められますか？' %></summary>
+      <p class="muted"><%= lng === 'en' ? 'Yes. You can sign in and set up your first listing before connecting any payout details.' : 'はい。ログイン後すぐに出品準備ができ、初期費用なしで始められます。' %></p>
+    </details>
+    <details>
+      <summary><%= lng === 'en' ? 'What happens after purchase?' : '購入後の受け渡しはどうなりますか？' %></summary>
+      <p class="muted"><%= lng === 'en' ? 'Buyers are guided to a download link automatically after checkout completion.' : '決済完了後に購入者へダウンロードリンクが自動表示されます。' %></p>
+    </details>
+    <details>
+      <summary><%= lng === 'en' ? 'Can I share links on social media?' : 'SNSで販売リンクを共有できますか？' %></summary>
+      <p class="muted"><%= lng === 'en' ? 'Absolutely. You can place your listing URL anywhere your audience discovers your works.' : '可能です。作品を見てもらう導線に販売リンクをそのまま設置できます。' %></p>
+    </details>
   </section>
 
 </main>
