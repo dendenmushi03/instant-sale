@@ -45,18 +45,22 @@
         </h1>
         <p class="homeHero__lead"><%= t('home.hero.lead') %></p>
 
-        <div class="homeHero__actions">
+        <div class="homeHero__actions heroHome__actions heroCtas">
           <% if (me) { %>
-            <a class="btn btn--primary" href="/upload"><%= lng === 'en' ? 'Create a listing' : '新しく出品する' %></a>
-            <a class="btn btn--soft" href="/creator"><%= lng === 'en' ? 'Go to dashboard' : '売上管理へ' %></a>
+            <a class="btn btn--primary" href="/creator"><%= lng === 'en' ? 'Go to creator page' : '出品ページへ' %></a>
           <% } else { %>
-            <a class="btn btn--primary" href="/auth/google"><%= lng === 'en' ? 'Start selling free' : '無料で出品を始める' %></a>
-            <a class="btn btn--soft" href="#howto"><%= lng === 'en' ? 'See how it works' : '使い方を見る' %></a>
+            <a class="btn btn--primary" href="/auth/google"><%= lng === 'en' ? 'Sign in to start listing' : 'ログインして出品を始める' %></a>
           <% } %>
+          <a class="btn btn--soft btn--compact" href="#howto"><%= lng === 'en' ? 'How it works' : '使い方を見る' %></a>
         </div>
 
+        <ul class="heroBadges" aria-label="highlights">
+          <li class="heroBadge"><%= lng === 'en' ? '3-step setup' : '3ステップで完了' %></li>
+          <li class="heroBadge"><%= lng === 'en' ? 'Secure Stripe checkout' : 'Stripeで安全決済' %></li>
+          <li class="heroBadge"><%= lng === 'en' ? 'Auto-generated link' : 'リンク自動発行' %></li>
+        </ul>
+
         <p class="homeHero__note"><%= me ? (lng === 'en' ? 'Upload → Price → Link' : '画像→価格→リンク発行') : (lng === 'en' ? 'No card required. Link in 30s.' : 'クレカ不要・30秒でリンク発行') %></p>
-        <p class="homeHero__trust"><%= lng === 'en' ? '🔒 Stripe ・ ⚡ Auto download ・ 🧾 License included' : '🔒 Stripe ・ ⚡ 自動ダウンロード ・ 🧾 ライセンス情報つき' %></p>
       </div>
 
       <aside class="homeMock" aria-label="Product preview">
