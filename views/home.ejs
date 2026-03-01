@@ -47,13 +47,16 @@
 
         <div class="homeHero__actions">
           <% if (me) { %>
-            <a class="btn btn--primary" href="/creator"><%= t('home.hero.cta_authed') %></a>
+            <a class="btn btn--primary" href="/upload"><%= lng === 'en' ? 'Create a listing' : '新しく出品する' %></a>
+            <a class="btn btn--soft" href="/creator"><%= lng === 'en' ? 'Go to dashboard' : '売上管理へ' %></a>
           <% } else { %>
-            <a class="btn btn--primary" href="/auth/google"><%= t('home.hero.cta_guest') %></a>
+            <a class="btn btn--primary" href="/auth/google"><%= lng === 'en' ? 'Start selling free' : '無料で出品を始める' %></a>
+            <a class="btn btn--soft" href="#howto"><%= lng === 'en' ? 'See how it works' : '使い方を見る' %></a>
           <% } %>
         </div>
 
-        <p class="homeHero__note"><%= lng === 'en' ? 'Start listing in minutes. No credit card required.' : 'ログイン後すぐ出品できます。クレジットカード登録は不要です。' %></p>
+        <p class="homeHero__note"><%= me ? (lng === 'en' ? 'Upload → Price → Link' : '画像→価格→リンク発行') : (lng === 'en' ? 'No card required. Link in 30s.' : 'クレカ不要・30秒でリンク発行') %></p>
+        <p class="homeHero__trust"><%= lng === 'en' ? '🔒 Stripe ・ ⚡ Auto download ・ 🧾 License included' : '🔒 Stripe ・ ⚡ 自動ダウンロード ・ 🧾 ライセンス情報つき' %></p>
       </div>
 
       <aside class="homeMock" aria-label="Product preview">
