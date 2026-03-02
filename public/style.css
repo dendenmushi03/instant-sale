@@ -5631,6 +5631,49 @@ body.menu-open{
   padding:7px 10px;
 }
 
+
+/* =========================
+   Home: hero highlights (mini KPI)
+   ========================= */
+.heroKpis{
+  margin:18px 0 0;
+  padding:0;
+  list-style:none;
+  display:grid;
+  gap:12px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+.heroKpi{
+  border-radius:18px;
+  border:1px solid rgba(20,20,20,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.52));
+  box-shadow:0 1px 0 rgba(20,20,20,.05);
+  padding:14px 14px 16px;
+}
+
+.heroKpi__label{
+  font-size:12px;
+  font-weight:850;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:rgba(20,20,20,.58);
+}
+
+.heroKpi__value{
+  margin-top:6px;
+  font-weight:950;
+  letter-spacing:-.02em;
+  font-size:18px;
+}
+
+.heroKpi__note{
+  margin-top:4px;
+  color:rgba(20,20,20,.62);
+  font-size:13px;
+  line-height:1.45;
+}
+
 /* =========================
    Home: Trust Bar
    ========================= */
@@ -6015,6 +6058,11 @@ body.menu-open{
   .heroLink{
     justify-content:center;
     height:42px;
+  }
+  .heroKpis{
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-top:14px;
   }
 }
 

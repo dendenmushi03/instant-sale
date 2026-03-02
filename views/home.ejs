@@ -65,6 +65,26 @@
           </a>
         </div>
 
+        <ul class="heroKpis" aria-label="highlights">
+          <li class="heroKpi">
+            <div class="heroKpi__label"><%= (lng==='en') ? 'Instant link' : '即リンク発行' %></div>
+            <div class="heroKpi__value"><%= (lng==='en') ? '3 steps' : '3ステップ' %></div>
+            <div class="heroKpi__note"><%= (lng==='en') ? 'Upload → price → publish' : 'アップロード→価格→公開' %></div>
+          </li>
+
+          <li class="heroKpi">
+            <div class="heroKpi__label"><%= (lng==='en') ? 'Secure payment' : '安全決済' %></div>
+            <div class="heroKpi__value">Stripe</div>
+            <div class="heroKpi__note"><%= (lng==='en') ? 'Card payment supported' : 'カード決済対応' %></div>
+          </li>
+
+          <li class="heroKpi">
+            <div class="heroKpi__label"><%= (lng==='en') ? 'Delivery' : '納品' %></div>
+            <div class="heroKpi__value"><%= (lng==='en') ? 'Auto' : '自動' %></div>
+            <div class="heroKpi__note"><%= (lng==='en') ? 'Instant download after purchase' : '購入後すぐダウンロード' %></div>
+          </li>
+        </ul>
+
         <ul class="trustBar" aria-label="trust">
           <li class="trustItem">
             <div class="trustIcon" aria-hidden="true">💳</div>
