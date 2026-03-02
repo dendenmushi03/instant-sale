@@ -1349,6 +1349,7 @@ body.menu-open{
 }
 
 
+
 /* progress modal copy button refinements */
 #progressModal #copyResultUrl,
 #progressModal #copyTweetText{
@@ -1375,7 +1376,6 @@ body.menu-open{
   opacity:.55;
   background:rgba(20,20,20,.08);
 }
-
 
 /* creator upload hero */
 .creatorHero{
@@ -1565,8 +1565,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -2005,33 +2003,6 @@ body.menu-open{
 }
 
 
-/* progress modal copy button refinements */
-#progressModal #copyResultUrl,
-#progressModal #copyTweetText{
-  background:rgba(20,20,20,.08);
-  border:1px solid rgba(20,20,20,.24);
-  color:rgba(20,20,20,.92);
-}
-
-#progressModal #copyResultUrl:hover,
-#progressModal #copyTweetText:hover{
-  background:rgba(20,20,20,.14);
-  border-color:rgba(20,20,20,.30);
-  color:rgba(20,20,20,.96);
-}
-
-#progressModal #copyResultUrl:focus-visible,
-#progressModal #copyTweetText:focus-visible{
-  outline:none;
-  box-shadow:var(--focus);
-}
-
-#progressModal #copyResultUrl:disabled,
-#progressModal #copyTweetText:disabled{
-  opacity:.55;
-  background:rgba(20,20,20,.08);
-}
-
 
 /* creator upload hero */
 .creatorHero{
@@ -2221,8 +2192,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -2549,33 +2518,6 @@ body.menu-open{
 }
 
 
-/* progress modal copy button refinements */
-#progressModal #copyResultUrl,
-#progressModal #copyTweetText{
-  background:rgba(20,20,20,.08);
-  border:1px solid rgba(20,20,20,.24);
-  color:rgba(20,20,20,.92);
-}
-
-#progressModal #copyResultUrl:hover,
-#progressModal #copyTweetText:hover{
-  background:rgba(20,20,20,.14);
-  border-color:rgba(20,20,20,.30);
-  color:rgba(20,20,20,.96);
-}
-
-#progressModal #copyResultUrl:focus-visible,
-#progressModal #copyTweetText:focus-visible{
-  outline:none;
-  box-shadow:var(--focus);
-}
-
-#progressModal #copyResultUrl:disabled,
-#progressModal #copyTweetText:disabled{
-  opacity:.55;
-  background:rgba(20,20,20,.08);
-}
-
 
 /* creator upload hero */
 .creatorHero{
@@ -2765,8 +2707,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -3016,33 +2956,6 @@ body.menu-open{
 }
 
 
-/* progress modal copy button refinements */
-#progressModal #copyResultUrl,
-#progressModal #copyTweetText{
-  background:rgba(20,20,20,.08);
-  border:1px solid rgba(20,20,20,.24);
-  color:rgba(20,20,20,.92);
-}
-
-#progressModal #copyResultUrl:hover,
-#progressModal #copyTweetText:hover{
-  background:rgba(20,20,20,.14);
-  border-color:rgba(20,20,20,.30);
-  color:rgba(20,20,20,.96);
-}
-
-#progressModal #copyResultUrl:focus-visible,
-#progressModal #copyTweetText:focus-visible{
-  outline:none;
-  box-shadow:var(--focus);
-}
-
-#progressModal #copyResultUrl:disabled,
-#progressModal #copyTweetText:disabled{
-  opacity:.55;
-  background:rgba(20,20,20,.08);
-}
-
 
 /* creator upload hero */
 .creatorHero{
@@ -3232,8 +3145,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -3437,33 +3348,6 @@ body.menu-open{
 }
 
 
-/* progress modal copy button refinements */
-#progressModal #copyResultUrl,
-#progressModal #copyTweetText{
-  background:rgba(20,20,20,.08);
-  border:1px solid rgba(20,20,20,.24);
-  color:rgba(20,20,20,.92);
-}
-
-#progressModal #copyResultUrl:hover,
-#progressModal #copyTweetText:hover{
-  background:rgba(20,20,20,.14);
-  border-color:rgba(20,20,20,.30);
-  color:rgba(20,20,20,.96);
-}
-
-#progressModal #copyResultUrl:focus-visible,
-#progressModal #copyTweetText:focus-visible{
-  outline:none;
-  box-shadow:var(--focus);
-}
-
-#progressModal #copyResultUrl:disabled,
-#progressModal #copyTweetText:disabled{
-  opacity:.55;
-  background:rgba(20,20,20,.08);
-}
-
 
 /* creator upload hero */
 .creatorHero{
@@ -3640,8 +3524,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -3795,33 +3677,6 @@ body.menu-open{
 }
 
 
-/* progress modal copy button refinements */
-#progressModal #copyResultUrl,
-#progressModal #copyTweetText{
-  background:rgba(20,20,20,.08);
-  border:1px solid rgba(20,20,20,.24);
-  color:rgba(20,20,20,.92);
-}
-
-#progressModal #copyResultUrl:hover,
-#progressModal #copyTweetText:hover{
-  background:rgba(20,20,20,.14);
-  border-color:rgba(20,20,20,.30);
-  color:rgba(20,20,20,.96);
-}
-
-#progressModal #copyResultUrl:focus-visible,
-#progressModal #copyTweetText:focus-visible{
-  outline:none;
-  box-shadow:var(--focus);
-}
-
-#progressModal #copyResultUrl:disabled,
-#progressModal #copyTweetText:disabled{
-  opacity:.55;
-  background:rgba(20,20,20,.08);
-}
-
 
 /* creator upload hero */
 .creatorHero{
@@ -3998,8 +3853,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -4302,33 +4155,6 @@ body.menu-open{
 }
 
 
-/* progress modal copy button refinements */
-#progressModal #copyResultUrl,
-#progressModal #copyTweetText{
-  background:rgba(20,20,20,.08);
-  border:1px solid rgba(20,20,20,.24);
-  color:rgba(20,20,20,.92);
-}
-
-#progressModal #copyResultUrl:hover,
-#progressModal #copyTweetText:hover{
-  background:rgba(20,20,20,.14);
-  border-color:rgba(20,20,20,.30);
-  color:rgba(20,20,20,.96);
-}
-
-#progressModal #copyResultUrl:focus-visible,
-#progressModal #copyTweetText:focus-visible{
-  outline:none;
-  box-shadow:var(--focus);
-}
-
-#progressModal #copyResultUrl:disabled,
-#progressModal #copyTweetText:disabled{
-  opacity:.55;
-  background:rgba(20,20,20,.08);
-}
-
 
 /* creator upload hero */
 .creatorHero{
@@ -4499,8 +4325,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -4803,33 +4627,6 @@ body.menu-open{
 }
 
 
-/* progress modal copy button refinements */
-#progressModal #copyResultUrl,
-#progressModal #copyTweetText{
-  background:rgba(20,20,20,.08);
-  border:1px solid rgba(20,20,20,.24);
-  color:rgba(20,20,20,.92);
-}
-
-#progressModal #copyResultUrl:hover,
-#progressModal #copyTweetText:hover{
-  background:rgba(20,20,20,.14);
-  border-color:rgba(20,20,20,.30);
-  color:rgba(20,20,20,.96);
-}
-
-#progressModal #copyResultUrl:focus-visible,
-#progressModal #copyTweetText:focus-visible{
-  outline:none;
-  box-shadow:var(--focus);
-}
-
-#progressModal #copyResultUrl:disabled,
-#progressModal #copyTweetText:disabled{
-  opacity:.55;
-  background:rgba(20,20,20,.08);
-}
-
 
 /* creator upload hero */
 .creatorHero{
@@ -5000,8 +4797,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -5327,33 +5122,6 @@ body.menu-open{
 }
 
 
-/* progress modal copy button refinements */
-#progressModal #copyResultUrl,
-#progressModal #copyTweetText{
-  background:rgba(20,20,20,.08);
-  border:1px solid rgba(20,20,20,.24);
-  color:rgba(20,20,20,.92);
-}
-
-#progressModal #copyResultUrl:hover,
-#progressModal #copyTweetText:hover{
-  background:rgba(20,20,20,.14);
-  border-color:rgba(20,20,20,.30);
-  color:rgba(20,20,20,.96);
-}
-
-#progressModal #copyResultUrl:focus-visible,
-#progressModal #copyTweetText:focus-visible{
-  outline:none;
-  box-shadow:var(--focus);
-}
-
-#progressModal #copyResultUrl:disabled,
-#progressModal #copyTweetText:disabled{
-  opacity:.55;
-  background:rgba(20,20,20,.08);
-}
-
 
 /* creator upload hero */
 .creatorHero{
@@ -5524,8 +5292,6 @@ body.menu-open{
 }
 
 /* sale buyCard resilience tweaks */
-.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
-.buyCard__meta--spaced{margin-top:8px}
 
 .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 @media (max-width:768px){.sectionHead{align-items:flex-start}}
@@ -6208,3 +5974,9 @@ body.menu-open{
       auto;
   }
 }
+.buyCard__meta{overflow-wrap:anywhere;word-break:break-word}
+.buyCard__meta--spaced{margin-top:8px}
+/* =========================
+   Project: Custom overrides (append only)
+   ========================= */
+/* ここより上は整理済み。新規追加は原則ここに追記 */
