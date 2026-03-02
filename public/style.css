@@ -5976,3 +5976,44 @@ body.menu-open{
   .homeShowcase{padding:14px}
   .sampleSaleCard__body{padding:12px 13px 13px}
 }
+
+
+/* =========================
+   Home: CTA refinement
+   ========================= */
+.heroHome__actions{
+  align-items:center;
+}
+
+.heroLink{
+  display:inline-flex;
+  align-items:center;
+  height:46px;
+  padding:0 10px;
+  border-radius:12px;
+  color:rgba(20,20,20,.70);
+  font-weight:800;
+  font-size:13px;
+  text-decoration:none;
+  border:1px solid transparent;
+}
+.heroLink:hover{
+  background:rgba(20,20,20,.06);
+  border-color:rgba(20,20,20,.10);
+  opacity:1;
+}
+
+@media (max-width:768px){
+  .heroHome__actions{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .heroHome__actions .btn{
+    width:100%;
+  }
+  .heroLink{
+    justify-content:center;
+    height:42px;
+  }
+}

@@ -47,11 +47,22 @@
 
         <div class="homeHero__actions heroHome__actions heroCtas">
           <% if (me) { %>
-            <a class="btn btn--primary" href="/creator"><%= lng === 'en' ? 'Go to creator page' : '出品ページへ' %></a>
+            <a class="btn btn--primary btn--lg" href="/creator">
+              <%= (lng==='en') ? 'Create a sales link' : '販売リンクを作る' %>
+            </a>
           <% } else { %>
-            <a class="btn btn--primary" href="/auth/google"><%= lng === 'en' ? 'Sign in to start listing' : 'ログインして出品を始める' %></a>
+            <a class="btn btn--primary btn--lg" href="/auth/google">
+              <%= (lng==='en') ? 'Start selling (Google sign-in)' : 'Googleで始める' %>
+            </a>
           <% } %>
-          <a class="btn btn--soft btn--compact" href="#howto"><%= lng === 'en' ? 'How it works' : '使い方を見る' %></a>
+
+          <a class="btn btn--soft btn--lg" href="#howto">
+            <%= (lng==='en') ? 'See how it works' : '使い方を見る' %>
+          </a>
+
+          <a class="heroLink" href="/image-license">
+            <%= (lng==='en') ? 'View license policy' : 'ライセンスを見る' %>
+          </a>
         </div>
 
         <ul class="trustBar" aria-label="trust">
