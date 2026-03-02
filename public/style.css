@@ -6017,3 +6017,83 @@ body.menu-open{
     height:42px;
   }
 }
+
+
+/* =========================
+   Home: HowTo gallery section
+   ========================= */
+.howtoSection{
+  margin-top:18px;
+  padding:22px;
+  border-radius:22px;
+  border:1px solid rgba(20,20,20,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.78),rgba(255,255,255,.56));
+  box-shadow:0 16px 26px rgba(20,20,20,.06),0 1px 0 rgba(20,20,20,.05);
+}
+
+.howtoHead{display:grid;gap:6px;margin-bottom:14px}
+.howtoTitle{margin:0;font-family:var(--title);font-size:clamp(18px,2.4vw,28px)}
+.howtoLead{margin:0;color:rgba(20,20,20,.62);font-size:14px;max-width:72ch}
+
+.stepsWrap{margin-top:10px}
+
+/* PC: 3カラム展示 */
+.howtoSection .steps{
+  display:grid;
+  gap:14px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+.howtoSection .step{
+  position:relative;
+  border-radius:20px;
+  padding:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.76));
+  border:1px solid rgba(20,20,20,.12);
+  box-shadow:0 1px 0 rgba(20,20,20,.05);
+}
+.howtoSection .step__rail{display:none}
+.howtoSection .step__content{position:static}
+.howtoSection .step__head{margin:0 0 8px;display:flex;align-items:center;gap:10px}
+.howtoSection .step__num{
+  position:static;
+  width:36px;height:36px;
+  font-weight:900;
+  background:rgba(20,20,20,.08);
+  color:rgba(20,20,20,.92);
+}
+.howtoSection .step__desc{line-height:1.65}
+
+/* 下部CTA */
+.howtoCta{
+  margin-top:14px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+/* SP: 横スクロール + スナップ */
+@media (max-width:768px){
+  .howtoSection{padding:16px;border-radius:18px}
+
+  .howtoSection .steps{
+    grid-template-columns:repeat(3, minmax(78%, 1fr));
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:6px;
+  }
+  .howtoSection .step{
+    scroll-snap-align:start;
+  }
+
+  .howtoCta{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .howtoCta .btn{width:100%}
+  .howtoSection .steps::-webkit-scrollbar{height:6px}
+  .howtoSection .steps::-webkit-scrollbar-thumb{background:rgba(20,20,20,.18);border-radius:999px}
+  .howtoSection .steps::-webkit-scrollbar-track{background:transparent}
+}
