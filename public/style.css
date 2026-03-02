@@ -6145,3 +6145,66 @@ body.menu-open{
   .howtoSection .steps::-webkit-scrollbar-thumb{background:rgba(20,20,20,.18);border-radius:999px}
   .howtoSection .steps::-webkit-scrollbar-track{background:transparent}
 }
+
+/* =========================
+   Home: hero gallery backdrop (grid + spotlight)
+   ========================= */
+.heroHome{
+  position:relative; /* 念のため */
+  overflow:hidden;
+}
+
+.heroHome::after{
+  content:"";
+  position:absolute;
+  inset:-120px -40px -80px -40px;
+  pointer-events:none;
+  z-index:0;
+
+  /* ① 薄いグリッド（展示壁） ② うっすらスポットライト ③ 紙の陰影 */
+  background:
+    /* grid */
+    linear-gradient(rgba(20,20,20,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20,20,20,.045) 1px, transparent 1px),
+
+    /* spotlight */
+    radial-gradient(900px 520px at 20% 10%, rgba(255,255,255,.58), transparent 60%),
+    radial-gradient(760px 520px at 90% 0%, rgba(255,255,255,.40), transparent 62%),
+
+    /* soft vignette */
+    radial-gradient(900px 520px at 50% 30%, rgba(0,0,0,.05), transparent 70%);
+
+  background-size:
+    44px 44px,
+    44px 44px,
+    auto,
+    auto,
+    auto;
+
+  mix-blend-mode:multiply;
+  opacity:.55;
+  filter:blur(.2px);
+}
+
+/* ヒーロー内の要素を背景より前へ */
+.heroHome__title,
+.heroHome__lead,
+.heroHome__actions,
+.heroKpis{
+  position:relative;
+  z-index:1;
+}
+
+/* スマホでは主張を抑える（読みやすさ優先） */
+@media (max-width:768px){
+  .heroHome::after{
+    inset:-80px -20px -40px -20px;
+    opacity:.38;
+    background-size:
+      52px 52px,
+      52px 52px,
+      auto,
+      auto,
+      auto;
+  }
+}
