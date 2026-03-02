@@ -5631,6 +5631,54 @@ body.menu-open{
   padding:7px 10px;
 }
 
+/* =========================
+   Home: Trust Bar
+   ========================= */
+.trustBar{
+  list-style:none;
+  padding:0;
+  margin:18px 0 0;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.trustItem{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:14px 14px;
+  border-radius:16px;
+  border:1px solid rgba(20,20,20,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.62));
+  box-shadow:0 1px 0 rgba(20,20,20,.04);
+}
+
+.trustIcon{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:rgba(20,20,20,.08);
+  font-size:16px;
+  flex:0 0 auto;
+}
+
+.trustTitle{
+  font-weight:900;
+  font-size:13px;
+  line-height:1.2;
+  letter-spacing:-.01em;
+}
+
+.trustDesc{
+  margin-top:4px;
+  color:rgba(20,20,20,.62);
+  font-size:12px;
+  line-height:1.45;
+}
+
 .homeMock{position:relative}
 .homeMock__card{
   position:relative;
@@ -5730,6 +5778,14 @@ body.menu-open{
   .homeHero__actions{flex-direction:column;align-items:stretch}
   .homeHero__actions .btn{height:52px}
   .homeHero__actions .btn--compact{width:100%}
+  .trustBar{
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-top:14px;
+  }
+  .trustItem{
+    padding:12px 12px;
+  }
 }
 
 /* home showcase: example sales pages */

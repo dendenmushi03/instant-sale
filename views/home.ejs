@@ -54,6 +54,32 @@
           <a class="btn btn--soft btn--compact" href="#howto"><%= lng === 'en' ? 'How it works' : '使い方を見る' %></a>
         </div>
 
+        <ul class="trustBar" aria-label="trust">
+          <li class="trustItem">
+            <div class="trustIcon" aria-hidden="true">💳</div>
+            <div class="trustText">
+              <div class="trustTitle"><%= (lng==='en') ? 'Secure payments' : '安全な決済' %></div>
+              <div class="trustDesc"><%= (lng==='en') ? 'Stripe card checkout' : 'Stripeのカード決済' %></div>
+            </div>
+          </li>
+
+          <li class="trustItem">
+            <div class="trustIcon" aria-hidden="true">⚡</div>
+            <div class="trustText">
+              <div class="trustTitle"><%= (lng==='en') ? 'Instant delivery' : '自動ダウンロード' %></div>
+              <div class="trustDesc"><%= (lng==='en') ? 'Delivered right after purchase' : '購入後すぐに受け取れます' %></div>
+            </div>
+          </li>
+
+          <li class="trustItem">
+            <div class="trustIcon" aria-hidden="true">🖼️</div>
+            <div class="trustText">
+              <div class="trustTitle"><%= (lng==='en') ? 'Preview protected' : 'プレビュー保護' %></div>
+              <div class="trustDesc"><%= (lng==='en') ? 'Watermarked preview' : '透かし付きで公開' %></div>
+            </div>
+          </li>
+        </ul>
+
         <ul class="heroBadges" aria-label="highlights">
           <li class="heroBadge"><%= lng === 'en' ? '3-step setup' : '3ステップで完了' %></li>
           <li class="heroBadge"><%= lng === 'en' ? 'Secure Stripe checkout' : 'Stripeで安全決済' %></li>
