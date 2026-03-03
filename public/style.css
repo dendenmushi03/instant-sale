@@ -5377,15 +5377,15 @@ body.menu-open{
 
 /* home faq: minimal and trustworthy */
 .homeFaq{
-  margin-top:18px;
-  padding:20px;
+  margin-top:14px;
+  padding:16px;
   border-radius:18px;
   border:1px solid var(--border);
   background:linear-gradient(180deg,var(--surface),var(--surface-2));
   box-shadow:0 1px 0 rgba(20,20,20,.06);
 }
 .homeFaq__title{margin:0 0 12px}
-.faqList{display:grid;gap:10px}
+.faqList{display:grid;gap:8px}
 .faqItem{
   border:1px solid var(--border);
   border-radius:12px;
@@ -5457,7 +5457,7 @@ body.menu-open{
 }
 .sampleSaleCard__img{
   width:100%;
-  aspect-ratio:4 / 3;
+  aspect-ratio:16 / 10;
   object-fit:cover;
   border-bottom:1px solid rgba(20,20,20,.10);
 }
@@ -5474,15 +5474,15 @@ body.menu-open{
 
 .homeShowcase__points{
   margin:0;
-  padding:0 0 0 1.1em;
+  padding:0 0 0 1em;
   color:rgba(20,20,20,.72);
   display:grid;
-  gap:8px;
+  gap:6px;
 }
-.homeShowcase__points li{line-height:1.6}
+.homeShowcase__points li{line-height:1.5}
 
 @media (min-width:961px){
-  .homeShowcase__grid{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:stretch}
+  .homeShowcase__grid{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:stretch}
 }
 
 @media (max-width:960px){
@@ -5499,7 +5499,7 @@ body.menu-open{
    Home: HowTo gallery section
    ========================= */
 .howtoSection{
-  margin-top:18px;
+  margin-top:12px;
   padding:22px;
   border-radius:22px;
   border:1px solid rgba(20,20,20,.10);
@@ -5522,15 +5522,15 @@ body.menu-open{
 
 .howtoSection .step{
   position:relative;
-  border-radius:20px;
-  padding:20px;
+  border-radius:18px;
+  padding:16px;
   background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.76));
   border:1px solid rgba(20,20,20,.12);
   box-shadow:0 1px 0 rgba(20,20,20,.05);
 }
 .howtoSection .step__rail{display:none}
 .howtoSection .step__content{position:static}
-.howtoSection .step__head{margin:0 0 8px;display:flex;align-items:center;gap:10px}
+.howtoSection .step__head{margin:0 0 6px;display:flex;align-items:center;gap:8px}
 .howtoSection .step__num{
   position:static;
   width:36px;height:36px;
@@ -5566,35 +5566,53 @@ body.menu-open{
    ========================= */
 .homeHero__grid--single{
   grid-template-columns:minmax(0,1fr);
-  max-width:720px;
+  max-width:760px;
   margin:0 auto;
 }
 .featureRow{
-  margin-top:14px;
+  margin-top:12px;
   display:grid;
-  gap:10px;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  grid-template-columns:1fr;
 }
 .featureCard{
   border-radius:16px;
   border:1px solid rgba(20,20,20,.10);
   background:linear-gradient(180deg,rgba(255,255,255,.80),rgba(255,255,255,.64));
-  padding:12px 13px;
+  padding:18px;
 }
 .featureCard h3{margin:0 0 4px;font-size:14px}
 .featureCard p{margin:0;font-size:13px;line-height:1.45}
 .homeCtaBand{
-  margin-top:16px;
-  padding:14px;
+  margin-top:14px;
+  padding:12px;
   border-radius:16px;
   border:1px solid rgba(20,20,20,.10);
   background:linear-gradient(180deg,rgba(255,255,255,.84),rgba(255,255,255,.72));
   display:flex;
+  flex-direction:column;
+  align-items:center;
   justify-content:center;
+  gap:6px;
+  max-width:760px;
+  margin-left:auto;
+  margin-right:auto;
 }
+.homeCtaBand__note{margin:0;font-size:12px}
 @media (max-width:768px){
+  .homeHero{padding:18px 14px 14px}
+  .homeHero__actions{gap:8px}
+  .homeHero__actions .btn{width:100%}
   .featureRow{grid-template-columns:1fr;gap:8px}
+  .homeShowcase{padding:14px}
+  .homeShowcase__grid{gap:10px}
+  .howtoSection{padding:14px}
+  .howtoSection .step{padding:14px}
   .homeCtaBand .btn{width:100%}
+}
+
+@media (min-width:961px){
+  .featureRow{grid-template-columns:repeat(3,minmax(0,1fr));}
 }
 
 /* =========================
