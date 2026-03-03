@@ -1941,6 +1941,22 @@ body.menu-open{
    Home: highlights strip
    ========================= */
 .homeHighlights { margin: 18px 0; }
+.homeHighlights__card{
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:22px;
+  background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.62));
+  box-shadow:var(--shadow-soft);
+}
+.homeHighlights__head{ display:grid; gap:6px; margin-bottom:14px; }
+.homeHighlights__title{
+  margin:0;
+  font-family:var(--title);
+  font-weight:900;
+  font-size:clamp(18px,3.2vw,26px);
+  letter-spacing:-.02em;
+}
+.homeHighlights__sub{ margin:0; }
 .highlightList { display:grid; gap:12px; }
 .highlightItem { display:flex; gap:12px; align-items:center; padding:14px; border:1px solid var(--border); border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.78)); box-shadow: var(--shadow-soft); }
 .highlightIcon { width:44px; height:44px; border-radius:999px; display:grid; place-items:center; background: rgba(20,20,20,.06); flex:0 0 auto; }
@@ -1951,8 +1967,18 @@ body.menu-open{
 .highlightTag { display:inline-flex; padding:.42rem .78rem; border-radius:999px; border:1px solid rgba(20,20,20,.16); background: rgba(255,255,255,.72); font-weight:850; color: rgba(20,20,20,.80); }
 .highlightNote { margin:12px 0 0; }
 
+.homeHighlights__card .highlightItem{
+  box-shadow:none;
+  background:rgba(255,255,255,.78);
+}
+.homeHighlights__card .highlightTags{ margin-top:14px; }
+.homeHighlights__card .highlightNote{ margin-top:10px; }
+
+/* スマホでは主張を抑える（読みやすさ優先） */
 @media (max-width:768px){
   .homeHighlights { margin: 16px 0; }
+  .homeHighlights__card{ padding:14px; border-radius:18px; }
+  .homeHighlights__head{ margin-bottom:12px; }
   .highlightItem { padding: 12px; border-radius:16px; }
   .highlightIcon { width:40px; height:40px; }
 }
