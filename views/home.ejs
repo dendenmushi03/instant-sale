@@ -58,6 +58,40 @@
     </div>
   </section>
 
+  <section class="homeHighlights" aria-label="Highlights">
+    <div class="highlightList">
+      <article class="highlightItem">
+        <div class="highlightIcon" aria-hidden="true">💳</div>
+        <div class="highlightText">
+          <div class="highlightTitle"><%= (lng==='en') ? 'Secure payment' : '安全な決済' %></div>
+          <div class="highlightDesc"><%= (lng==='en') ? 'Stripe card checkout' : 'Stripeのカード決済' %></div>
+        </div>
+      </article>
+      <article class="highlightItem">
+        <div class="highlightIcon" aria-hidden="true">⚡</div>
+        <div class="highlightText">
+          <div class="highlightTitle"><%= (lng==='en') ? 'Auto delivery' : '自動ダウンロード' %></div>
+          <div class="highlightDesc"><%= (lng==='en') ? 'Instant download after purchase' : '購入後すぐに受け取れます' %></div>
+        </div>
+      </article>
+      <article class="highlightItem">
+        <div class="highlightIcon" aria-hidden="true">🖼️</div>
+        <div class="highlightText">
+          <div class="highlightTitle"><%= (lng==='en') ? 'Preview protection' : 'プレビュー保護' %></div>
+          <div class="highlightDesc"><%= (lng==='en') ? 'Watermarked preview' : '透かし付きで公開' %></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="highlightTags">
+      <span class="highlightTag"><%= (lng==='en') ? 'Done in 3 steps' : '3ステップで完了' %></span>
+      <span class="highlightTag"><%= (lng==='en') ? 'Secure with Stripe' : 'Stripeで安全決済' %></span>
+      <span class="highlightTag"><%= (lng==='en') ? 'Auto link' : 'リンク自動発行' %></span>
+    </div>
+
+    <p class="highlightNote muted"><%= (lng==='en') ? 'No card needed • Link ready in ~30 seconds' : 'クレカ不要・30秒でリンク発行' %></p>
+  </section>
+
   <section class="homeFaq" id="faq" aria-label="Frequently asked questions">
     <h2 class="homeFaq__title"><%= lng === 'en' ? 'FAQ' : 'よくある質問' %></h2>
     <div class="faqList">

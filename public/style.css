@@ -1936,3 +1936,23 @@ body.menu-open{
    Project: Custom overrides (append only)
    ========================= */
 /* ここより上は整理済み。新規追加は原則ここに追記 */
+
+/* =========================
+   Home: highlights strip
+   ========================= */
+.homeHighlights { margin: 18px 0; }
+.highlightList { display:grid; gap:12px; }
+.highlightItem { display:flex; gap:12px; align-items:center; padding:14px; border:1px solid var(--border); border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.78)); box-shadow: var(--shadow-soft); }
+.highlightIcon { width:44px; height:44px; border-radius:999px; display:grid; place-items:center; background: rgba(20,20,20,.06); flex:0 0 auto; }
+.highlightText { display:grid; gap:2px; min-width:0; }
+.highlightTitle { font-weight:900; }
+.highlightDesc { color: var(--muted); font-size: 14px; }
+.highlightTags { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.highlightTag { display:inline-flex; padding:.42rem .78rem; border-radius:999px; border:1px solid rgba(20,20,20,.16); background: rgba(255,255,255,.72); font-weight:850; color: rgba(20,20,20,.80); }
+.highlightNote { margin:12px 0 0; }
+
+@media (max-width:768px){
+  .homeHighlights { margin: 16px 0; }
+  .highlightItem { padding: 12px; border-radius:16px; }
+  .highlightIcon { width:40px; height:40px; }
+}
