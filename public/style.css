@@ -1974,6 +1974,7 @@ body.menu-open{
 .homeHighlights__card .highlightTags{ margin-top:14px; }
 .homeHighlights__card .highlightNote{ margin-top:10px; }
 
+/* スマホでは主張を抑える（読みやすさ優先） */
 @media (max-width:768px){
   .homeHighlights { margin: 16px 0; }
   .homeHighlights__card{ padding:14px; border-radius:18px; }
