@@ -2001,6 +2001,29 @@ body.menu-open{
   min-height: 180px;
 }
 
+.homeIntroPreviewImg{
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius:18px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-soft);
+}
+
+.homeIntroCard__cta{
+  margin-top:12px;
+}
+
+.homeIntroCard__cta .btn{
+  width:100%;
+}
+
+@media (min-width: 769px){
+  .homeIntroCard__cta .btn{
+    max-width:420px;
+  }
+}
+
 .browserShot{
   width:100%;
   border-radius:18px;
