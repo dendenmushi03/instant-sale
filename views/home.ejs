@@ -36,25 +36,27 @@
 
 <main class="container">
   <section class="homeIntroCard" aria-label="About Instant Sale">
-    <div class="homeIntroCard__inner">
-      <p class="homeIntroCard__kicker"><%= (lng === 'en') ? 'What this is' : 'このサイトについて' %></p>
+    <div class="homeIntroCard__inner homeIntroCard__grid">
+      <div class="homeIntroCard__copy">
+        <p class="homeIntroCard__kicker"><%= (lng === 'en') ? 'What this is' : 'このサイトについて' %></p>
 
-      <h2 class="homeIntroCard__title">
-        <%= (lng === 'en')
-          ? 'Create a shareable sales link in minutes.'
-          : 'Xで売れる「販売リンク」をすぐ作れる。' %>
-      </h2>
+        <h2 class="homeIntroCard__title"><%= (lng === 'en') ? 'What is Instant Sale?' : 'このサイトについて' %></h2>
 
-      <p class="homeIntroCard__desc">
-        <%= (lng === 'en')
-          ? 'Upload your image, set a price, and share the link on X. Buyers pay with Stripe and download instantly.'
-          : '画像をアップロードして価格を決めるだけ。リンクをXに貼れば、購入→決済（Stripe）→自動ダウンロードまで一気通貫。' %>
-      </p>
+        <p class="homeIntroCard__desc muted">
+          <%= (lng === 'en')
+            ? 'Create a shareable sales link for your images and sell via X in minutes.'
+            : 'Xで作品を手軽に販売できる「販売リンク」を数分で発行できるサービスです。' %>
+        </p>
 
-      <div class="homeIntroCard__badges">
-        <span class="pill"><%= (lng === 'en') ? 'Made for X sharing' : 'Xシェア前提' %></span>
-        <span class="pill"><%= (lng === 'en') ? 'Stripe checkout' : 'Stripe決済' %></span>
-        <span class="pill"><%= (lng === 'en') ? 'Auto delivery' : '自動納品' %></span>
+        <div class="homeIntroCard__badges">
+          <span class="pill"><%= (lng === 'en') ? 'Made for X sharing' : 'Xシェア前提' %></span>
+          <span class="pill"><%= (lng === 'en') ? 'Stripe checkout' : 'Stripe決済' %></span>
+          <span class="pill"><%= (lng === 'en') ? 'Auto delivery' : '自動納品' %></span>
+        </div>
+      </div>
+
+      <div class="homeIntroCard__media" aria-hidden="true">
+        <img class="homeIntroCard__img" src="/public/og/instantsale_ogp.jpg" alt="" loading="lazy">
       </div>
     </div>
   </section>
