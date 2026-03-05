@@ -1938,6 +1938,96 @@ body.menu-open{
 /* ここより上は整理済み。新規追加は原則ここに追記 */
 
 /* =========================
+   Home: Intro (what this site is)
+   ========================= */
+.homeIntroCard{
+  margin: 14px 0;
+  border-radius: 18px;
+  border: 1px solid rgba(20,20,20,.10);
+  background: linear-gradient(180deg, rgba(255,255,255,.80), rgba(255,255,255,.60));
+  box-shadow: 0 1px 0 rgba(20,20,20,.04), 0 16px 26px rgba(20,20,20,.06);
+  overflow: hidden;
+}
+
+.homeIntroCard__inner{
+  padding: 16px 16px 18px;
+}
+
+.homeIntroCard__grid{
+  display:grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap:16px;
+  align-items:center;
+}
+
+.homeIntroCard__copy{
+  display:grid;
+  gap:10px;
+}
+
+.homeIntroCard__kicker{
+  margin: 0;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(20,20,20,.58);
+}
+
+.homeIntroCard__title{
+  margin: 0;
+  font-family: var(--title);
+  font-size: clamp(20px, 4.6vw, 28px);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+
+.homeIntroCard__desc{
+  margin: 0;
+  color: rgba(20,20,20,.66);
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 72ch;
+}
+
+.homeIntroCard__badges{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.homeIntroCard__media{
+  border-radius:18px;
+  border:1px solid var(--border);
+  overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.72));
+  box-shadow:var(--shadow-soft);
+  min-height: 180px;
+}
+
+.homeIntroCard__img{
+  width:100%;
+  height:100%;
+  max-height:220px;
+  object-fit:cover;
+  display:block;
+}
+
+@media (max-width: 768px){
+  .homeIntroCard__grid{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  .homeIntroCard__inner{
+    padding: 14px 14px 16px;
+  }
+  .homeIntroCard__img{
+    max-height:200px;
+  }
+}
+
+/* =========================
    Home: highlights strip
    ========================= */
 .homeHighlights { margin: 18px 0; }
