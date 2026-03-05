@@ -2001,6 +2001,15 @@ body.menu-open{
   min-height: 180px;
 }
 
+.homeIntroPreviewImg{
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius:18px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-soft);
+}
+
 .browserShot{
   width:100%;
   border-radius:18px;
