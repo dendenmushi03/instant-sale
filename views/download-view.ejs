@@ -16,22 +16,14 @@
 
 <main class="container">
   <div class="dlWrap">
-    <section class="card success dlHero" aria-labelledby="dlTitle">
-      <h1 id="dlTitle" class="dlHero__title"><%= lng === 'en' ? 'Thanks for your purchase 🎉' : 'ご購入ありがとうございます 🎉' %></h1>
-      <p class="dlHero__desc"><%= lng === 'en' ? 'You can download the high-resolution file using the button below.' : '下のボタンから高解像度データをダウンロードできます。' %></p>
-      <p class="muted dlHero__meta"><%= lng === 'en' ? 'Valid for' : '有効期限：' %><%= ttlMin %><%= lng === 'en' ? ' min' : '分' %>（<%= expiresAt.toLocaleString(locale) %> <%= lng === 'en' ? 'until' : 'まで' %>）</p>
-      <p class="dlHero__actions">
-        <a class="btn btn--primary btn--lg" href="<%= imageUrl %>"><%= lng === 'en' ? 'Download' : 'ダウンロード' %></a>
-      </p>
+    <section class="card dlPreview" aria-label="image preview">
+      <img class="dlImage" src="<%= imageUrl %>" alt="<%= t('download.img_alt', { title: item.title }) %>">
     </section>
 
     <section class="card dlInfo" aria-label="download notice">
+      <p class="muted dlHero__meta"><%= lng === 'en' ? 'Expires in: ' : '有効期限：' %><%= ttlMin %><%= lng === 'en' ? ' min' : '分' %>（<%= lng === 'en' ? 'until ' : '' %><%= expiresAt.toLocaleString(locale) %><%= lng === 'en' ? '' : 'まで' %>）</p>
       <p class="muted"><%= lng === 'en' ? 'This link becomes invalid after the expiration time.' : '※リンクは有効期限を過ぎると無効になります。' %></p>
-      <p class="muted"><%= lng === 'en' ? 'On iPhone, you can save the image by long-pressing it.' : '※iPhoneは画像を長押しで保存できます。' %></p>
-    </section>
-
-    <section class="card dlPreview" aria-label="image preview">
-      <img class="dlImage" src="<%= imageUrl %>" alt="<%= t('download.img_alt', { title: item.title }) %>">
+      <p class="muted"><%= lng === 'en' ? 'You can save it by long-pressing the image.' : '※長押しで保存できます。' %></p>
     </section>
   </div>
 </main>
