@@ -35,6 +35,30 @@
 <%- include('partials/header') %>
 
 <main class="container">
+  <section class="homeIntroCard" aria-label="About Instant Sale">
+    <div class="homeIntroCard__inner">
+      <p class="homeIntroCard__kicker"><%= (lng === 'en') ? 'What this is' : 'このサイトについて' %></p>
+
+      <h2 class="homeIntroCard__title">
+        <%= (lng === 'en')
+          ? 'Create a shareable sales link in minutes.'
+          : 'Xで売れる「販売リンク」をすぐ作れる。' %>
+      </h2>
+
+      <p class="homeIntroCard__desc">
+        <%= (lng === 'en')
+          ? 'Upload your image, set a price, and share the link on X. Buyers pay with Stripe and download instantly.'
+          : '画像をアップロードして価格を決めるだけ。リンクをXに貼れば、購入→決済（Stripe）→自動ダウンロードまで一気通貫。' %>
+      </p>
+
+      <div class="homeIntroCard__badges">
+        <span class="pill"><%= (lng === 'en') ? 'Made for X sharing' : 'Xシェア前提' %></span>
+        <span class="pill"><%= (lng === 'en') ? 'Stripe checkout' : 'Stripe決済' %></span>
+        <span class="pill"><%= (lng === 'en') ? 'Auto delivery' : '自動納品' %></span>
+      </div>
+    </div>
+  </section>
+
   <section id="howto" class="howtoSection">
     <div class="howtoHead">
       <h2 class="howtoTitle"><%= t('howto.title') %></h2>
