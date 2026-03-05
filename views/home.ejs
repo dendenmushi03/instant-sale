@@ -35,6 +35,45 @@
 <%- include('partials/header') %>
 
 <main class="container">
+  <section class="homeIntroCard" aria-label="About Instant Sale">
+    <div class="homeIntroCard__inner homeIntroCard__grid">
+      <div class="homeIntroCard__copy">
+        <p class="homeIntroCard__kicker"><%= (lng === 'en') ? 'What this is' : 'このサイトについて' %></p>
+
+        <h2 class="homeIntroCard__title"><%= (lng === 'en') ? 'What is Instant Sale?' : 'このサイトについて' %></h2>
+
+        <p class="homeIntroCard__desc muted">
+          <%= (lng === 'en')
+            ? 'Create a shareable sales link for your images and sell via X in minutes.'
+            : 'Xで作品を手軽に販売できる「販売リンク」を数分で発行できるサービスです。' %>
+        </p>
+
+        <div class="homeIntroCard__badges">
+          <span class="pill"><%= (lng === 'en') ? 'Made for X sharing' : 'Xシェア前提' %></span>
+          <span class="pill"><%= (lng === 'en') ? 'Stripe checkout' : 'Stripe決済' %></span>
+          <span class="pill"><%= (lng === 'en') ? 'Auto delivery' : '自動納品' %></span>
+        </div>
+      </div>
+
+      <div class="homeIntroCard__media" aria-hidden="true">
+        <div class="browserShot">
+          <div class="browserShot__bar">
+            <div class="browserShot__dots" aria-hidden="true">
+              <span class="browserShot__dot browserShot__dot--red"></span>
+              <span class="browserShot__dot browserShot__dot--yellow"></span>
+              <span class="browserShot__dot browserShot__dot--green"></span>
+            </div>
+            <div class="browserShot__url">instantsale-now.com</div>
+            <div class="browserShot__icon" aria-hidden="true">↗</div>
+          </div>
+          <div class="browserShot__body">
+            <img class="browserShot__img" src="/public/og/instantsale_ogp.jpg" alt="" loading="lazy">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="howto" class="howtoSection">
     <div class="howtoHead">
       <h2 class="howtoTitle"><%= t('howto.title') %></h2>
