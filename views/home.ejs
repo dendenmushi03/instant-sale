@@ -63,6 +63,14 @@
           loading="lazy"
         >
       </div>
+
+      <div class="homeIntroCard__cta">
+        <% if (me) { %>
+          <a class="btn btn--primary btn--lg" href="/creator"><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作る' %></a>
+        <% } else { %>
+          <a class="btn btn--primary btn--lg" href="/auth/google"><%= (lng==='en') ? 'Start with Google' : 'Googleにログインして始める' %></a>
+        <% } %>
+      </div>
     </div>
   </section>
 
@@ -70,14 +78,6 @@
     <div class="howtoHead">
       <h2 class="howtoTitle"><%= t('howto.title') %></h2>
       <p class="howtoLead"><%= (lng==='en') ? 'Upload → set price → publish. Your sales link is ready in minutes.' : 'アップロード → 価格設定 → 公開。数分で販売リンクが完成します。' %></p>
-    </div>
-
-    <div class="howtoCta">
-      <% if (me) { %>
-        <a class="btn btn--primary btn--lg" href="/creator"><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作る' %></a>
-      <% } else { %>
-        <a class="btn btn--primary btn--lg" href="/auth/google"><%= (lng==='en') ? 'Start with Google' : 'Googleにログインして始める' %></a>
-      <% } %>
     </div>
 
     <div class="stepsWrap">

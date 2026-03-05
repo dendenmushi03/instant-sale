@@ -2010,6 +2010,20 @@ body.menu-open{
   box-shadow:var(--shadow-soft);
 }
 
+.homeIntroCard__cta{
+  margin-top:12px;
+}
+
+.homeIntroCard__cta .btn{
+  width:100%;
+}
+
+@media (min-width: 769px){
+  .homeIntroCard__cta .btn{
+    max-width:420px;
+  }
+}
+
 .browserShot{
   width:100%;
   border-radius:18px;
