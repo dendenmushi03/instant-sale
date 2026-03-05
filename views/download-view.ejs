@@ -6,31 +6,34 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title><%= t('download.title', { title: item.title }) %></title>
   <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>">
-  <style>
-    .dlWrap{max-width:1024px;margin:0 auto;padding:16px}
-    .dlNote{margin:12px 0 16px;padding:12px 14px;border-radius:12px;border:1px solid #7f1d1d;background:#2b0e12;color:#fecaca;line-height:1.7}
-    .dlNote strong{font-weight:800}
-    .dlImage{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--border,#223);background:#0f1115}
-    .dlMeta{color:#a9c0e6;font-size:13px;margin-top:8px}
-  </style>
 </head>
 
-<body class="layout">
+<body class="layout downloadPage">
 
 <%- include('partials/header') %>
 
 <% const locale = (lng === 'en' ? 'en-US' : 'ja-JP'); %>
 
-<main class="container dlWrap">
-  <div class="dlNote" role="alert" aria-live="polite">
-    <div style="font-weight:800;margin-bottom:4px;">
-      ⚠ <%- t('download.notice_line1_html') %>
-    </div>
-    <strong><%= t('download.notice_line2') %></strong>
-    （<%= t('download.expire_note', { minutes: ttlMin, time: expiresAt.toLocaleString(locale) }) %>）
-  </div>
+<main class="container">
+  <div class="dlWrap">
+    <section class="card success dlHero" aria-labelledby="dlTitle">
+      <h1 id="dlTitle" class="dlHero__title"><%= lng === 'en' ? 'Thanks for your purchase 🎉' : 'ご購入ありがとうございます 🎉' %></h1>
+      <p class="dlHero__desc"><%= lng === 'en' ? 'You can download the high-resolution file using the button below.' : '下のボタンから高解像度データをダウンロードできます。' %></p>
+      <p class="muted dlHero__meta"><%= lng === 'en' ? 'Valid for' : '有効期限：' %><%= ttlMin %><%= lng === 'en' ? ' min' : '分' %>（<%= expiresAt.toLocaleString(locale) %> <%= lng === 'en' ? 'until' : 'まで' %>）</p>
+      <p class="dlHero__actions">
+        <a class="btn btn--primary btn--lg" href="<%= imageUrl %>"><%= lng === 'en' ? 'Download' : 'ダウンロード' %></a>
+      </p>
+    </section>
 
-  <img class="dlImage" src="<%= imageUrl %>" alt="<%= t('download.img_alt', { title: item.title }) %>">
+    <section class="card dlInfo" aria-label="download notice">
+      <p class="muted"><%= lng === 'en' ? 'This link becomes invalid after the expiration time.' : '※リンクは有効期限を過ぎると無効になります。' %></p>
+      <p class="muted"><%= lng === 'en' ? 'On iPhone, you can save the image by long-pressing it.' : '※iPhoneは画像を長押しで保存できます。' %></p>
+    </section>
+
+    <section class="card dlPreview" aria-label="image preview">
+      <img class="dlImage" src="<%= imageUrl %>" alt="<%= t('download.img_alt', { title: item.title }) %>">
+    </section>
+  </div>
 </main>
 
 <%- include('partials/footer') %>
