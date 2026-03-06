@@ -1,21 +1,17 @@
 <!doctype html>
 <html lang="<%= lng || 'ja' %>">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title><%= t('image_license.title') %> | <%= t('brand') %></title>
-  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
-  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
+  <%- include('../partials/head', { title: t('image_license.title') + ' | ' + t('brand'), canonical, robots }) %>
 </head>
-<body class="layout legal licensePage">
+<body class="layout">
   <%- include('../partials/header') %>
 
-  <main class="container">
+  <main class="container legal licensePage">
     <article class="card licenseCard">
       <header class="licenseHeader">
         <h1><%= t('image_license.h1') %></h1>
-        <% const _d = new Date(); const _iso = _d.toISOString().slice(0,10); %>
-        <p class="muted licenseUpdated"><%= t('image_license.page.last_updated_prefix', { date: _iso }) %></p>
+        <% const _last = (typeof lastUpdated !== 'undefined') ? lastUpdated : '2025-11-01'; %>
+        <p class="muted licenseUpdated"><%= t('image_license.page.last_updated_prefix', { date: _last }) %></p>
       </header>
 
       <section class="licenseSection">
