@@ -1,42 +1,58 @@
 <!doctype html>
-<html lang="ja">
+<html lang="<%= lng || 'ja' %>">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Error</title>
-  <link rel="stylesheet" href="/public/style.css" />
+  <title><%= (lng === 'en') ? 'Notice' : 'お知らせ' %> | Instant Sale</title>
+  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
+  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
 </head>
 
 <body class="layout">
 
-<header class="nav">
-  <a class="nav__brand" href="/">
-    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" />
-    <span class="nav__brandText">Instant Sale</span>
-  </a>
+<%- include('partials/header') %>
 
-  <nav class="nav__right">
-    <% if (typeof me !== 'undefined' && me) { %>
-      <span class="nav__user"><%= me.name || me.email %></span>
-      <form method="post" action="/logout" class="inline">
-        <button class="btn btn--ghost">ログアウト</button>
-      </form>
-    <% } else { %>
-      <a class="btn btn--ghost" href="/auth/google">Googleでログイン</a>
+<main class="container errorPage">
+<%
+  const tone = (variant === 'success') ? 'success' : 'error';
+  const rawEyebrow = (typeof pageLabel === 'string' && pageLabel)
+    ? pageLabel
+    : ((tone === 'success') ? ((lng === 'en') ? 'RESULT' : '接続結果') : 'ERROR');
+  const rawHeading = (typeof title === 'string' && title)
+    ? title
+    : ((tone === 'success') ? ((lng === 'en') ? 'Completed' : '完了しました') : ((lng === 'en') ? 'Error' : 'エラー'));
+  const rawMessage = (typeof message === 'string') ? message : '';
+
+  const eyebrow = (lng !== 'en' && rawEyebrow === '接続結果') ? 'エラー' : rawEyebrow;
+  const heading = (lng !== 'en' && rawHeading === '接続設定を受け付けました。') ? '' : rawHeading;
+  const desc = (lng !== 'en' && rawMessage === '受取設定の状態を確認し、必要な処理を反映しました。')
+    ? '以下より再度アクセスして下さい。'
+    : rawMessage;
+
+  const primaryHref = (primaryAction && primaryAction.href) ? primaryAction.href : '/';
+  const primaryLabel = (primaryAction && primaryAction.label)
+    ? primaryAction.label
+    : ((lng === 'en') ? 'Back to top' : 'トップに戻る');
+%>
+
+<section class="card errorCard <%= (tone === 'success') ? 'errorCard--success' : '' %>">
+  <p class="errorCard__eyebrow"><%= eyebrow %></p>
+  <% if (heading) { %><h1 class="errorCard__title"><%= heading %></h1><% } %>
+  <p class="errorCard__desc"><%- desc %></p>
+
+  <% if (typeof subMessage === 'string' && subMessage) { %>
+    <p class="errorCard__sub muted"><%= subMessage %></p>
+  <% } %>
+
+  <div class="errorCard__actions">
+    <a class="btn btn--primary" href="<%= primaryHref %>"><%= primaryLabel %></a>
+    <% if (secondaryAction && secondaryAction.href && secondaryAction.label) { %>
+      <a class="btn btn--soft" href="<%= secondaryAction.href %>"><%= secondaryAction.label %></a>
     <% } %>
-  </nav>
+  </div>
+</section>
 
-</header>
-
-  <main class="container">
-
-<div class="alert alert--error">
-  <h1>エラー</h1>
-  <p><%- message %></p>
-  <p><a class="btn btn--soft" href="/">トップに戻る</a></p>
-</div>
-
-  </main>
+</main>
 
 <%- include('partials/footer') %>
   

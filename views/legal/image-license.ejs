@@ -7,66 +7,46 @@
   <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
   <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
 </head>
-<body class="layout legal">
-  <header class="nav">
-    <a class="nav__brand" href="/">
-      <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
-      <span class="nav__brandText"><%= t('brand') %></span>
-    </a>
-    <nav class="nav__right">
-      <% if (me) { %>
-        <span class="nav__user"><%= me.name || me.email %></span>
-        <form method="post" action="/logout" class="inline">
-          <button class="btn btn--ghost"><%= t('nav.logout') %></button>
-        </form>
-      <% } else { %>
-        <a class="btn btn--ghost" href="/auth/google"><%= t('nav.login_google') %></a>
-      <% } %>
-    </nav>
-  </header>
+<body class="layout legal licensePage">
+  <%- include('../partials/header') %>
 
-<main class="container card">
-  <h1><%= t('image_license.h1') %></h1>
+  <main class="container">
+    <article class="card licenseCard">
+      <header class="licenseHeader">
+        <h1><%= t('image_license.h1') %></h1>
+        <% const _d = new Date(); const _iso = _d.toISOString().slice(0,10); %>
+        <p class="muted licenseUpdated"><%= t('image_license.page.last_updated_prefix', { date: _iso }) %></p>
+      </header>
 
-  <% const _d = new Date(); const _iso = _d.toISOString().slice(0,10); %>
-  <p class="muted"><%= t('image_license.page.last_updated_prefix', { date: _iso }) %></p>
+      <section class="licenseSection">
+        <h2><%= t('image_license.page.common_title') %></h2>
+        <%- t('image_license.page.common_rules_html') %>
+      </section>
 
-  <h2><%= t('image_license.page.common_title') %></h2>
-  <%- t('image_license.page.common_rules_html') %>
+      <section class="licenseSection">
+        <h2><%= t('image_license.page.presets_title') %></h2>
 
-  <h2><%= t('image_license.page.presets_title') %></h2>
+        <h3><%= t('image_license.page.personal_title') %></h3>
+        <%- t('image_license.page.personal_desc_html') %>
 
-  <h3><%= t('image_license.page.personal_title') %></h3>
-  <%- t('image_license.page.personal_desc_html') %>
+        <h3><%= t('image_license.page.standard_title') %></h3>
+        <%- t('image_license.page.standard_desc_html') %>
 
-  <h3><%= t('image_license.page.standard_title') %></h3>
-  <%- t('image_license.page.standard_desc_html') %>
+        <h3><%= t('image_license.page.lite_title') %></h3>
+        <%- t('image_license.page.lite_desc_html') %>
 
-  <h3><%= t('image_license.page.lite_title') %></h3>
-  <%- t('image_license.page.lite_desc_html') %>
+        <h3><%= t('image_license.page.exclusive_title') %></h3>
+        <%- t('image_license.page.exclusive_desc_html') %>
+      </section>
 
-  <h3><%= t('image_license.page.exclusive_title') %></h3>
-  <%- t('image_license.page.exclusive_desc_html') %>
+      <p class="licenseActions">
+        <a class="btn btn--primary" href="/creator"><%= t('upload.h1') %></a>
+      </p>
 
-  <p style="margin-top:16px">
-    <a class="btn btn--primary" href="/creator"><%= t('upload.h1') %></a>
-  </p>
+      <p class="muted legal-note"><%- t('image_license.note.payout_expiration_html') %></p>
+    </article>
+  </main>
 
-<p class="muted" style="margin-top:8px"><%- t('image_license.note.payout_expiration_html') %></p>
-
-</main>
-
-  <footer class="site-footer">
-    <div class="footer__links">
-      <a href="/terms"><%= t('footer.terms') %></a>
-      <span class="dot">•</span>
-      <a href="/privacy"><%= t('footer.privacy') %></a>
-      <span class="dot">•</span>
-      <a href="/tokushoho"><%= t('footer.tokushoho') %></a>
-      <span class="dot">•</span>
-      <a href="/image-license"><%= t('footer.image_license') %></a>
-    </div>
-    <div class="footer__copy">© <%= new Date().getFullYear() %> <%= t('brand') %></div>
-  </footer>
+  <%- include('../partials/footer') %>
 </body>
 </html>
