@@ -3,15 +3,15 @@
 <head>
   <%- include('../partials/head', { title: t('image_license.title') + ' | ' + t('brand'), canonical, robots }) %>
 </head>
-<body class="layout">
+<body class="layout legal licensePage">
   <%- include('../partials/header') %>
 
-  <main class="container legal licensePage">
+  <main class="container">
     <article class="card licenseCard">
       <header class="licenseHeader">
         <h1><%= t('image_license.h1') %></h1>
-        <% const _last = (typeof lastUpdated !== 'undefined') ? lastUpdated : '2025-11-01'; %>
-        <p class="muted licenseUpdated"><%= t('image_license.page.last_updated_prefix', { date: _last }) %></p>
+        <% const _d = new Date(); const _iso = _d.toISOString().slice(0,10); %>
+        <p class="muted licenseUpdated"><%= t('image_license.page.last_updated_prefix', { date: _iso }) %></p>
       </header>
 
       <section class="licenseSection">

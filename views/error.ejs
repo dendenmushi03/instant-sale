@@ -15,12 +15,20 @@
 <main class="container errorPage">
 <%
   const tone = (variant === 'success') ? 'success' : 'error';
-  const eyebrow = (typeof pageLabel === 'string' && pageLabel)
+  const rawEyebrow = (typeof pageLabel === 'string' && pageLabel)
     ? pageLabel
     : ((tone === 'success') ? ((lng === 'en') ? 'RESULT' : '接続結果') : 'ERROR');
-  const heading = (typeof title === 'string' && title)
+  const rawHeading = (typeof title === 'string' && title)
     ? title
     : ((tone === 'success') ? ((lng === 'en') ? 'Completed' : '完了しました') : ((lng === 'en') ? 'Error' : 'エラー'));
+  const rawMessage = (typeof message === 'string') ? message : '';
+
+  const eyebrow = (lng !== 'en' && rawEyebrow === '接続結果') ? 'エラー' : rawEyebrow;
+  const heading = (lng !== 'en' && rawHeading === '接続設定を受け付けました。') ? '' : rawHeading;
+  const desc = (lng !== 'en' && rawMessage === '受取設定の状態を確認し、必要な処理を反映しました。')
+    ? '以下より再度アクセスして下さい。'
+    : rawMessage;
+
   const primaryHref = (primaryAction && primaryAction.href) ? primaryAction.href : '/';
   const primaryLabel = (primaryAction && primaryAction.label)
     ? primaryAction.label
@@ -29,8 +37,8 @@
 
 <section class="card errorCard <%= (tone === 'success') ? 'errorCard--success' : '' %>">
   <p class="errorCard__eyebrow"><%= eyebrow %></p>
-  <h1 class="errorCard__title"><%= heading %></h1>
-  <p class="errorCard__desc"><%- message %></p>
+  <% if (heading) { %><h1 class="errorCard__title"><%= heading %></h1><% } %>
+  <p class="errorCard__desc"><%- desc %></p>
 
   <% if (typeof subMessage === 'string' && subMessage) { %>
     <p class="errorCard__sub muted"><%= subMessage %></p>
