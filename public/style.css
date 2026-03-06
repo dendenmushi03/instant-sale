@@ -2164,3 +2164,77 @@ body.menu-open{
   .highlightItem { padding: 12px; border-radius:16px; }
   .highlightIcon { width:40px; height:40px; }
 }
+
+/* error page */
+.errorPage{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding-top:clamp(28px,5vw,56px);
+  padding-bottom:clamp(40px,7vw,72px);
+}
+.errorCard{
+  width:100%;
+  max-width:720px;
+  margin:0 auto;
+  border:1px solid rgba(20,20,20,.12);
+  box-shadow:var(--shadow-soft);
+  padding:clamp(22px,4vw,34px);
+}
+.errorCard--success{
+  background:linear-gradient(180deg,#fff,#f9fcfb);
+  border-color:rgba(16,185,129,.24);
+}
+.errorCard__eyebrow{
+  margin:0 0 8px;
+  font-size:11px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:rgba(20,20,20,.58);
+  font-weight:800;
+}
+.errorCard__title{
+  margin:0;
+  font-size:clamp(28px,4vw,38px);
+  line-height:1.25;
+}
+.errorCard__desc{
+  margin:14px 0 0;
+  font-size:15px;
+  color:rgba(20,20,20,.82);
+}
+.errorCard__sub{
+  margin:8px 0 0;
+  font-size:14px;
+}
+.errorCard__actions{
+  margin-top:22px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+@media (max-width:640px){
+  .errorCard__actions{
+    flex-direction:column;
+  }
+  .errorCard__actions .btn{
+    width:100%;
+  }
+}
+
+/* image license page */
+.licensePage .container{padding-top:clamp(18px,4vw,34px);padding-bottom:clamp(30px,6vw,52px)}
+.licenseCard{max-width:900px;margin:0 auto;padding:clamp(20px,3.4vw,34px)}
+.licenseHeader h1{margin:0}
+.licenseUpdated{margin-top:6px}
+.licenseSection + .licenseSection{margin-top:16px}
+.licenseSection h2{margin-top:8px}
+.licenseSection h3{margin:18px 0 6px;font-size:clamp(17px,2.2vw,21px)}
+.licenseCard ul,.licenseCard ol{padding-left:1.25rem;margin:10px 0 0}
+.licenseCard li{margin:6px 0;line-height:1.8}
+.licenseActions{margin-top:18px}
+
+@media (max-width:640px){
+  .licenseActions .btn{width:100%}
+}
