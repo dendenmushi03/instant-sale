@@ -657,7 +657,13 @@ app.get('/sitemap.xml', (req, res) => {
 
 // auth pages
 app.get('/login', (req, res) => {
-  res.render('error', { message: '「Googleでログイン」をクリックしてください。<br><a href="/auth/google">Googleでログイン</a>' });
+  res.render('error', {
+    title: 'ログインが必要です',
+    pageLabel: 'AUTH',
+    message: '「Googleでログイン」をクリックしてください。',
+    primaryAction: { href: '/auth/google', label: 'Googleでログイン' },
+    secondaryAction: { href: '/', label: 'トップに戻る' }
+  });
 });
 
 app.get('/auth/google',
@@ -810,7 +816,14 @@ app.get('/connect/return', ensureAuthed, async (req, res) => {
       }
     }
 
-    return res.render('error', { message: '接続設定を受け付けました。<br><a href="/creator">アップロードへ戻る</a>' });
+    return res.render('error', {
+      variant: 'success',
+      pageLabel: '接続結果',
+      title: '接続設定を受け付けました。',
+      message: '受取設定の状態を確認し、必要な処理を反映しました。',
+      primaryAction: { href: '/creator', label: 'アップロードへ戻る' },
+      secondaryAction: { href: '/', label: 'トップに戻る' }
+    });
   } catch (e) {
     console.error(e);
     return res.status(500).render('error', { message: '接続状態の確認に失敗しました。' });
@@ -819,7 +832,13 @@ app.get('/connect/return', ensureAuthed, async (req, res) => {
 
 // オンボーディングの中断→再開用
 app.get('/connect/refresh', ensureAuthed, (req, res) => {
-  return res.render('error', { message: 'オンボーディングを再開してください。<br><a href="/connect/onboard">もう一度始める</a>' });
+  return res.render('error', {
+    pageLabel: '接続結果',
+    title: 'オンボーディングを再開してください。',
+    message: '手続きが中断されたため、続きから設定を再開してください。',
+    primaryAction: { href: '/connect/onboard', label: 'もう一度始める' },
+    secondaryAction: { href: '/creator', label: 'アップロードへ戻る' }
+  });
 });
 
 // ★ 出品者用：Stripe Express ダッシュボード（売上/入金）へ遷移
@@ -917,7 +936,10 @@ app.get('/creator/legal', ensureAuthed, async (req, res) => {
 
 app.post('/creator/legal', ensureAuthed, async (req, res) => {
   return res.status(405).render('error', {
-    message: 'このページからの登録は不要です（本サービスは個人ユーザー専用です）。<br><a href="/creator">アップロードへ戻る</a>'
+    title: 'このページからの登録は不要です',
+    message: '本サービスは個人ユーザー専用です。',
+    primaryAction: { href: '/creator', label: 'アップロードへ戻る' },
+    secondaryAction: { href: '/', label: 'トップに戻る' }
   });
 });
 
