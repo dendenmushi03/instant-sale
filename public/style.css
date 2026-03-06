@@ -2222,3 +2222,19 @@ body.menu-open{
     width:100%;
   }
 }
+
+/* image license page */
+.licensePage .container{padding-top:clamp(18px,4vw,34px);padding-bottom:clamp(30px,6vw,52px)}
+.licenseCard{max-width:900px;margin:0 auto;padding:clamp(20px,3.4vw,34px)}
+.licenseHeader h1{margin:0}
+.licenseUpdated{margin-top:6px}
+.licenseSection + .licenseSection{margin-top:16px}
+.licenseSection h2{margin-top:8px}
+.licenseSection h3{margin:18px 0 6px;font-size:clamp(17px,2.2vw,21px)}
+.licenseCard ul,.licenseCard ol{padding-left:1.25rem;margin:10px 0 0}
+.licenseCard li{margin:6px 0;line-height:1.8}
+.licenseActions{margin-top:18px}
+
+@media (max-width:640px){
+  .licenseActions .btn{width:100%}
+}
