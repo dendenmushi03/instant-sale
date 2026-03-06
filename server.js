@@ -1848,7 +1848,10 @@ app.get(
   (req, res) => {
     res.locals.canonical = `${BASE_URL}/image-license`;
     const lng = getLng(req);
-    res.render('legal/image-license', { lng });  // ← ★ 追加
+    res.render('legal/image-license', {
+      lng,
+      lastUpdated: '2025-11-01'
+    });
   }
 );
 
