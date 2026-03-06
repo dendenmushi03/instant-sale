@@ -1,11 +1,7 @@
 <!doctype html>
 <html lang="<%= lng || 'ja' %>">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title><%= t('image_license.title') %> | <%= t('brand') %></title>
-  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
-  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
+  <%- include('../partials/head', { title: t('image_license.title') + ' | ' + t('brand'), canonical, robots }) %>
 </head>
 <body class="layout legal licensePage">
   <%- include('../partials/header') %>
