@@ -158,7 +158,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </section>
 
     <section class="card formCard formCard--license">
-      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 3 / License' : 'Step 3 / ライセンス' %></h2>
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 3</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'License' : 'ライセンス' %></span>
+      </h2>
 
       <div class="licenseList">
         <label class="licenseRow">
@@ -229,7 +232,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </section>
 
     <section class="card formCard formCard--confirm">
-      <h2 class="formSectionTitle"><%= (lng === 'en') ? 'Step 4 / Final check' : 'Step 4 / 最終確認' %></h2>
+      <h2 class="formSectionTitle">
+        <span class="stepBadge">Step 4</span>
+        <span class="stepTitle"><%= (lng === 'en') ? 'Final check' : '最終確認' %></span>
+      </h2>
 
       <p class="formSectionLead">
         <%= (lng === 'en') ? 'Please check the boxes to publish.' : 'チェック後に出品ボタンを押してください。' %>
