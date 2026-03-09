@@ -159,14 +159,14 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
 .siteHeader__inner{
   max-width:var(--container);
   margin:0 auto;
-  padding:14px var(--gutter);
+  padding:8px var(--gutter);
   display:grid;
   grid-template-columns:auto minmax(240px,1fr) auto;
   align-items:center;
-  gap:16px;
+  gap:12px;
 }
 .siteHeader__brand{display:inline-flex;align-items:center;gap:0;color:var(--text)}
-.siteHeader__logo{height:36px;width:auto;object-fit:contain}
+.siteHeader__logo{height:52px;width:auto;object-fit:contain}
 .siteHeader__nav{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
 .siteHeader__link{
   padding:8px 10px;border-radius:10px;
@@ -420,8 +420,8 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
       "brand"
       "nav"
       "actions";
-    gap:10px;
-    padding:12px var(--gutter);
+    gap:8px;
+    padding:8px var(--gutter);
   }
 
   .siteHeader__brand{grid-area:brand}
@@ -437,7 +437,7 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
   .siteHeader__actions{
     grid-area:actions;
     justify-content:flex-start;
-    gap:10px;
+    gap:8px;
     flex-wrap:wrap;
   }
 
@@ -488,7 +488,7 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
 
 .mnav__btn{
   display:inline-flex; align-items:center; gap:10px;
-  height:42px; padding:0 14px;
+  height:40px; padding:0 14px;
   border-radius:999px;
   border:1px solid rgba(17,24,39,.16);
   background:#fff;
@@ -588,7 +588,7 @@ body.menu-open{
   .siteHeader__inner{
     grid-template-columns:1fr auto;
     align-items:center;
-    gap:10px;
+    gap:8px;
   }
 
   .siteHeader__nav:not(.mnav__nav){display:none}
@@ -599,7 +599,7 @@ body.menu-open{
 
   .mnav__panel{
     position:fixed;
-    top:calc(56px + env(safe-area-inset-top));
+    top:calc(50px + env(safe-area-inset-top));
     right:12px;
     width:min(calc(100vw - 24px),420px);
     max-height:calc(100dvh - 72px - env(safe-area-inset-top));
