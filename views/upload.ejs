@@ -17,11 +17,6 @@
   
   <main class="container">
 
-<section class="creatorHero">
-<h1 class="creatorHero__title"><%= (lng === 'en') ? 'List your artwork' : '作品を出品する' %></h1>
-<p class="creatorHero__lead"><%= (lng === 'en') ? 'Upload image → set price → publish a shareable sales link.' : '画像をアップロード → 価格設定 → リンク発行。' %></p>
-</section>
-
 <%
 // i18nを簡易対応（辞書を増やさず、lngで文言を出し分け）
 const _okTitle   = (lng==='en') ? 'Payout setup completed' : '受取設定は完了しています';
