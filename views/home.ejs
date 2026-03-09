@@ -66,13 +66,13 @@
         <% if (me) { %>
           <a class="btn btn--primary btn--lg" href="/creator"><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作る' %></a>
         <% } else { %>
-          <a
+          <button
             class="btn btn--primary btn--lg"
-            href="/auth/google"
+            type="button"
             data-home-login-trigger
             aria-haspopup="dialog"
             aria-controls="homeLoginModal"
-          ><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作成する' %></a>
+          ><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作成する' %></button>
         <% } %>
       </div>
     </div>
@@ -168,7 +168,7 @@
     </div>
   </div>
 
-  <script>
+  <script nonce="<%= cspNonce %>">
     (() => {
       const modal = document.getElementById('homeLoginModal');
       const trigger = document.querySelector('[data-home-login-trigger]');
