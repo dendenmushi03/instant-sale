@@ -74,7 +74,7 @@
 
   <section id="howto" class="howtoSection">
     <div class="howtoHead">
-      <p class="howtoTitle"><%= t('howto.title') %></p>
+      <p class="homeIntroCard__kicker"><%= (lng === 'en') ? 'How to' : '使い方' %></p>
 
       <p class="howtoLead"><%= (lng==='en') ? 'Upload → set price → publish. Your sales link is ready in minutes.' : 'アップロード → 価格設定 → 公開。数分で販売リンクが完成します。' %></p>
     </div>
@@ -91,7 +91,7 @@
   <section class="homeHighlights" aria-label="Highlights">
     <div class="homeHighlights__card">
       <div class="homeHighlights__head">
-        <p class="homeHighlights__title"><%= (lng==='en') ? 'Features' : '特徴' %></p>
+        <p class="homeIntroCard__kicker"><%= (lng === 'en') ? 'Features' : '特徴' %></p>
 
       </div>
 
@@ -131,7 +131,8 @@
   </section>
 
   <section class="homeFaq" id="faq" aria-label="Frequently asked questions">
-    <p class="homeFaq__title"><%= lng === 'en' ? 'FAQ' : 'よくある質問' %></p>
+    <p class="homeIntroCard__kicker"><%= (lng === 'en') ? 'FAQ' : 'よくある質問' %></p>
+
     <div class="faqList">
       <details class="faqItem"><summary><%= lng === 'en' ? 'What happens to the SAMPLE watermark?' : '透かし（SAMPLE）はどうなる？' %></summary><p class="faqItem__body muted"><%= lng === 'en' ? 'The image on the sales page is a watermarked preview. After purchase, you can download the high-resolution file without the watermark.' : '販売ページの画像はプレビュー用の透かし入りです。購入後に高解像度（透かしなし）をダウンロードできます。' %></p></details>
       <details class="faqItem"><summary><%= lng === 'en' ? 'How do I receive files after purchase?' : '購入後はどうやって受け取る？' %></summary><p class="faqItem__body muted"><%= lng === 'en' ? 'After Stripe checkout, a download link is issued automatically (available for a limited time).' : 'Stripeで決済後、ダウンロードリンクが自動発行されます（一定時間有効）。' %></p></details>
