@@ -2092,26 +2092,12 @@ body.menu-open{
 }
 
 .authSignInCard__logo{
-  width:74px;
-  height:74px;
+  width:104px;
+  height:104px;
   object-fit:contain;
 }
 
-.authSignInCard__name{
-  margin:0;
-  font-size:12px;
-  letter-spacing:.15em;
-  text-transform:uppercase;
-  font-weight:900;
-  color:rgba(20,20,20,.56);
-}
 
-.authSignInCard__title{
-  margin:2px 0 0;
-  font-family:var(--title);
-  font-size:clamp(30px,5vw,44px);
-  line-height:1.2;
-}
 
 .authSignInCard__desc{
   margin:0;
@@ -2164,13 +2150,10 @@ body.menu-open{
   }
 
   .authSignInCard__logo{
-    width:64px;
-    height:64px;
+    width:84px;
+    height:84px;
   }
 
-  .authSignInCard__title{
-    font-size:clamp(28px,9vw,38px);
-  }
 }
 
 .browserShot{

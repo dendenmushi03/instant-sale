@@ -14,13 +14,10 @@
 <%- include('partials/header') %>
 
 <main class="container authSignInPage">
-  <section class="authSignInCard" aria-labelledby="authSignInTitle">
+  <section class="authSignInCard" aria-label="Instant Sale sign in">
     <div class="authSignInCard__brand" aria-hidden="true">
       <img src="/public/logo.png" alt="" class="authSignInCard__logo" loading="lazy">
-      <p class="authSignInCard__name">Instant Sale</p>
     </div>
-
-    <h1 id="authSignInTitle" class="authSignInCard__title"><%= (lng==='en') ? 'Start with Instant Sale' : 'Instant Sale をはじめる' %></h1>
     <p class="authSignInCard__desc muted"><%= (lng==='en') ? 'Log in with Google to create and publish your image sales link.' : 'Googleでログインして、画像の販売リンクを作成できます。' %></p>
 
     <a class="btn btn--lg authSignInCard__googleBtn" href="/auth/google">
