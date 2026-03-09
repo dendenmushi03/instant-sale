@@ -2026,6 +2026,10 @@ body.menu-open{
 
 @media (max-width: 768px){
   .homeMain--withFixedCta{
+    padding-bottom: 0;
+  }
+
+  .site-footer--withFixedCta{
     padding-bottom: calc(112px + env(safe-area-inset-bottom));
   }
 

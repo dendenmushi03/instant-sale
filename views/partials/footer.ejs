@@ -1,4 +1,4 @@
-<footer class="site-footer">
+<footer class="site-footer <%= (typeof withFixedCta !== 'undefined' && withFixedCta) ? 'site-footer--withFixedCta' : '' %>">
   <div class="footer__links">
     <a href="/terms"><%= (t && t('footer.terms')) || '利用規約' %></a>
     <span class="dot">•</span>
