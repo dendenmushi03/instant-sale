@@ -656,6 +656,14 @@ app.get('/sitemap.xml', (req, res) => {
 });
 
 // auth pages
+app.get('/auth/sign-in', (req, res) => {
+  if (req.user) return res.redirect('/creator');
+  res.render('auth-sign-in', {
+    canonical: `${BASE_URL}/auth/sign-in`,
+    robots: 'noindex,follow'
+  });
+});
+
 app.get('/login', (req, res) => {
   res.render('error', {
     title: 'ログインが必要です',
