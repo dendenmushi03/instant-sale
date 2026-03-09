@@ -2092,8 +2092,10 @@ body.menu-open{
 }
 
 .authSignInCard__logo{
-  width:104px;
-  height:104px;
+  width:clamp(210px, 44vw, 280px);
+  max-width:100%;
+  height:auto;
+  display:block;
   object-fit:contain;
 }
 
@@ -2150,8 +2152,8 @@ body.menu-open{
   }
 
   .authSignInCard__logo{
-    width:84px;
-    height:84px;
+    width:clamp(190px, 62vw, 240px);
+    height:auto;
   }
 
 }
