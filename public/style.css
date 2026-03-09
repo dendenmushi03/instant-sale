@@ -165,15 +165,8 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
   align-items:center;
   gap:16px;
 }
-.siteHeader__brand{display:inline-flex;align-items:center;gap:10px;color:var(--text)}
-.siteHeader__logo{height:22px;width:auto;object-fit:contain}
-.siteHeader__name{
-  font-size:12px;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  font-weight:900;
-  color:rgba(20,20,20,.72);
-}
+.siteHeader__brand{display:inline-flex;align-items:center;gap:0;color:var(--text)}
+.siteHeader__logo{height:36px;width:auto;object-fit:contain}
 .siteHeader__nav{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
 .siteHeader__link{
   padding:8px 10px;border-radius:10px;
@@ -459,10 +452,6 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
     height:40px;
   }
 
-  .siteHeader__name{
-    font-size:12px;
-    letter-spacing:.10em;
-  }
 
   .siteHeader__link{
     white-space:nowrap;
@@ -607,12 +596,6 @@ body.menu-open{
   .siteHeader__nav--desktop,
   .siteHeader__actions--desktop{display:none}
 
-  .siteHeader__name{
-    min-width:0;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
 
   .mnav__panel{
     position:fixed;
