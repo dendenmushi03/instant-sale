@@ -2035,10 +2035,127 @@ body.menu-open{
   width:100%;
 }
 
+@media (max-width: 768px){
+  .homeMain--withFixedCta{
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .homeIntroCard__cta--fixedMobile{
+    position: fixed;
+    left: 14px;
+    right: 14px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 80;
+    margin-top: 0;
+    pointer-events: none;
+  }
+
+  .homeIntroCard__cta--fixedMobile .btn{
+    width: 100%;
+    min-height: 54px;
+    border-radius: 16px;
+    box-shadow: 0 18px 34px rgba(0,0,0,.24);
+    pointer-events: auto;
+  }
+}
+
 @media (min-width: 769px){
   .homeIntroCard__cta .btn{
     max-width:420px;
   }
+}
+
+.authSignInPage{
+  min-height: calc(100dvh - 220px);
+  display:grid;
+  place-items:center;
+  padding-top:clamp(20px,5vw,44px);
+  padding-bottom:clamp(26px,7vw,52px);
+}
+
+.authSignInCard{
+  width:min(100%, 520px);
+  border-radius:30px;
+  border:1px solid rgba(20,20,20,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.92));
+  box-shadow:0 18px 44px rgba(20,20,20,.10);
+  padding:clamp(22px,4.2vw,34px);
+  display:grid;
+  gap:16px;
+  text-align:center;
+}
+
+.authSignInCard__brand{
+  display:grid;
+  justify-items:center;
+  gap:10px;
+}
+
+.authSignInCard__logo{
+  width:clamp(210px, 44vw, 280px);
+  max-width:100%;
+  height:auto;
+  display:block;
+  object-fit:contain;
+}
+
+
+
+.authSignInCard__desc{
+  margin:0;
+  font-size:15px;
+  line-height:1.75;
+}
+
+.authSignInCard__googleBtn{
+  width:100%;
+  min-height:58px;
+  border-radius:18px;
+  justify-content:center;
+  font-size:24px;
+  font-size:clamp(18px,2.8vw,24px);
+  font-weight:800;
+  background:#fff;
+  color:#111827;
+  border:1px solid rgba(20,20,20,.14);
+  box-shadow:0 8px 20px rgba(20,20,20,.08);
+}
+
+.authSignInCard__googleMark{
+  display:inline-grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  border-radius:999px;
+  font-weight:900;
+  background:conic-gradient(#4285f4 0 25%,#34a853 25% 50%,#fbbc05 50% 75%,#ea4335 75% 100%);
+  color:#fff;
+}
+
+.authSignInCard__back{
+  font-size:14px;
+  color:rgba(20,20,20,.58);
+  text-decoration:underline;
+}
+
+@media (max-width:768px){
+  .authSignInPage{
+    min-height: calc(100dvh - 180px);
+    padding-top:18px;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .authSignInCard{
+    border-radius:24px;
+    padding:20px 16px;
+    gap:14px;
+  }
+
+  .authSignInCard__logo{
+    width:clamp(190px, 62vw, 240px);
+    height:auto;
+  }
+
 }
 
 .browserShot{
