@@ -159,11 +159,11 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
 .siteHeader__inner{
   max-width:var(--container);
   margin:0 auto;
-  padding:4px var(--gutter);
+  padding:2px var(--gutter);
   display:grid;
   grid-template-columns:auto minmax(240px,1fr) auto;
   align-items:center;
-  min-height:72px;
+  min-height:58px;
   gap:10px;
 }
 .siteHeader__brand{display:inline-flex;align-items:center;align-self:center;line-height:0;gap:0;color:var(--text)}
@@ -589,8 +589,8 @@ body.menu-open{
   .siteHeader__inner{
     grid-template-columns:1fr auto;
     align-items:center;
-    min-height:70px;
-    padding:4px var(--gutter);
+    min-height:56px;
+    padding:2px var(--gutter);
     gap:8px;
   }
 
@@ -605,7 +605,7 @@ body.menu-open{
 
   .mnav__panel{
     position:fixed;
-    top:calc(72px + env(safe-area-inset-top));
+    top:calc(58px + env(safe-area-inset-top));
     right:12px;
     width:min(calc(100vw - 24px),420px);
     max-height:calc(100dvh - 72px - env(safe-area-inset-top));
