@@ -34,7 +34,7 @@
 
 <%- include('partials/header') %>
 
-<main class="container">
+<main class="container <%= me ? '' : 'homeMain--withFixedCta' %>">
   <section class="homeIntroCard" aria-label="About Instant Sale">
     <div class="homeIntroCard__inner homeIntroCard__grid">
       <div class="homeIntroCard__copy">
@@ -62,11 +62,17 @@
         >
       </div>
 
-      <div class="homeIntroCard__cta">
+      <div class="homeIntroCard__cta <%= me ? '' : 'homeIntroCard__cta--fixedMobile' %>">
         <% if (me) { %>
           <a class="btn btn--primary btn--lg" href="/creator"><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作る' %></a>
         <% } else { %>
-          <a class="btn btn--primary btn--lg" href="/auth/google"><%= (lng==='en') ? 'Start with Google' : 'Googleにログインして始める' %></a>
+          <button
+            class="btn btn--primary btn--lg"
+            type="button"
+            data-home-login-trigger
+            aria-haspopup="dialog"
+            aria-controls="homeLoginModal"
+          ><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作成する' %></button>
         <% } %>
       </div>
     </div>
@@ -139,6 +145,85 @@
     </div>
   </section>
 </main>
+
+
+<% if (!me) { %>
+  <div class="homeLoginModal" id="homeLoginModal" role="dialog" aria-modal="true" aria-labelledby="homeLoginTitle" hidden>
+    <div class="homeLoginModal__backdrop" data-home-login-close></div>
+
+    <div class="homeLoginModal__decor" aria-hidden="true">
+      <span class="homeLoginModal__blob homeLoginModal__blob--one"></span>
+      <span class="homeLoginModal__blob homeLoginModal__blob--two"></span>
+      <span class="homeLoginModal__blob homeLoginModal__blob--three"></span>
+    </div>
+
+    <div class="homeLoginModal__panel" role="document">
+      <div class="homeLoginModal__tabWrap" aria-hidden="true">
+        <span class="homeLoginModal__tab homeLoginModal__tab--active"><%= (lng==='en') ? 'Login' : 'ログイン' %></span>
+        <span class="homeLoginModal__tab homeLoginModal__tab--placeholder"></span>
+      </div>
+
+      <div class="homeLoginModal__brand" aria-hidden="true">
+        <span class="homeLoginModal__brandBadge">INSTANT<br>SALE</span>
+      </div>
+
+      <p id="homeLoginTitle" class="homeLoginModal__lead"><%= (lng==='en') ? 'To create a sales link, please sign in with Google.' : '販売リンクの作成には、Googleアカウントでのログインが必要です。' %></p>
+
+      <a class="btn btn--lg homeLoginModal__googleBtn" href="/auth/google">
+        <span class="homeLoginModal__googleMark" aria-hidden="true">G</span>
+        <span><%= (lng==='en') ? 'Continue with Google' : 'Googleでログイン' %></span>
+      </a>
+
+      <button class="homeLoginModal__dismiss" type="button" data-home-login-close><%= (lng==='en') ? 'Close' : '閉じる' %></button>
+    </div>
+  </div>
+
+  <script nonce="<%= cspNonce %>">
+    (() => {
+      const modal = document.getElementById('homeLoginModal');
+      const trigger = document.querySelector('[data-home-login-trigger]');
+      if (!modal || !trigger) return;
+
+      const closeTargets = modal.querySelectorAll('[data-home-login-close]');
+      const panel = modal.querySelector('.homeLoginModal__panel');
+      let isOpen = false;
+
+      const openModal = () => {
+        if (isOpen) return;
+        modal.hidden = false;
+        document.body.classList.add('modal-open');
+        isOpen = true;
+      };
+
+      const closeModal = () => {
+        if (!isOpen) return;
+        modal.hidden = true;
+        document.body.classList.remove('modal-open');
+        isOpen = false;
+        trigger.focus();
+      };
+
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        openModal();
+      });
+
+      closeTargets.forEach((node) => node.addEventListener('click', closeModal));
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeModal();
+      });
+
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal || event.target.classList.contains('homeLoginModal__backdrop')) {
+          closeModal();
+        }
+      });
+
+      panel?.addEventListener('click', (event) => event.stopPropagation());
+    })();
+  </script>
+<% } %>
 
 <%- include('partials/footer') %>
 
