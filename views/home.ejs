@@ -34,7 +34,7 @@
 
 <%- include('partials/header') %>
 
-<main class="container">
+<main class="container <%= me ? '' : 'homeMain--withFixedCta' %>">
   <section class="homeIntroCard" aria-label="About Instant Sale">
     <div class="homeIntroCard__inner homeIntroCard__grid">
       <div class="homeIntroCard__copy">
@@ -62,7 +62,7 @@
         >
       </div>
 
-      <div class="homeIntroCard__cta">
+      <div class="homeIntroCard__cta <%= me ? '' : 'homeIntroCard__cta--fixedMobile' %>">
         <% if (me) { %>
           <a class="btn btn--primary btn--lg" href="/creator"><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作る' %></a>
         <% } else { %>

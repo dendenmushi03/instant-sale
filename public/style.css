@@ -2035,6 +2035,30 @@ body.menu-open{
   width:100%;
 }
 
+@media (max-width: 768px){
+  .homeMain--withFixedCta{
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .homeIntroCard__cta--fixedMobile{
+    position: fixed;
+    left: 14px;
+    right: 14px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 80;
+    margin-top: 0;
+    pointer-events: none;
+  }
+
+  .homeIntroCard__cta--fixedMobile .btn{
+    width: 100%;
+    min-height: 54px;
+    border-radius: 16px;
+    box-shadow: 0 18px 34px rgba(0,0,0,.24);
+    pointer-events: auto;
+  }
+}
+
 @media (min-width: 769px){
   .homeIntroCard__cta .btn{
     max-width:420px;
