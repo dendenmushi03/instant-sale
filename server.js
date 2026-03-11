@@ -77,9 +77,18 @@ const toAbs = (u) => {
   return /^https?:\/\//i.test(u) ? u : `${BASE_URL}${u.startsWith('/') ? '' : '/'}${u}`;
 };
 
-// 現在言語の取得（cookie → i18n → Accept-Language の順で決定）
+function normalizeLng(input) {
+  const value = String(input || '').toLowerCase();
+  if (value.startsWith('en')) return 'en';
+  return 'ja';
+}
+
+// 現在言語の取得（query/cookie/i18n を正規化して判定）
 function getLng(req) {
-  return req.cookies?.i18next || req.i18n?.language || req.language || 'ja';
+  const fromQuery = req.query?.lng;
+  const fromCookie = req.cookies?.i18next;
+  const fromI18n = req.i18n?.resolvedLanguage || req.i18n?.language || req.language;
+  return normalizeLng(fromQuery || fromCookie || fromI18n || 'ja');
 }
 
 // 言語→数値ロケールの簡易マップ
@@ -300,7 +309,7 @@ i18next
       loadPath: path.join(__dirname, 'locales/{{lng}}/{{ns}}.json'),
     },
     detection: {
-      order: ['querystring','cookie','header'],
+      order: ['querystring','cookie'],
       lookupQuerystring: 'lng',
       lookupCookie: 'i18next',
       caches: ['cookie'],
@@ -316,10 +325,10 @@ app.use(
   })
 );
 
-// ★ 初回訪問時：ブラウザ言語を自動検出し、i18next クッキーを1年固定
+// ★ 初回訪問時：常に日本語を既定として i18next クッキーを1年固定
 app.use((req, res, next) => {
   if (!req.cookies.i18next) {
-    const lang = req.acceptsLanguages('en', 'ja') || 'ja';
+    const lang = 'ja';
     res.cookie('i18next', lang, {
       maxAge: 365 * 24 * 60 * 60 * 1000,
       httpOnly: false,
@@ -340,8 +349,8 @@ app.use((req, res, next) => {
 
 // ★ EJS で使う共通変数（翻訳関数・現在言語・切替リンク）
 app.use((req, res, next) => {
-  const lng = req.language || req.i18n?.language || 'ja';
-  res.locals.t   = req.t;
+  const lng = getLng(req);
+  res.locals.t   = (key, options = {}) => req.t(key, { lng, ...options });
   res.locals.lng = lng;
 
   // 今のURL（クエリ・ハッシュ含む）を安全に付与
