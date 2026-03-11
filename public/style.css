@@ -2100,6 +2100,29 @@ body.menu-open{
   line-height:1.75;
 }
 
+
+.authSignInCard__notice{
+  margin:2px 0 4px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(20,20,20,.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,250,240,.98));
+  text-align:left;
+}
+
+.authSignInCard__noticeTitle{
+  margin:0 0 6px;
+  font-size:14px;
+  font-weight:700;
+  color:#7a4207;
+}
+
+.authSignInCard__noticeText{
+  margin:0;
+  font-size:13px;
+  line-height:1.7;
+  color:rgba(20,20,20,.78);
+}
 .authSignInCard__googleBtn{
   width:100%;
   min-height:58px;
@@ -2147,6 +2170,20 @@ body.menu-open{
   .authSignInCard__logo{
     width:clamp(190px, 62vw, 240px);
     height:auto;
+  }
+
+  .authSignInCard__notice{
+    padding:11px 12px;
+    border-radius:12px;
+  }
+
+  .authSignInCard__noticeTitle{
+    font-size:13px;
+  }
+
+  .authSignInCard__noticeText{
+    font-size:12.5px;
+    line-height:1.65;
   }
 
 }
