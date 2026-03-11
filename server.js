@@ -21,6 +21,7 @@ const Stripe = require('stripe');
 const crypto = require('crypto'); // ★ 追加：CSP nonce 生成用
 
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
@@ -153,6 +154,14 @@ const DEFAULT_PRODUCT_DESC =
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
 const DAYS_180_MS = 1000 * 60 * 60 * 24 * 180;
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
+
+const sessionStore = MongoStore.create({
+  mongoUrl: MONGODB_URI,
+  ttl: SESSION_TTL_SECONDS,
+  autoRemove: 'native',
+  touchAfter: 24 * 3600,
+});
 
 function calcRevenueSplit(grossAmount) {
   const sellerAmount = Math.max(0, Math.floor(grossAmount * (SELLER_SHARE_PERCENT / 100)));
@@ -230,6 +239,7 @@ app.set('views', path.join(__dirname, 'views'));
 // Core middlewares
 app.use(session({
   secret: SESSION_SECRET,
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: {
