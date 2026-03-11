@@ -2103,10 +2103,10 @@ body.menu-open{
 
 
 .authSignInInfoCard{
-  margin:4px 0 2px;
-  padding:12px 14px;
+  margin:10px 0 2px;
+  padding:11px 13px;
   border-radius:14px;
-  border:1px solid rgba(44, 98, 182, .16);
+  border:1px solid rgba(44, 98, 182, .14);
   background:linear-gradient(180deg, rgba(246,250,255,.98), rgba(241,247,255,.98));
   text-align:left;
 }
@@ -2130,7 +2130,7 @@ body.menu-open{
 .authSignInInfoCard__body{
   margin:0;
   font-size:13px;
-  line-height:1.68;
+  line-height:1.72;
   color:rgba(16,24,40,.80);
   white-space:pre-line;
 }
@@ -2185,7 +2185,7 @@ body.menu-open{
   }
 
   .authSignInInfoCard{
-    margin-top:2px;
+    margin-top:8px;
     padding:11px 12px;
     border-radius:12px;
   }
