@@ -14,14 +14,28 @@
 
 <main class="container errorPage">
 <%
-  const tone = (variant === 'success') ? 'success' : 'error';
-  const rawEyebrow = (typeof pageLabel === 'string' && pageLabel)
-    ? pageLabel
+  const safeVariant = (typeof variant !== 'undefined' && variant) ? variant : 'error';
+  const safePageLabel = (typeof pageLabel === 'string') ? pageLabel : '';
+  const safeTitle = (typeof title === 'string') ? title : '';
+  const safeMessage = (typeof message === 'string') ? message : '';
+  const safeSubMessage = (typeof subMessage === 'string') ? subMessage : '';
+  const safePrimaryAction =
+    (typeof primaryAction !== 'undefined' && primaryAction && typeof primaryAction === 'object')
+      ? primaryAction
+      : null;
+  const safeSecondaryAction =
+    (typeof secondaryAction !== 'undefined' && secondaryAction && typeof secondaryAction === 'object')
+      ? secondaryAction
+      : null;
+
+  const tone = (safeVariant === 'success') ? 'success' : 'error';
+  const rawEyebrow = safePageLabel
+    ? safePageLabel
     : ((tone === 'success') ? ((lng === 'en') ? 'RESULT' : '接続結果') : 'ERROR');
-  const rawHeading = (typeof title === 'string' && title)
-    ? title
+  const rawHeading = safeTitle
+    ? safeTitle
     : ((tone === 'success') ? ((lng === 'en') ? 'Completed' : '完了しました') : ((lng === 'en') ? 'Error' : 'エラー'));
-  const rawMessage = (typeof message === 'string') ? message : '';
+  const rawMessage = safeMessage;
 
   const eyebrow = (lng !== 'en' && rawEyebrow === '接続結果') ? 'エラー' : rawEyebrow;
   const heading = (lng !== 'en' && rawHeading === '接続設定を受け付けました。') ? '' : rawHeading;
@@ -29,9 +43,9 @@
     ? '以下より再度アクセスして下さい。'
     : rawMessage;
 
-  const primaryHref = (primaryAction && primaryAction.href) ? primaryAction.href : '/';
-  const primaryLabel = (primaryAction && primaryAction.label)
-    ? primaryAction.label
+  const primaryHref = (safePrimaryAction && safePrimaryAction.href) ? safePrimaryAction.href : '/';
+  const primaryLabel = (safePrimaryAction && safePrimaryAction.label)
+    ? safePrimaryAction.label
     : ((lng === 'en') ? 'Back to top' : 'トップに戻る');
 %>
 
@@ -40,14 +54,14 @@
   <% if (heading) { %><h1 class="errorCard__title"><%= heading %></h1><% } %>
   <p class="errorCard__desc"><%- desc %></p>
 
-  <% if (typeof subMessage === 'string' && subMessage) { %>
-    <p class="errorCard__sub muted"><%= subMessage %></p>
+  <% if (safeSubMessage) { %>
+    <p class="errorCard__sub muted"><%= safeSubMessage %></p>
   <% } %>
 
   <div class="errorCard__actions">
     <a class="btn btn--primary" href="<%= primaryHref %>"><%= primaryLabel %></a>
-    <% if (secondaryAction && secondaryAction.href && secondaryAction.label) { %>
-      <a class="btn btn--soft" href="<%= secondaryAction.href %>"><%= secondaryAction.label %></a>
+    <% if (safeSecondaryAction && safeSecondaryAction.href && safeSecondaryAction.label) { %>
+      <a class="btn btn--soft" href="<%= safeSecondaryAction.href %>"><%= safeSecondaryAction.label %></a>
     <% } %>
   </div>
 </section>
