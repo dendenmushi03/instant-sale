@@ -83,12 +83,12 @@ function normalizeLng(input) {
   return 'ja';
 }
 
-// 現在言語の取得（query/cookie/i18n を正規化して判定）
+// 現在言語の取得（cookie 優先。古い querystring で上書きさせない）
 function getLng(req) {
-  const fromQuery = req.query?.lng;
   const fromCookie = req.cookies?.i18next;
+  const fromQuery = req.query?.lng;
   const fromI18n = req.i18n?.resolvedLanguage || req.i18n?.language || req.language;
-  return normalizeLng(fromQuery || fromCookie || fromI18n || 'ja');
+  return normalizeLng(fromCookie || fromQuery || fromI18n || 'ja');
 }
 
 // 言語→数値ロケールの簡易マップ
@@ -309,7 +309,7 @@ i18next
       loadPath: path.join(__dirname, 'locales/{{lng}}/{{ns}}.json'),
     },
     detection: {
-      order: ['querystring','cookie'],
+      order: ['cookie','querystring'],
       lookupQuerystring: 'lng',
       lookupCookie: 'i18next',
       caches: ['cookie'],
@@ -353,8 +353,8 @@ app.use((req, res, next) => {
   res.locals.t   = (key, options = {}) => req.t(key, { lng, ...options });
   res.locals.lng = lng;
 
-  // 今のURL（クエリ・ハッシュ含む）を安全に付与
-  const now = req.originalUrl || '/';
+  // 今のURL（クエリ・ハッシュ含む）から lng だけ除去して return に付与
+  const now = stripLngParamFromPath(req.originalUrl || '/');
   const ret = encodeURIComponent(now);
 
   res.locals.langMenu = [
@@ -705,6 +705,19 @@ function safeReturnUrl(input) {
   } catch { return '/'; }
 }
 
+function stripLngParamFromPath(input) {
+  const safe = safeReturnUrl(input);
+  if (safe === '/') return '/';
+  try {
+    const u = new URL(safe, 'http://localhost');
+    u.searchParams.delete('lng');
+    const q = u.searchParams.toString();
+    return `${u.pathname}${q ? `?${q}` : ''}${u.hash || ''}` || '/';
+  } catch {
+    return '/';
+  }
+}
+
 app.get('/lang', (req, res) => {
   const nextLng = String(req.query.lng || '').toLowerCase();
   if (['ja','en'].includes(nextLng)) {
@@ -724,7 +737,7 @@ app.get('/lang', (req, res) => {
     }
   }
 
-  const back = safeReturnUrl(req.query.return);
+  const back = stripLngParamFromPath(req.query.return);
   if (back !== '/') return res.redirect(303, back);
 
   // Referer 保険（同一オリジンだけ）
@@ -733,7 +746,7 @@ app.get('/lang', (req, res) => {
     if (ref) {
       const u = new URL(ref);
       if (u.host === (req.headers['x-forwarded-host'] || req.headers.host)) {
-        return res.redirect(303, u.pathname + (u.search || '') + (u.hash || ''));
+        return res.redirect(303, stripLngParamFromPath(u.pathname + (u.search || '') + (u.hash || '')));
       }
     }
   } catch (_) {}
