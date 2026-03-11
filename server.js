@@ -96,6 +96,14 @@ function toNumberLocale(lng) {
   return (lng === 'en') ? 'en-US' : 'ja-JP';
 }
 
+function isXInAppBrowser(userAgent = '') {
+  if (!userAgent || typeof userAgent !== 'string') return false;
+  const ua = userAgent.toLowerCase();
+  const hasXToken = ua.includes('x.com') || ua.includes('twitter');
+  const hasInAppToken = ua.includes('twitter for') || ua.includes('twitterandroid') || ua.includes('twitterios');
+  return hasXToken && hasInAppToken;
+}
+
 // 出品時に選ばれた licensePreset を販売ページ表示用に整形
 function licenseViewOf(item) {
   const key = item.licensePreset || 'standard';
@@ -780,9 +788,11 @@ app.get('/sitemap.xml', (req, res) => {
 // auth pages
 app.get('/auth/sign-in', (req, res) => {
   if (req.user) return res.redirect('/creator');
+  const ua = req.get('user-agent') || '';
   res.render('auth-sign-in', {
     canonical: `${BASE_URL}/auth/sign-in`,
-    robots: 'noindex,follow'
+    robots: 'noindex,follow',
+    isXInAppBrowser: isXInAppBrowser(ua)
   });
 });
 

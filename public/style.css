@@ -2100,6 +2100,41 @@ body.menu-open{
   line-height:1.75;
 }
 
+
+
+.authSignInInfoCard{
+  margin:10px 0 2px;
+  padding:11px 13px;
+  border-radius:14px;
+  border:1px solid rgba(44, 98, 182, .14);
+  background:linear-gradient(180deg, rgba(246,250,255,.98), rgba(241,247,255,.98));
+  text-align:left;
+}
+
+.authSignInInfoCard__label{
+  margin:0 0 5px;
+  font-size:11px;
+  letter-spacing:.04em;
+  font-weight:700;
+  color:rgba(34,82,151,.78);
+}
+
+.authSignInInfoCard__title{
+  margin:0 0 6px;
+  font-size:14px;
+  line-height:1.45;
+  font-weight:700;
+  color:#1f3557;
+}
+
+.authSignInInfoCard__body{
+  margin:0;
+  font-size:13px;
+  line-height:1.72;
+  color:rgba(16,24,40,.80);
+  white-space:pre-line;
+}
+
 .authSignInCard__googleBtn{
   width:100%;
   min-height:58px;
@@ -2147,6 +2182,27 @@ body.menu-open{
   .authSignInCard__logo{
     width:clamp(190px, 62vw, 240px);
     height:auto;
+  }
+
+  .authSignInInfoCard{
+    margin-top:8px;
+    padding:11px 12px;
+    border-radius:12px;
+  }
+
+  .authSignInInfoCard__label{
+    margin-bottom:4px;
+    font-size:10.5px;
+  }
+
+  .authSignInInfoCard__title{
+    margin-bottom:5px;
+    font-size:13px;
+  }
+
+  .authSignInInfoCard__body{
+    font-size:12.5px;
+    line-height:1.62;
   }
 
 }

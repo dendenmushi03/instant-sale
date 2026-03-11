@@ -25,6 +25,14 @@
       <span><%= (lng==='en') ? 'Continue with Google' : 'Googleでログイン' %></span>
     </a>
 
+    <aside class="authSignInInfoCard <%= isXInAppBrowser ? 'is-x-in-app' : '' %>" data-x-in-app="<%= isXInAppBrowser ? 'true' : 'false' %>" aria-label="ログインに関するご案内">
+      <p class="authSignInInfoCard__label" aria-hidden="true">ℹ︎ <%= (lng==='en') ? 'Help' : 'ご案内' %></p>
+      <p class="authSignInInfoCard__title"><%= (lng==='en') ? 'If you are using X in-app browser' : 'Xアプリ内ブラウザでご利用の方へ' %></p>
+      <p class="authSignInInfoCard__body"><%= (lng==='en')
+        ? 'Google login may not work properly. If that happens, tap the bottom “...” menu, choose “Open in browser”, then reopen this page in Safari / Chrome and try signing in again.'
+        : 'Googleログインが正常に動作しない場合があります。\nその場合は、画面下部の「…」から「ブラウザで開く」を選択し、Safari / Chrome で開き直してから再度ログインしてください。' %></p>
+    </aside>
+
     <a class="authSignInCard__back" href="/"><%= (lng==='en') ? 'Back to top' : 'トップページへ戻る' %></a>
   </section>
 </main>
