@@ -117,8 +117,16 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const USE_STRIPE_CONNECT = process.env.USE_STRIPE_CONNECT === 'true';
-// プラットフォーム手数料の既定値を 20% に
-const PLATFORM_FEE_PERCENT = Number(process.env.PLATFORM_FEE_PERCENT || '20');
+// 収益分配は仕様固定: 出品者80% / プラットフォーム20%
+const SELLER_SHARE_PERCENT = 80;
+const PLATFORM_FEE_PERCENT = 20;
+if (process.env.PLATFORM_FEE_PERCENT && Number(process.env.PLATFORM_FEE_PERCENT) !== PLATFORM_FEE_PERCENT) {
+  const msg = `[WARN] PLATFORM_FEE_PERCENT=${process.env.PLATFORM_FEE_PERCENT} は無視されます（固定 ${PLATFORM_FEE_PERCENT}%）`;
+  if (isProd) {
+    throw new Error(msg);
+  }
+  console.warn(msg);
+}
 // 業種(MCC) と 商品説明の既定値（必要なら .env で上書き）
 const DEFAULT_MCC  = process.env.DEFAULT_MCC || '5399'; // Misc. General Merchandise
 const DEFAULT_PRODUCT_DESC =
@@ -126,6 +134,44 @@ const DEFAULT_PRODUCT_DESC =
 
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+
+const DAYS_180_MS = 1000 * 60 * 60 * 24 * 180;
+
+function calcRevenueSplit(grossAmount) {
+  const sellerAmount = Math.max(0, Math.floor(grossAmount * (SELLER_SHARE_PERCENT / 100)));
+  const platformFeeAmount = Math.max(0, grossAmount - sellerAmount);
+  return { sellerAmount, platformFeeAmount, grossAmount };
+}
+
+function isExpiredPending(pending, now = new Date()) {
+  return new Date(pending.expiresAt).getTime() <= now.getTime();
+}
+
+async function expirePendingTransferById(pendingId, reason, now = new Date()) {
+  await PendingTransfer.updateOne(
+    { _id: pendingId, status: 'queued' },
+    {
+      $set: {
+        status: 'expired',
+        expiredAt: now,
+        expirationReason: reason,
+        updatedAt: now
+      }
+    }
+  );
+}
+
+async function getTransferEligibility(stripeAccountId) {
+  if (!stripeAccountId) return { canTransfer: false, payoutsEnabled: false, transfersActive: false };
+  try {
+    const acc = await stripe.accounts.retrieve(stripeAccountId);
+    const payoutsEnabled = !!acc?.payouts_enabled;
+    const transfersActive = acc?.capabilities?.transfers === 'active';
+    return { canTransfer: payoutsEnabled && transfersActive, payoutsEnabled, transfersActive };
+  } catch (e) {
+    return { canTransfer: false, payoutsEnabled: false, transfersActive: false, error: e };
+  }
+}
 
 // ====== S3 (S3/R2 互換) ======
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
@@ -540,6 +586,60 @@ async function getConnectStatus(user) {
   return { hasAccount, payoutsEnabled };
 }
 
+async function processQueuedPendingTransfersForSeller({ sellerId, stripeAccountId }) {
+  const now = new Date();
+  const pendings = await PendingTransfer.find({ seller: sellerId, status: 'queued' }).lean();
+  const results = [];
+
+  for (const p of pendings) {
+    if (isExpiredPending(p, now)) {
+      await expirePendingTransferById(p._id, 'expired_after_180_days', now);
+      results.push({ id: p._id, status: 'expired' });
+      continue;
+    }
+
+    const latest = await PendingTransfer.findOne({ _id: p._id, status: 'queued' }).lean();
+    if (!latest) {
+      results.push({ id: p._id, status: 'skip_not_queued' });
+      continue;
+    }
+
+    try {
+      const tr = await stripe.transfers.create({
+        amount: p.amount,
+        currency: p.currency,
+        destination: stripeAccountId,
+        transfer_group: p.transferGroup || undefined
+      }, {
+        idempotencyKey: `pending_transfer_${p.paymentIntentId}`
+      });
+
+      const updated = await PendingTransfer.updateOne(
+        { _id: p._id, status: 'queued' },
+        {
+          $set: {
+            status: 'transferred',
+            transferId: tr.id,
+            transferredAt: new Date(),
+            updatedAt: new Date(),
+            reason: p.reason || 'queued_then_transferred'
+          }
+        }
+      );
+
+      if (updated.modifiedCount === 1) {
+        results.push({ id: p._id, status: 'transferred', transferId: tr.id, amount: p.amount });
+      } else {
+        results.push({ id: p._id, status: 'skip_race_condition' });
+      }
+    } catch (e) {
+      results.push({ id: p._id, status: 'error', error: e?.raw?.message || e.message });
+    }
+  }
+
+  return results;
+}
+
 /* ====== FS準備 ====== */
 const ensureDir = async (dir) => {
   try { await fsp.mkdir(dir, { recursive: true }); } catch {}
@@ -805,23 +905,13 @@ app.get('/connect/return', ensureAuthed, async (req, res) => {
     await user.save();
 
     // ★ 自動送金：payouts が有効になったら、そのユーザーの保留分を一括実行
-    if (payoutsEnabled) {
-      const pendings = await PendingTransfer.find({ seller: user._id }).lean();
-      for (const p of pendings) {
-        try {
-          await stripe.transfers.create({
-            amount: p.amount,
-            currency: p.currency,
-            destination: user.stripeAccountId,
-            transfer_group: p.transferGroup || undefined
-          });
-          await PendingTransfer.deleteOne({ _id: p._id });
-          console.log('[pending-transfer] sent', { seller: String(user._id), amount: p.amount, pi: p.paymentIntentId });
-        } catch (te) {
-          console.error('[pending-transfer] send failed', te?.raw?.message || te.message, { pendingId: p._id });
-          // 失敗した分は保留のまま（次回また試せる）
-        }
-      }
+    const eligibility = await getTransferEligibility(user.stripeAccountId);
+    if (eligibility.canTransfer) {
+      const results = await processQueuedPendingTransfersForSeller({
+        sellerId: user._id,
+        stripeAccountId: user.stripeAccountId
+      });
+      console.log('[pending-transfer] connect/return processed', { seller: String(user._id), count: results.length });
     }
 
     return res.render('error', {
@@ -890,33 +980,23 @@ app.post('/admin/retry-pending', async (req, res) => {
     }
     if (!stripe) return res.status(500).json({ ok: false, error: 'stripe_not_configured' });
 
-    const pendings = await PendingTransfer.find({}).lean();
+    const sellers = await PendingTransfer.distinct('seller', { status: 'queued' });
     const results = [];
-    for (const p of pendings) {
+    for (const sellerId of sellers) {
       try {
-        const seller = await User.findById(p.seller);
-        if (!seller?.stripeAccountId) { results.push({ id: p._id, status: 'skip_no_account' }); continue; }
+        const seller = await User.findById(sellerId);
+        if (!seller?.stripeAccountId) { results.push({ seller: sellerId, status: 'skip_no_account' }); continue; }
 
-        // payouts_enabled 確認
-        let enabled = true;
-        try {
-          const acc = await stripe.accounts.retrieve(seller.stripeAccountId);
-          enabled = !!acc?.payouts_enabled;
-        } catch (e) { enabled = false; }
+        const eligibility = await getTransferEligibility(seller.stripeAccountId);
+        if (!eligibility.canTransfer) { results.push({ seller: sellerId, status: 'skip_transfer_not_eligible' }); continue; }
 
-        if (!enabled) { results.push({ id: p._id, status: 'skip_payouts_disabled' }); continue; }
-
-        await stripe.transfers.create({
-          amount: p.amount,
-          currency: p.currency,
-          destination: seller.stripeAccountId,
-          transfer_group: p.transferGroup || undefined
+        const sellerResults = await processQueuedPendingTransfersForSeller({
+          sellerId,
+          stripeAccountId: seller.stripeAccountId
         });
-
-        await PendingTransfer.deleteOne({ _id: p._id });
-        results.push({ id: p._id, status: 'transferred', amount: p.amount });
+        results.push(...sellerResults.map(r => ({ seller: sellerId, ...r })));
       } catch (e) {
-        results.push({ id: p._id, status: 'error', error: e?.raw?.message || e.message });
+        results.push({ seller: sellerId, status: 'error', error: e?.raw?.message || e.message });
       }
     }
     return res.json({ ok: true, count: results.length, results });
@@ -1417,8 +1497,8 @@ app.post('/checkout/:slug', async (req, res) => {
     const item = await Item.findOne({ slug });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
 
-// 手数料（20%など）
-const platformFee = Math.max(0, Math.floor(item.price * (PLATFORM_FEE_PERCENT / 100)));
+// 仕様固定の収益分配（出品者80% / プラットフォーム20%）
+const { platformFeeAmount: platformFee } = calcRevenueSplit(item.price);
 
 // 販売者（オーナー）
 let seller = null;
@@ -1430,10 +1510,7 @@ if (USE_STRIPE_CONNECT && item.ownerUser) {
 let destinationAccountId = null;
 if (USE_STRIPE_CONNECT && seller?.stripeAccountId) {
   try {
-    const acc = await stripe.accounts.retrieve(seller.stripeAccountId);
-    const transfersCap = acc?.capabilities?.transfers;
-    const canUseDestination =
-      transfersCap === 'active' && !!acc?.payouts_enabled;
+    const { canTransfer: canUseDestination } = await getTransferEligibility(seller.stripeAccountId);
     if (canUseDestination) destinationAccountId = seller.stripeAccountId;
   } catch (e) {
     console.warn('[checkout] could not retrieve account; fallback to platform charge:', e?.raw?.message || e.message);
@@ -1640,25 +1717,38 @@ app.post('/webhooks/stripe', async (req, res) => {
             } else {
               const seller = await User.findById(item.ownerUser);
 
-              // 金額計算
-              const feePercent = Number(process.env.PLATFORM_FEE_PERCENT || 0);
-              const fee = Math.floor(item.price * (feePercent / 100));
-              const sellerAmount = item.price - fee;
+              // 仕様固定の80/20金額計算
+              const { sellerAmount, platformFeeAmount, grossAmount } = calcRevenueSplit(item.price);
               const transferGroup = pi.transfer_group || `item_${item._id}`;
+              const now = new Date();
 
               // 送金すべきだが、前提が揃わない場合は保留登録
               const markPending = async (reason) => {
                 try {
+                  const existing = await PendingTransfer.findOne({ paymentIntentId: pi.id }).lean();
+                  if (existing?.status === 'transferred' || existing?.status === 'expired') {
+                    return;
+                  }
                   await PendingTransfer.updateOne(
                     { paymentIntentId: pi.id },
                     {
-                      seller: item.ownerUser,
-                      item: item._id,
-                      amount: sellerAmount,
-                      currency: item.currency,
-                      paymentIntentId: pi.id,
-                      transferGroup,
-                      reason
+                      $setOnInsert: {
+                        seller: item.ownerUser,
+                        item: item._id,
+                        amount: sellerAmount,
+                        grossAmount,
+                        platformFeeAmount,
+                        currency: item.currency,
+                        paymentIntentId: pi.id,
+                        transferGroup,
+                        expiresAt: new Date(now.getTime() + DAYS_180_MS),
+                        createdAt: now
+                      },
+                      $set: {
+                        status: 'queued',
+                        reason,
+                        updatedAt: now
+                      }
                     },
                     { upsert: true }
                   );
@@ -1673,32 +1763,75 @@ app.post('/webhooks/stripe', async (req, res) => {
               } else if (sellerAmount <= 0) {
                 await markPending('non_positive_amount');
               } else {
-                // 送金可否（payouts_enabled）
-                let canTransfer = true;
-                try {
-                  const acc = await stripe.accounts.retrieve(seller.stripeAccountId);
-                  canTransfer = !!acc?.payouts_enabled;
-                } catch (accErr) {
-                  console.warn('[transfer] retrieve account failed', accErr?.raw?.message || accErr.message);
+                const existing = await PendingTransfer.findOne({ paymentIntentId: pi.id }).lean();
+                let skipTransfer = false;
+                if (existing?.status === 'transferred') {
+                  console.log('[transfer] skip already transferred', { pi: pi.id, pendingId: existing._id });
+                  skipTransfer = true;
+                }
+                if (existing?.status === 'expired') {
+                  console.log('[transfer] skip already expired', { pi: pi.id, pendingId: existing._id });
+                  skipTransfer = true;
+                }
+                if (existing?.status === 'queued' && isExpiredPending(existing, now)) {
+                  await expirePendingTransferById(existing._id, 'expired_after_180_days', now);
+                  console.log('[transfer] skip expired pending', { pi: pi.id, pendingId: existing._id });
+                  skipTransfer = true;
                 }
 
-                if (canTransfer) {
-                  await stripe.transfers.create({
-                    amount: sellerAmount,
-                    currency: item.currency,
-                    destination: seller.stripeAccountId,
-                    transfer_group: transferGroup,
-                  });
-                  console.log('[transfer] success', {
-                    pi: pi.id,
-                    dest: seller.stripeAccountId,
-                    amount: sellerAmount
-                  });
+                if (!skipTransfer) {
+                  const eligibility = await getTransferEligibility(seller.stripeAccountId);
+                  const canTransfer = eligibility.canTransfer;
+                  if (!canTransfer && eligibility.error) {
+                    console.warn('[transfer] retrieve account failed', eligibility.error?.raw?.message || eligibility.error?.message);
+                  }
 
-                  // 念のため保留があれば削除（再入場対策）
-                  await PendingTransfer.deleteOne({ paymentIntentId: pi.id }).catch(()=>{});
-                } else {
-                  await markPending('payouts_disabled');
+                  if (canTransfer) {
+                    const tr = await stripe.transfers.create({
+                      amount: sellerAmount,
+                      currency: item.currency,
+                      destination: seller.stripeAccountId,
+                      transfer_group: transferGroup,
+                    }, {
+                      idempotencyKey: `pi_transfer_${pi.id}`
+                    });
+                    console.log('[transfer] success', {
+                      pi: pi.id,
+                      dest: seller.stripeAccountId,
+                      amount: sellerAmount
+                    });
+
+                    await PendingTransfer.updateOne(
+                      {
+                        paymentIntentId: pi.id,
+                        status: { $in: ['queued', 'transferred'] }
+                      },
+                      {
+                        $setOnInsert: {
+                          seller: item.ownerUser,
+                          item: item._id,
+                          amount: sellerAmount,
+                          grossAmount,
+                          platformFeeAmount,
+                          currency: item.currency,
+                          paymentIntentId: pi.id,
+                          transferGroup,
+                          expiresAt: new Date(now.getTime() + DAYS_180_MS),
+                          createdAt: now
+                        },
+                        $set: {
+                          status: 'transferred',
+                          transferId: tr.id,
+                          transferredAt: new Date(),
+                          updatedAt: new Date(),
+                          reason: 'transferred_after_webhook_retry'
+                        }
+                      },
+                      { upsert: true }
+                    );
+                  } else {
+                    await markPending(eligibility.payoutsEnabled ? 'transfers_capability_inactive' : 'payouts_disabled');
+                  }
                 }
               }
             }
@@ -1710,21 +1843,29 @@ app.post('/webhooks/stripe', async (req, res) => {
         try {
           const piId = (tErr?.payment_intent && tErr.payment_intent.id) || null;
           if (piId && itemId) {
-            const item = await Item.findById(itemId);
-            if (item) {
-              const feePercent = Number(process.env.PLATFORM_FEE_PERCENT || 0);
-              const fee = Math.floor(item.price * (feePercent / 100));
-              const sellerAmount = item.price - fee;
+              const item = await Item.findById(itemId);
+              if (item) {
+              const { sellerAmount, platformFeeAmount, grossAmount } = calcRevenueSplit(item.price);
+              const existing = await PendingTransfer.findOne({ paymentIntentId: piId }).lean();
+              if (existing?.status === 'transferred' || existing?.status === 'expired') {
+                return;
+              }
               await PendingTransfer.updateOne(
                 { paymentIntentId: piId },
                 {
-                  seller: item.ownerUser,
-                  item: item._id,
-                  amount: sellerAmount,
-                  currency: item.currency,
-                  paymentIntentId: piId,
-                  transferGroup: `item_${item._id}`,
-                  reason: 'exception'
+                  $setOnInsert: {
+                    seller: item.ownerUser,
+                    item: item._id,
+                    amount: sellerAmount,
+                    grossAmount,
+                    platformFeeAmount,
+                    currency: item.currency,
+                    paymentIntentId: piId,
+                    transferGroup: `item_${item._id}`,
+                    expiresAt: new Date(Date.now() + DAYS_180_MS),
+                    createdAt: new Date()
+                  },
+                  $set: { status: 'queued', reason: 'exception', updatedAt: new Date() }
                 },
                 { upsert: true }
               );
