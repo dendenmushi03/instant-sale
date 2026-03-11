@@ -20,13 +20,6 @@
     </div>
     <p class="authSignInCard__desc muted"><%= (lng==='en') ? 'Log in with Google to create and publish your image sales link.' : 'Googleでログインして、画像の販売リンクを作成できます。' %></p>
 
-    <% if (isXInAppBrowser) { %>
-      <aside class="authSignInCard__notice" aria-label="Xアプリ内ブラウザ利用時の案内">
-        <p class="authSignInCard__noticeTitle">Xアプリ内ブラウザでご利用の方へ</p>
-        <p class="authSignInCard__noticeText">Googleログインが正常に動作しない場合があります。その場合は画面下部の「…」から「ブラウザで開く」を選択し、Safari / Chromeで開いてから再度ログインしてください。</p>
-      </aside>
-    <% } %>
-
     <a class="btn btn--lg authSignInCard__googleBtn" href="/auth/google">
       <span class="authSignInCard__googleMark" aria-hidden="true">G</span>
       <span><%= (lng==='en') ? 'Continue with Google' : 'Googleでログイン' %></span>
