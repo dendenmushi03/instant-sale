@@ -1848,8 +1848,8 @@ app.post('/webhooks/stripe', async (req, res) => {
               const { sellerAmount, platformFeeAmount, grossAmount } = calcRevenueSplit(item.price);
               const existing = await PendingTransfer.findOne({ paymentIntentId: piId }).lean();
               if (existing?.status === 'transferred' || existing?.status === 'expired') {
-                return;
-              }
+                console.log('[transfer] exception queue skipped (already finalized)', { pi: piId, status: existing.status });
+              } else {
               await PendingTransfer.updateOne(
                 { paymentIntentId: piId },
                 {
@@ -1870,6 +1870,7 @@ app.post('/webhooks/stripe', async (req, res) => {
                 { upsert: true }
               );
               console.warn('[transfer] pending queued by exception:', { pi: piId, sellerAmount });
+              }
             }
           }
         } catch (_) {}
