@@ -793,6 +793,16 @@ body.menu-open{
   color:rgba(20,20,20,.72);
 }
 
+#progressModal .modal__result-close{
+  margin-top:14px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+#progressModal .modal__result-close #closeModal{
+  height:44px;
+}
+
 #progressModal #tweetOnX img{
   width:16px;
   height:16px;
@@ -819,8 +829,8 @@ body.menu-open{
     grid-template-columns:1fr 1fr;
   }
 
-  #progressModal #closeModal{
-    grid-column:1 / -1;
+  #progressModal .modal__result-close #closeModal{
+    width:100%;
   }
 }
 
