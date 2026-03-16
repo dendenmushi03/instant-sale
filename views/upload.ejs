@@ -318,6 +318,8 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   <section class="modalBlock" aria-label="post-template">
     <div class="modalBlock__title"><%= (lng === 'en') ? 'Post text' : '投稿文テンプレ' %></div>
     <div class="tweet-controls">
+      <label for="tweetTemplate"><%= (lng === 'en') ? 'Post text template' : '投稿文テンプレ選択' %></label>
+      <select id="tweetTemplate">
         <% if (lng === 'en') { %>
           <option value="promo">Promotion (Standard)</option>
           <option value="support">Support request (Buy to support)</option>
