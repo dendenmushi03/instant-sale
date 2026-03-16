@@ -287,6 +287,25 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   <div class="modal__result-title"><%= t('upload.modal.created') %></div>
 
   <div class="modalDivider"></div>
+  <section class="modalBlock" aria-label="actions">
+    <div class="modalBlock__title"><%= (lng === 'en') ? 'Actions' : '操作' %></div>
+    <div class="modal__result-actions">
+
+<a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener">
+  <img src="/public/x-icon.png" alt="X">
+  <% if (lng === 'en') { %>
+    <span>Sell on</span>
+  <% } else { %>
+    <span>で販売する</span>
+  <% } %>
+</a>
+
+<a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open_sale') %></a>
+
+    </div>
+  </section>
+
+  <div class="modalDivider"></div>
   <section class="modalBlock" aria-label="sale-page-url">
     <div class="modalBlock__title"><%= (lng === 'en') ? 'Sale page URL' : '販売ページURL' %></div>
     <div class="modalUrlRow">
@@ -315,25 +334,9 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
     </div>
   </section>
 
-  <div class="modalDivider"></div>
-  <section class="modalBlock" aria-label="actions">
-    <div class="modalBlock__title"><%= (lng === 'en') ? 'Actions' : '操作' %></div>
-    <div class="modal__result-actions">
-
-<a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener">
-  <img src="/public/x-icon.png" alt="X">
-  <% if (lng === 'en') { %>
-    <span>Sell on</span>
-  <% } else { %>
-    <span>で販売する</span>
-  <% } %>
-</a>
-
-<a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open_sale') %></a>
-<button type="button" id="closeModal" class="btn btn--ghost"><%= t('upload.modal.btn_close') %></button>
-
-    </div>
-  </section>
+  <div class="modal__result-close">
+    <button type="button" id="closeModal" class="btn btn--ghost"><%= t('upload.modal.btn_close') %></button>
+  </div>
 
   <p class="muted"><%= t('upload.modal.hint') %></p>
 
