@@ -2024,6 +2024,10 @@ body.menu-open{
   width:100%;
 }
 
+.homeIntroCard__ctaBadge{
+  display:none;
+}
+
 @media (max-width: 768px){
   .homeMain--withFixedCta{
     padding-bottom: 0;
@@ -2041,6 +2045,38 @@ body.menu-open{
     z-index: 80;
     margin-top: 0;
     pointer-events: none;
+  }
+
+  .homeIntroCard__ctaBadge{
+    position: absolute;
+    top: -14px;
+    left: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f8a3a0, #f07c86);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .01em;
+    line-height: 1;
+    box-shadow: 0 8px 16px rgba(44, 28, 38, .2);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .homeIntroCard__ctaBadge::after{
+    content: "";
+    position: absolute;
+    left: 14px;
+    bottom: -5px;
+    width: 10px;
+    height: 10px;
+    background: #f38a8f;
+    transform: rotate(45deg);
+    border-bottom-right-radius: 2px;
   }
 
   .homeIntroCard__cta--fixedMobile .btn{
