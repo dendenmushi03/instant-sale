@@ -63,6 +63,7 @@
       </div>
 
       <div class="homeIntroCard__cta homeIntroCard__cta--fixedMobile">
+        <span class="homeIntroCard__ctaBadge" aria-hidden="true"><%= (lng==='en') ? 'Free to use!' : '利用無料！' %></span>
         <% if (me) { %>
           <a class="btn btn--primary btn--lg" href="/creator"><%= (lng==='en') ? 'Create a sales link' : '販売リンクを作る' %></a>
         <% } else { %>
