@@ -19,16 +19,13 @@
       </section>
 
       <section class="card dashboardDetail__body">
-        <div class="dashboardTopActions">
+        <div class="dashboardDetailHeadRow">
+          <p class="eyebrow">Item Detail</p>
           <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集</a>
-          <form action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm" onsubmit="return confirm('この作品を削除します。よろしいですか？');">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="btn btn--ghost dashboardDangerBtn" type="submit">削除</button>
-          </form>
         </div>
-
-        <p class="eyebrow">Item Detail</p>
-        <h1 class="dashboardDetail__title"><%= item.title %></h1>
+        <h1 class="dashboardDetail__title">
+          <%= item.title %>
+        </h1>
 
         <dl class="dashboardDetailList">
           <div><dt>クリエイター名</dt><dd><%= item.creatorName || '未設定' %></dd></div>
@@ -45,6 +42,10 @@
           <div class="dashboardUrlBox__actions">
             <button id="copySaleUrlBtn" class="btn btn--ghost" type="button">URLコピー</button>
             <a class="btn btn--primary" href="<%= item.saleUrl %>" target="_blank" rel="noopener">販売ページを開く</a>
+            <form action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm dashboardUrlBox__dangerForm" onsubmit="return confirm('当出品ページを復元することはできませんが、本当に削除しますか？');">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn--ghost dashboardDangerBtn" type="submit">削除</button>
+            </form>
             <a class="btn btn--ghost" href="/dashboard">戻る</a>
           </div>
           <p id="copySaleUrlMessage" class="muted dashboardUrlBox__message" aria-live="polite"></p>

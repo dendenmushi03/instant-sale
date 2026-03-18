@@ -26,6 +26,7 @@
             <strong class="dashboardEditInfo__value"><%= licenseView.label %></strong>
           </div>
           <p class="dashboardEditInfo__desc muted"><%= licenseView.desc %></p>
+          <p class="dashboardEditInfo__note muted">※ 元画像・配布ファイル・ライセンス重要項目は編集できません。</p>
         </section>
       </div>
     </section>
@@ -33,6 +34,7 @@
     <section class="card dashboardFormCard dashboardFormCard--edit">
       <div class="dashboardEditSectionHead">
         <h2 class="dashboardEditSectionHead__title">販売情報</h2>
+        <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">詳細へ戻る</a>
       </div>
 
       <% if (errorMessage) { %>
