@@ -42,9 +42,9 @@
           <div class="dashboardUrlBox__actions">
             <button id="copySaleUrlBtn" class="btn btn--ghost" type="button">URLコピー</button>
             <a class="btn btn--primary" href="<%= item.saleUrl %>" target="_blank" rel="noopener">販売ページを開く</a>
-            <form action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm dashboardUrlBox__dangerForm" onsubmit="return confirm('当出品ページを復元することはできませんが、本当に削除しますか？');">
+            <form id="deleteItemForm" action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm dashboardUrlBox__dangerForm">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button class="btn btn--ghost dashboardDangerBtn" type="submit">削除</button>
+              <button id="openDeleteModalBtn" class="btn btn--ghost dashboardDangerBtn" type="button">削除</button>
             </form>
             <a class="btn btn--ghost" href="/dashboard">戻る</a>
           </div>
@@ -53,6 +53,18 @@
       </section>
     </article>
   </main>
+  <div id="deleteConfirmModal" class="dashboardModal" hidden aria-hidden="true">
+    <div id="deleteConfirmOverlay" class="dashboardModal__overlay"></div>
+    <div class="dashboardModal__dialog card" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmText">
+      <h2 id="deleteConfirmTitle" class="dashboardModal__title">削除の確認</h2>
+      <p id="deleteConfirmText" class="dashboardModal__text">出品ページは復元することができませんが、本当に削除しますか？</p>
+      <div class="dashboardModal__actions">
+        <button id="cancelDeleteModalBtn" class="btn btn--ghost" type="button">いいえ</button>
+        <button id="confirmDeleteModalBtn" class="btn btn--ghost dashboardDangerBtn" type="button">はい</button>
+      </div>
+    </div>
+  </div>
+
 
   <script nonce="<%= cspNonce %>">
     (function(){
@@ -74,6 +86,41 @@
           selection.removeAllRanges();
           if (message) message.textContent = '販売ページURLをコピーしました。';
         }
+      });
+    })();
+
+    (function(){
+      const form = document.getElementById('deleteItemForm');
+      const openBtn = document.getElementById('openDeleteModalBtn');
+      const modal = document.getElementById('deleteConfirmModal');
+      const overlay = document.getElementById('deleteConfirmOverlay');
+      const cancelBtn = document.getElementById('cancelDeleteModalBtn');
+      const confirmBtn = document.getElementById('confirmDeleteModalBtn');
+      if (!form || !openBtn || !modal || !cancelBtn || !confirmBtn) return;
+
+      function openModal(){
+        modal.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        cancelBtn.focus();
+      }
+
+      function closeModal(){
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        openBtn.focus();
+      }
+
+      openBtn.addEventListener('click', openModal);
+      cancelBtn.addEventListener('click', closeModal);
+      overlay && overlay.addEventListener('click', closeModal);
+      confirmBtn.addEventListener('click', function(){
+        form.submit();
+      });
+      document.addEventListener('keydown', function(event){
+        if (modal.hidden) return;
+        if (event.key === 'Escape') closeModal();
       });
     })();
   </script>

@@ -2822,3 +2822,17 @@ body.menu-open{
     width:100%;
   }
 }
+
+
+.dashboardModal[hidden]{display:none}
+.dashboardModal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:20px}
+.dashboardModal__overlay{position:absolute;inset:0;background:rgba(15,23,42,.42)}
+.dashboardModal__dialog{position:relative;z-index:1;width:min(92vw,420px);padding:22px;border-radius:22px}
+.dashboardModal__title{margin:0 0 10px}
+.dashboardModal__text{margin:0;color:var(--muted);line-height:1.7}
+.dashboardModal__actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.dashboardModal__actions .btn{min-width:108px}
+@media (max-width: 860px){
+  .dashboardModal__actions{flex-direction:column}
+  .dashboardModal__actions .btn{width:100%}
+}
