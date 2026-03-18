@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, og, canonical: baseUrl + '/dashboard' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage">
+    <section class="dashboardHero card">
+      <div>
+        <p class="eyebrow">Dashboard</p>
+        <h1 class="dashboardHero__title">出品ダッシュボード</h1>
+        <p class="muted dashboardHero__lead">ログイン中のアカウントに紐づく出品作品だけを、新しい順で一覧表示しています。</p>
+      </div>
+      <div class="dashboardHero__meta">
+        <div class="dashboardStat">
+          <span class="dashboardStat__label">表示中</span>
+          <strong class="dashboardStat__value"><%= summary.totalCount %>件</strong>
+        </div>
+        <a class="btn btn--primary" href="/creator">新しく出品する</a>
+      </div>
+    </section>
+
+    <section class="dashboardNotice card">
+      <h2 class="dashboardSectionTitle">既存作品の扱い</h2>
+      <p class="muted">`ownerUser` が現在ログイン中ユーザーと一致する既存作品は、この機能追加前の過去データも一覧対象に含めています。</p>
+      <% if (summary.missingOwnerCount > 0) { %>
+        <p class="muted">`ownerUser` が未設定の作品は所有者判定ができないため一覧に出せません。現在確認できる未紐づけ作品は <strong><%= summary.missingOwnerCount %>件</strong> です。</p>
+      <% } else { %>
+        <p class="muted">未紐づけの作品は検出されませんでした。</p>
+      <% } %>
+    </section>
+
+    <section>
+      <div class="dashboardSectionHead">
+        <h2 class="dashboardSectionTitle">自分の出品作品</h2>
+        <span class="muted"><%= dashboardItems.length %>件を表示</span>
+      </div>
+
+      <% if (!dashboardItems.length) { %>
+        <div class="card dashboardEmpty">
+          <h3>まだ出品作品がありません</h3>
+          <p class="muted">販売リンクを作成すると、ここに自分の作品が並びます。</p>
+          <a class="btn btn--primary" href="/creator">最初の作品を出品する</a>
+        </div>
+      <% } else { %>
+        <div class="dashboardGrid">
+          <% dashboardItems.forEach(function(item){ %>
+            <article class="card dashboardCard">
+              <a class="dashboardCard__link" href="/dashboard/items/<%= item._id %>">
+                <div class="dashboardCard__thumbWrap">
+                  <img class="dashboardCard__thumb" src="<%= item.previewPath %>" alt="<%= item.title %>" loading="lazy" decoding="async" />
+                </div>
+                <div class="dashboardCard__body">
+                  <h3 class="dashboardCard__title"><%= item.title %></h3>
+                  <dl class="dashboardMetaList">
+                    <div>
+                      <dt>価格</dt>
+                      <dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd>
+                    </div>
+                    <div>
+                      <dt>作成日</dt>
+                      <dd><%= new Date(item.createdAt).toLocaleDateString(locale) %></dd>
+                    </div>
+                  </dl>
+                  <div class="dashboardCard__footer">
+                    <span class="dashboardCard__url"><%= item.saleUrl %></span>
+                    <span class="dashboardCard__cta">詳細を見る →</span>
+                  </div>
+                </div>
+              </a>
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>

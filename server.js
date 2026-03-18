@@ -129,6 +129,54 @@ function licenseViewOf(item) {
   return map[key] || map['standard'];
 }
 
+function saleUrlFor(item) {
+  return `${BASE_URL}/s/${item.slug}`;
+}
+
+function dashboardPreviewPath(item) {
+  return item.previewPath || `/previews/${item.slug}-preview.jpg`;
+}
+
+function dashboardItemView(item) {
+  return {
+    ...item,
+    previewPath: dashboardPreviewPath(item),
+    saleUrl: saleUrlFor(item)
+  };
+}
+
+function pickEditableItemFields(body = {}) {
+  const next = {};
+
+  if (typeof body.title === 'string') {
+    next.title = body.title.trim().slice(0, 120);
+  }
+
+  if (typeof body.creatorName === 'string') {
+    next.creatorName = body.creatorName.trim().slice(0, 120);
+  }
+
+  if (typeof body.price !== 'undefined') {
+    const priceNum = Number(body.price);
+    if (!Number.isFinite(priceNum) || !Number.isInteger(priceNum) || priceNum < MIN_PRICE) {
+      throw new Error(`価格は${MIN_PRICE}円以上の整数で入力してください。`);
+    }
+    next.price = priceNum;
+  }
+
+  if (!next.title) {
+    throw new Error('タイトルは必須です。');
+  }
+
+  return next;
+}
+
+async function findOwnedItemOrThrow(itemId, userId) {
+  if (!mongoose.Types.ObjectId.isValid(String(itemId))) return null;
+  const item = await Item.findOne({ _id: itemId, ownerUser: userId }).lean();
+  return item;
+}
+
 const CREATOR_SECRET = process.env.CREATOR_SECRET || 'changeme';
 const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
@@ -544,6 +592,38 @@ const ensureAuthed = (req, res, next) => {
   }
   return res.redirect('/login');
 };
+
+async function getOwnedItemSummary(userId) {
+  const ownerObjectId = new mongoose.Types.ObjectId(String(userId));
+  const [items, totalCount, missingOwnerCount] = await Promise.all([
+    Item.find({ ownerUser: ownerObjectId })
+      .sort({ createdAt: -1, _id: -1 })
+      .select('slug title price currency creatorName previewPath ownerUser createdAt updatedAt')
+      .lean(),
+    Item.countDocuments({ ownerUser: ownerObjectId }),
+    Item.countDocuments({ ownerUser: null })
+  ]);
+
+  return {
+    items: items.map(dashboardItemView),
+    totalCount,
+    missingOwnerCount
+  };
+}
+
+function dashboardBaseView(req, extra = {}) {
+  const lng = getLng(req);
+  const locale = toNumberLocale(lng);
+  return {
+    baseUrl: BASE_URL,
+    lng,
+    locale,
+    minPrice: MIN_PRICE,
+    editableFields: ['title', 'creatorName', 'price'],
+    nonEditableFields: ['previewPath', 'filePath', 's3Key', 'licensePreset', 'licenseNotes', 'requireCredit', 'mimeType'],
+    ...extra
+  };
+}
 
 app.get('/terms', (req, res) => {
   res.locals.canonical = `${BASE_URL}/terms`;
@@ -1055,6 +1135,124 @@ app.post('/connect/reset', ensureAuthed, async (req, res) => {
   u.payoutsEnabled = false;
   await u.save();
   return res.redirect('/connect/onboard');
+});
+
+app.get('/dashboard', ensureAuthed, async (req, res) => {
+  try {
+    const summary = await getOwnedItemSummary(req.user._id);
+    return res.render('dashboard/index', dashboardBaseView(req, {
+      title: 'ダッシュボード',
+      summary,
+      dashboardItems: summary.items,
+      og: {
+        title: `Dashboard | ${req.t('brand')}`,
+        desc: '自分の出品作品を一覧で確認できます。',
+        url: `${BASE_URL}/dashboard`,
+        image: `${BASE_URL}/public/og/instantsale_ogp.jpg`
+      }
+    }));
+  } catch (e) {
+    console.error('[dashboard:index]', e);
+    return res.status(500).render('error', { message: 'ダッシュボードの表示に失敗しました。' });
+  }
+});
+
+app.get('/dashboard/items/:id', ensureAuthed, async (req, res) => {
+  try {
+    const item = await findOwnedItemOrThrow(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    const viewItem = dashboardItemView(item);
+    return res.render('dashboard/show', dashboardBaseView(req, {
+      title: `${item.title} | ダッシュボード`,
+      item: viewItem,
+      licenseView: licenseViewOf(item),
+      og: {
+        title: `${item.title} | Dashboard`,
+        desc: '出品作品の販売ページURLと販売情報を確認できます。',
+        url: `${BASE_URL}/dashboard/items/${item._id}`,
+        image: toAbs(viewItem.previewPath)
+      }
+    }));
+  } catch (e) {
+    console.error('[dashboard:show]', e);
+    return res.status(500).render('error', { message: '作品詳細の表示に失敗しました。' });
+  }
+});
+
+app.get('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
+  try {
+    const item = await findOwnedItemOrThrow(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    return res.render('dashboard/edit', dashboardBaseView(req, {
+      title: `${item.title} | 編集`,
+      item: dashboardItemView(item),
+      formValues: {
+        title: item.title || '',
+        creatorName: item.creatorName || '',
+        price: item.price || MIN_PRICE
+      },
+      errorMessage: '',
+      successMessage: '',
+      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+    }));
+  } catch (e) {
+    console.error('[dashboard:edit:get]', e);
+    return res.status(500).render('error', { message: '編集画面の表示に失敗しました。' });
+  }
+});
+
+app.post('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
+  try {
+    const current = await findOwnedItemOrThrow(req.params.id, req.user._id);
+    if (!current) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    const updates = pickEditableItemFields(req.body);
+    const updated = await Item.findOneAndUpdate(
+      { _id: req.params.id, ownerUser: req.user._id },
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+
+    return res.render('dashboard/edit', dashboardBaseView(req, {
+      title: `${updated.title} | 編集`,
+      item: dashboardItemView(updated),
+      formValues: {
+        title: updated.title || '',
+        creatorName: updated.creatorName || '',
+        price: updated.price || MIN_PRICE
+      },
+      errorMessage: '',
+      successMessage: '販売情報を更新しました。',
+      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+    }));
+  } catch (e) {
+    console.error('[dashboard:edit:post]', e);
+    const item = await findOwnedItemOrThrow(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    return res.status(400).render('dashboard/edit', dashboardBaseView(req, {
+      title: `${item.title} | 編集`,
+      item: dashboardItemView(item),
+      formValues: {
+        title: typeof req.body.title === 'string' ? req.body.title : item.title || '',
+        creatorName: typeof req.body.creatorName === 'string' ? req.body.creatorName : item.creatorName || '',
+        price: typeof req.body.price !== 'undefined' ? req.body.price : item.price || MIN_PRICE
+      },
+      errorMessage: e?.message || '販売情報の更新に失敗しました。',
+      successMessage: '',
+      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+    }));
+  }
 });
 
 // クリエイター：特商法（売主）情報の設定画面
