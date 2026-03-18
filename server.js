@@ -1155,6 +1155,46 @@ app.get('/dashboard', ensureAuthed, async (req, res) => {
   }
 });
 
+app.get('/dashboard/items/:id/original', ensureAuthed, async (req, res) => {
+  try {
+    const item = await findOwnedItem(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    const absRaw = path.resolve(String(item.filePath || '').trim());
+    const hasLocalFile = !!(item.filePath || '').trim() &&
+      fs.existsSync(absRaw) &&
+      (() => { try { return fs.statSync(absRaw).isFile(); } catch { return false; } })();
+
+    if (hasLocalFile) {
+      if (item.mimeType) {
+        res.setHeader('Content-Type', item.mimeType);
+      }
+      return res.sendFile(absRaw);
+    }
+
+    if (s3 && item.s3Key) {
+      const signedTtlSec = Number(process.env.S3_SIGNED_TTL_SEC || '60');
+      const cmd = new GetObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: item.s3Key
+      });
+      const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
+      return res.redirect(302, signedUrl);
+    }
+
+    if (item.previewPath) {
+      return res.redirect(302, item.previewPath);
+    }
+
+    return res.status(404).render('error', { message: '表示できる画像が見つかりません。' });
+  } catch (e) {
+    console.error('[dashboard:original]', e);
+    return res.status(500).render('error', { message: '作品画像の表示に失敗しました。' });
+  }
+});
+
 app.get('/dashboard/items/:id', ensureAuthed, async (req, res) => {
   try {
     const item = await findOwnedItem(req.params.id, req.user._id);

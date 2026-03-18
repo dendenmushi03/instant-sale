@@ -15,7 +15,7 @@
 
     <article class="dashboardDetail">
       <section class="card dashboardDetail__preview">
-        <img class="dashboardDetail__image" src="<%= item.previewPath %>" alt="<%= item.title %>" />
+        <img class="dashboardDetail__image" src="/dashboard/items/<%= item._id %>/original" alt="<%= item.title %>" onerror="this.onerror=null;this.src='<%= item.previewPath %>';" />
       </section>
 
       <section class="card dashboardDetail__body">
