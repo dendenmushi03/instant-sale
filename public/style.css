@@ -2594,10 +2594,20 @@ body.menu-open{
 .dashboardDetail__body{
   padding:18px;
 }
-.dashboardActionRow{
+.dashboardDetail__head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+}
+.dashboardDetail__heading{
+  min-width:0;
+}
+.dashboardDetail__actions{
   display:flex;
   gap:10px;
   align-items:center;
+  justify-content:flex-end;
   flex-wrap:wrap;
 }
 .dashboardInlineForm{
@@ -2628,9 +2638,13 @@ body.menu-open{
 }
 .dashboardUrlBox__actions{
   display:flex;
+  flex-direction:column;
+  align-items:stretch;
   gap:10px;
-  flex-wrap:wrap;
   margin-top:10px;
+}
+.dashboardUrlBox__actions .btn{
+  width:100%;
 }
 .dashboardUrlBox__message{
   margin:8px 0 0;
@@ -2674,9 +2688,13 @@ body.menu-open{
     grid-template-columns:1fr;
     display:grid;
   }
-  .dashboardUrlBox__actions,
-  .dashboardForm__actions,
-  .dashboardActionRow{
+  .dashboardDetail__head{
+    flex-direction:column;
+  }
+  .dashboardDetail__actions{
+    justify-content:flex-start;
+  }
+  .dashboardForm__actions{
     flex-direction:column;
     align-items:stretch;
   }
