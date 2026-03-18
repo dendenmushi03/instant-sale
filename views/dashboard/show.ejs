@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, og, canonical: baseUrl + '/dashboard/items/' + item._id, robots: 'noindex,nofollow' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage">
+    <div class="dashboardBreadcrumbs muted">
+      <a href="/dashboard">ダッシュボード</a>
+      <span>/</span>
+      <span><%= item.title %></span>
+    </div>
+
+    <article class="dashboardDetail">
+      <section class="card dashboardDetail__preview">
+        <img class="dashboardDetail__image" src="/dashboard/items/<%= item._id %>/original" alt="<%= item.title %>" onerror="this.onerror=null;this.src='<%= item.previewPath %>';" />
+      </section>
+
+      <section class="card dashboardDetail__body">
+        <div class="dashboardDetailHeadRow">
+          <p class="eyebrow">Item Detail</p>
+          <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集</a>
+        </div>
+        <h1 class="dashboardDetail__title">
+          <%= item.title %>
+        </h1>
+
+        <dl class="dashboardDetailList">
+          <div><dt>クリエイター名</dt><dd><%= item.creatorName || '未設定' %></dd></div>
+          <div><dt>価格</dt><dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd></div>
+          <div><dt>作成日</dt><dd><%= new Date(item.createdAt).toLocaleString(locale) %></dd></div>
+          <div><dt>ライセンス</dt><dd><%= licenseView.label %> / 編集不可</dd></div>
+        </dl>
+
+        <section class="dashboardUrlBox">
+          <h2 class="dashboardSectionTitle">販売ページURL</h2>
+          <div class="dashboardUrlCompact">
+            <code id="saleUrlField" class="dashboardUrlCompact__value" tabindex="0"><%= item.saleUrl %></code>
+          </div>
+          <div class="dashboardUrlBox__actions">
+            <button id="copySaleUrlBtn" class="btn btn--ghost" type="button">URLコピー</button>
+            <a class="btn btn--primary" href="<%= item.saleUrl %>" target="_blank" rel="noopener">販売ページを開く</a>
+            <form id="deleteItemForm" action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm dashboardUrlBox__dangerForm">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button id="openDeleteModalBtn" class="btn btn--ghost dashboardDangerBtn" type="button">削除</button>
+            </form>
+            <a class="btn btn--ghost" href="/dashboard">戻る</a>
+          </div>
+          <p id="copySaleUrlMessage" class="muted dashboardUrlBox__message" aria-live="polite"></p>
+        </section>
+      </section>
+    </article>
+  </main>
+  <div id="deleteConfirmModal" class="dashboardModal" hidden aria-hidden="true">
+    <div id="deleteConfirmOverlay" class="dashboardModal__overlay"></div>
+    <div class="dashboardModal__dialog card" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmText">
+      <h2 id="deleteConfirmTitle" class="dashboardModal__title">削除の確認</h2>
+      <p id="deleteConfirmText" class="dashboardModal__text">出品ページは復元することができませんが、本当に削除しますか？</p>
+      <div class="dashboardModal__actions">
+        <button id="cancelDeleteModalBtn" class="btn btn--ghost" type="button">いいえ</button>
+        <button id="confirmDeleteModalBtn" class="btn btn--ghost dashboardDangerBtn" type="button">はい</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script nonce="<%= cspNonce %>">
+    (function(){
+      const btn = document.getElementById('copySaleUrlBtn');
+      const field = document.getElementById('saleUrlField');
+      const message = document.getElementById('copySaleUrlMessage');
+      if (!btn || !field) return;
+      btn.addEventListener('click', async function(){
+        try {
+          await navigator.clipboard.writeText(field.textContent);
+          if (message) message.textContent = '販売ページURLをコピーしました。';
+        } catch (err) {
+          const range = document.createRange();
+          range.selectNodeContents(field);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          document.execCommand('copy');
+          selection.removeAllRanges();
+          if (message) message.textContent = '販売ページURLをコピーしました。';
+        }
+      });
+    })();
+
+    (function(){
+      const form = document.getElementById('deleteItemForm');
+      const openBtn = document.getElementById('openDeleteModalBtn');
+      const modal = document.getElementById('deleteConfirmModal');
+      const overlay = document.getElementById('deleteConfirmOverlay');
+      const cancelBtn = document.getElementById('cancelDeleteModalBtn');
+      const confirmBtn = document.getElementById('confirmDeleteModalBtn');
+      if (!form || !openBtn || !modal || !cancelBtn || !confirmBtn) return;
+
+      function openModal(){
+        modal.hidden = false;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        cancelBtn.focus();
+      }
+
+      function closeModal(){
+        modal.hidden = true;
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        openBtn.focus();
+      }
+
+      openBtn.addEventListener('click', openModal);
+      cancelBtn.addEventListener('click', closeModal);
+      overlay && overlay.addEventListener('click', closeModal);
+      confirmBtn.addEventListener('click', function(){
+        form.submit();
+      });
+      document.addEventListener('keydown', function(event){
+        if (modal.hidden) return;
+        if (event.key === 'Escape') closeModal();
+      });
+    })();
+  </script>
+</body>
+</html>

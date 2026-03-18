@@ -53,7 +53,10 @@ price: {
     },
     licenseNotes: { type: String, default: '' },
     aiGenerated: { type: Boolean, default: false },
-    aiModelName: { type: String, default: '' }
+    aiModelName: { type: String, default: '' },
+
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date, default: null }
   },
   { timestamps: true }
 );
