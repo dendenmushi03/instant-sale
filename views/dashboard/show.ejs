@@ -19,19 +19,16 @@
       </section>
 
       <section class="card dashboardDetail__body">
-        <div class="dashboardDetailHeader">
-          <div class="dashboardDetailHeader__main">
-            <p class="eyebrow">Item Detail</p>
-            <h1 class="dashboardDetail__title"><%= item.title %></h1>
-          </div>
-          <div class="dashboardDetailHeader__actions">
-            <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集</a>
-            <form action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm" onsubmit="return confirm('この作品を削除します。よろしいですか？');">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button class="btn btn--ghost dashboardDangerBtn" type="submit">削除</button>
-            </form>
-          </div>
+        <div class="dashboardTopActions">
+          <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集</a>
+          <form action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm" onsubmit="return confirm('この作品を削除します。よろしいですか？');">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn btn--ghost dashboardDangerBtn" type="submit">削除</button>
+          </form>
         </div>
+
+        <p class="eyebrow">Item Detail</p>
+        <h1 class="dashboardDetail__title"><%= item.title %></h1>
 
         <dl class="dashboardDetailList">
           <div><dt>クリエイター名</dt><dd><%= item.creatorName || '未設定' %></dd></div>
