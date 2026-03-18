@@ -2764,31 +2764,23 @@ body.menu-open{
   line-height:1.65;
 }
 .dashboardEditSectionHead{
-  margin-bottom:16px;
-}
-.dashboardEditSectionHead__lead{
-  margin:10px 0 0;
-  line-height:1.7;
-}
-.dashboardEditSectionHead__meta{
   display:flex;
+  justify-content:space-between;
+  align-items:center;
   gap:12px;
-  flex-wrap:wrap;
-  margin-top:10px;
-  font-size:13px;
+  margin-bottom:18px;
 }
 .dashboardForm--edit{
   gap:20px;
 }
 .dashboardEditFields{
   display:grid;
-  gap:14px;
+  gap:18px;
 }
 .dashboardEditField{
-  padding:16px;
-  border:1px solid var(--border);
-  border-radius:18px;
-  background:rgba(17,24,39,.02);
+  padding:0;
+  border:0;
+  background:transparent;
 }
 .dashboardEditField .fieldLabel{
   display:block;
@@ -2822,12 +2814,12 @@ body.menu-open{
   }
 }
 @media (max-width: 860px){
+  .dashboardEditSectionHead{
+    align-items:stretch;
+    flex-direction:column;
+  }
   .dashboardEditSectionHead .btn,
   .dashboardForm__actions--edit .btn{
     width:100%;
-  }
-  .dashboardEditSectionHead__meta{
-    flex-direction:column;
-    gap:6px;
   }
 }
