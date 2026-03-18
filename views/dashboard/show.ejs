@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, og, canonical: baseUrl + '/dashboard/items/' + item._id, robots: 'noindex,nofollow' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage">
+    <div class="dashboardBreadcrumbs muted">
+      <a href="/dashboard">ダッシュボード</a>
+      <span>/</span>
+      <span><%= item.title %></span>
+    </div>
+
+    <article class="dashboardDetail">
+      <section class="card dashboardDetail__preview">
+        <img class="dashboardDetail__image" src="<%= item.previewPath %>" alt="<%= item.title %>" />
+      </section>
+
+      <section class="card dashboardDetail__body">
+        <div class="dashboardSectionHead dashboardSectionHead--stack">
+          <div>
+            <p class="eyebrow">Item Detail</p>
+            <h1 class="dashboardDetail__title"><%= item.title %></h1>
+          </div>
+          <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集する</a>
+        </div>
+
+        <dl class="dashboardDetailList">
+          <div><dt>クリエイター名</dt><dd><%= item.creatorName || '未設定' %></dd></div>
+          <div><dt>価格</dt><dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd></div>
+          <div><dt>作成日</dt><dd><%= new Date(item.createdAt).toLocaleString(locale) %></dd></div>
+          <div><dt>ライセンス</dt><dd><%= licenseView.label %> / 編集不可</dd></div>
+        </dl>
+
+        <section class="dashboardUrlBox">
+          <h2 class="dashboardSectionTitle">販売ページURL</h2>
+          <div class="dashboardUrlBox__row">
+            <input id="saleUrlField" class="textInput dashboardUrlBox__input" type="text" readonly value="<%= item.saleUrl %>" />
+            <button id="copySaleUrlBtn" class="btn btn--ghost" type="button">URLコピー</button>
+            <a class="btn btn--primary" href="<%= item.saleUrl %>" target="_blank" rel="noopener">販売ページを開く</a>
+          </div>
+          <p id="copySaleUrlMessage" class="muted" aria-live="polite"></p>
+        </section>
+      </section>
+    </article>
+  </main>
+
+  <script nonce="<%= cspNonce %>">
+    (function(){
+      const btn = document.getElementById('copySaleUrlBtn');
+      const field = document.getElementById('saleUrlField');
+      const message = document.getElementById('copySaleUrlMessage');
+      if (!btn || !field) return;
+      btn.addEventListener('click', async function(){
+        try {
+          await navigator.clipboard.writeText(field.value);
+          if (message) message.textContent = '販売ページURLをコピーしました。';
+        } catch (err) {
+          field.focus();
+          field.select();
+          document.execCommand('copy');
+          if (message) message.textContent = '販売ページURLをコピーしました。';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
