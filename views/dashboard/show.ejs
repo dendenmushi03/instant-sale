@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, og, canonical: baseUrl + '/dashboard/items/' + item._id, robots: 'noindex,nofollow' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage">
+    <div class="dashboardBreadcrumbs muted">
+      <a href="/dashboard">ダッシュボード</a>
+      <span>/</span>
+      <span><%= item.title %></span>
+    </div>
+
+    <article class="dashboardDetail">
+      <section class="card dashboardDetail__preview">
+        <img class="dashboardDetail__image" src="/dashboard/items/<%= item._id %>/original" alt="<%= item.title %>" onerror="this.onerror=null;this.src='<%= item.previewPath %>';" />
+      </section>
+
+      <section class="card dashboardDetail__body">
+        <div class="dashboardDetailHeadRow">
+          <p class="eyebrow">Item Detail</p>
+          <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集</a>
+        </div>
+        <h1 class="dashboardDetail__title">
+          <%= item.title %>
+        </h1>
+
+        <dl class="dashboardDetailList">
+          <div><dt>クリエイター名</dt><dd><%= item.creatorName || '未設定' %></dd></div>
+          <div><dt>価格</dt><dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd></div>
+          <div><dt>作成日</dt><dd><%= new Date(item.createdAt).toLocaleString(locale) %></dd></div>
+          <div><dt>ライセンス</dt><dd><%= licenseView.label %> / 編集不可</dd></div>
+        </dl>
+
+        <section class="dashboardUrlBox">
+          <h2 class="dashboardSectionTitle">販売ページURL</h2>
+          <div class="dashboardUrlCompact">
+            <code id="saleUrlField" class="dashboardUrlCompact__value" tabindex="0"><%= item.saleUrl %></code>
+          </div>
+          <div class="dashboardUrlBox__actions">
+            <button id="copySaleUrlBtn" class="btn btn--ghost" type="button">URLコピー</button>
+            <a class="btn btn--primary" href="<%= item.saleUrl %>" target="_blank" rel="noopener">販売ページを開く</a>
+            <form action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm dashboardUrlBox__dangerForm" onsubmit="return confirm('当出品ページを復元することはできませんが、本当に削除しますか？');">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn--ghost dashboardDangerBtn" type="submit">削除</button>
+            </form>
+            <a class="btn btn--ghost" href="/dashboard">戻る</a>
+          </div>
+          <p id="copySaleUrlMessage" class="muted dashboardUrlBox__message" aria-live="polite"></p>
+        </section>
+      </section>
+    </article>
+  </main>
+
+  <script nonce="<%= cspNonce %>">
+    (function(){
+      const btn = document.getElementById('copySaleUrlBtn');
+      const field = document.getElementById('saleUrlField');
+      const message = document.getElementById('copySaleUrlMessage');
+      if (!btn || !field) return;
+      btn.addEventListener('click', async function(){
+        try {
+          await navigator.clipboard.writeText(field.textContent);
+          if (message) message.textContent = '販売ページURLをコピーしました。';
+        } catch (err) {
+          const range = document.createRange();
+          range.selectNodeContents(field);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          document.execCommand('copy');
+          selection.removeAllRanges();
+          if (message) message.textContent = '販売ページURLをコピーしました。';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
