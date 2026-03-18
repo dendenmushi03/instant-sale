@@ -15,13 +15,30 @@
       <span>編集</span>
     </div>
 
-    <section class="card dashboardFormCard">
-      <div class="dashboardSectionHead dashboardSectionHead--stack">
-        <div>
-          <p class="eyebrow">Edit Item</p>
-          <h1 class="dashboardDetail__title">販売情報を編集</h1>
+    <section class="card dashboardEditHero">
+      <div class="dashboardEditHero__mediaWrap">
+        <img class="dashboardEditHero__image" src="/dashboard/items/<%= item._id %>/original" alt="<%= item.title %>" onerror="this.onerror=null;this.src='<%= item.previewPath %>';"><!-- keep compact -->
+      </div>
+      <div class="dashboardEditHero__body">
+        <p class="eyebrow">Edit Item</p>
+        <h1 class="dashboardEditHero__title"><%= item.title %></h1>
+        <p class="dashboardEditHero__lead muted">販売ページに表示される情報を編集できます。元画像・配布ファイル・ライセンス重要項目はここでは変更できません。</p>
+        <div class="dashboardEditHero__meta muted">
+          <span>現在価格: ¥<%= Number(item.price || 0).toLocaleString(locale) %></span>
+          <span>作成日: <%= new Date(item.createdAt).toLocaleDateString(locale) %></span>
         </div>
-        <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">詳細へ戻る</a>
+        <div class="dashboardEditHero__actions">
+          <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">詳細へ戻る</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card dashboardFormCard dashboardFormCard--edit">
+      <div class="dashboardEditSectionHead">
+        <div>
+          <p class="eyebrow">Sale Settings</p>
+          <h2 class="dashboardEditSectionHead__title">販売情報を編集</h2>
+        </div>
       </div>
 
       <% if (errorMessage) { %>
@@ -31,36 +48,43 @@
         <div class="dashboardAlert dashboardAlert--success"><%= successMessage %></div>
       <% } %>
 
-      <form action="/dashboard/items/<%= item._id %>/edit" method="post" class="dashboardForm">
+      <form action="/dashboard/items/<%= item._id %>/edit" method="post" class="dashboardForm dashboardForm--edit">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
-        <label class="field">
-          <span class="fieldLabel">タイトル</span>
-          <input class="textInput" type="text" name="title" maxlength="120" required value="<%= formValues.title %>">
-        </label>
+        <div class="dashboardEditFields">
+          <label class="field dashboardEditField">
+            <span class="fieldLabel">タイトル</span>
+            <span class="fieldHelp">販売ページの見出しとして表示されます。</span>
+            <input class="textInput" type="text" name="title" maxlength="120" required value="<%= formValues.title %>">
+          </label>
 
-        <label class="field">
-          <span class="fieldLabel">クリエイター名</span>
-          <input class="textInput" type="text" name="creatorName" maxlength="120" value="<%= formValues.creatorName %>">
-        </label>
+          <label class="field dashboardEditField">
+            <span class="fieldLabel">クリエイター名</span>
+            <span class="fieldHelp">任意です。販売ページで by 表記として表示されます。</span>
+            <input class="textInput" type="text" name="creatorName" maxlength="120" value="<%= formValues.creatorName %>">
+          </label>
 
-        <label class="field">
-          <span class="fieldLabel">価格</span>
-          <input class="textInput" type="number" name="price" min="<%= minPrice %>" step="1" required value="<%= formValues.price %>">
-          <span class="fieldHelp"><%= minPrice %>円以上で入力してください。</span>
-        </label>
+          <label class="field dashboardEditField dashboardEditField--price">
+            <span class="fieldLabel">価格</span>
+            <span class="fieldHelp">税込み価格として表示されます。</span>
+            <input class="textInput" type="number" name="price" min="<%= minPrice %>" step="1" required value="<%= formValues.price %>">
+            <span class="fieldHelp"><%= minPrice %>円以上で入力してください。</span>
+          </label>
+        </div>
 
-        <section class="dashboardLocked card">
-          <h2 class="dashboardSectionTitle">今回編集しない項目</h2>
+        <section class="dashboardLocked dashboardLocked--edit card">
+          <div class="dashboardLocked__head">
+            <h3 class="dashboardSectionTitle">編集しない項目</h3>
+            <p class="muted">次の項目は安全のためこの画面では固定です。</p>
+          </div>
           <ul class="dashboardLocked__list muted">
             <% lockedFields.forEach(function(label){ %>
-              <li><%= label %> は編集不可です。</li>
+              <li><%= label %></li>
             <% }) %>
-            <li>ライセンスの重要部分（<code>licensePreset</code> / <code>licenseNotes</code>）は変更できません。</li>
           </ul>
         </section>
 
-        <div class="dashboardForm__actions">
+        <div class="dashboardForm__actions dashboardForm__actions--edit">
           <button class="btn btn--primary" type="submit">保存する</button>
           <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">キャンセル</a>
         </div>

@@ -2706,3 +2706,122 @@ body.menu-open{
     align-items:stretch;
   }
 }
+
+
+/* dashboard edit */
+.dashboardEditHero,
+.dashboardFormCard--edit{
+  margin-top:18px;
+}
+.dashboardEditHero{
+  overflow:hidden;
+  padding:0;
+}
+.dashboardEditHero__mediaWrap{
+  aspect-ratio:16/10;
+  background:linear-gradient(180deg, rgba(17,24,39,.06), rgba(17,24,39,.02));
+}
+.dashboardEditHero__image{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.dashboardEditHero__body{
+  padding:18px;
+  display:grid;
+  gap:10px;
+}
+.dashboardEditHero__title,
+.dashboardEditSectionHead__title{
+  margin:0;
+}
+.dashboardEditHero__lead{
+  margin:0;
+  line-height:1.7;
+}
+.dashboardEditHero__meta{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  font-size:13px;
+}
+.dashboardEditHero__actions{
+  margin-top:4px;
+}
+.dashboardEditHero__actions .btn{
+  width:auto;
+}
+.dashboardEditSectionHead{
+  margin-bottom:16px;
+}
+.dashboardForm--edit{
+  gap:20px;
+}
+.dashboardEditFields{
+  display:grid;
+  gap:14px;
+}
+.dashboardEditField{
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:rgba(17,24,39,.02);
+}
+.dashboardEditField .fieldLabel{
+  display:block;
+  margin-bottom:6px;
+}
+.dashboardEditField .fieldHelp{
+  display:block;
+  margin:0 0 10px;
+}
+.dashboardLocked--edit{
+  border:1px solid var(--border);
+  background:rgba(17,24,39,.02);
+  box-shadow:none;
+}
+.dashboardLocked__head{
+  margin-bottom:10px;
+}
+.dashboardLocked__head p{
+  margin:6px 0 0;
+}
+.dashboardLocked--edit .dashboardLocked__list{
+  display:grid;
+  gap:8px;
+  padding-left:18px;
+}
+.dashboardForm__actions--edit{
+  justify-content:flex-start;
+  align-items:center;
+}
+.dashboardForm__actions--edit .btn{
+  min-width:140px;
+}
+@media (min-width: 861px){
+  .dashboardEditHero{
+    display:grid;
+    grid-template-columns:minmax(0, 360px) minmax(0, 1fr);
+    align-items:stretch;
+  }
+  .dashboardEditHero__mediaWrap{
+    min-height:100%;
+  }
+  .dashboardEditFields{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+  .dashboardEditField--price{
+    grid-column:1 / -1;
+  }
+}
+@media (max-width: 860px){
+  .dashboardEditHero__actions .btn,
+  .dashboardForm__actions--edit .btn{
+    width:100%;
+  }
+  .dashboardEditHero__meta{
+    flex-direction:column;
+    gap:6px;
+  }
+}
