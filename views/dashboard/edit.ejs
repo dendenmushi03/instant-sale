@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, canonical: baseUrl + '/dashboard/items/' + item._id + '/edit', robots: 'noindex,nofollow' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage dashboardPage--narrow">
+    <div class="dashboardBreadcrumbs muted">
+      <a href="/dashboard">ダッシュボード</a>
+      <span>/</span>
+      <a href="/dashboard/items/<%= item._id %>"><%= item.title %></a>
+      <span>/</span>
+      <span>編集</span>
+    </div>
+
+    <section class="card dashboardEditHero">
+      <div class="dashboardEditHero__mediaWrap">
+        <img class="dashboardEditHero__image" src="/dashboard/items/<%= item._id %>/original" alt="<%= item.title %>" onerror="this.onerror=null;this.src='<%= item.previewPath %>';">
+      </div>
+      <div class="dashboardEditHero__body">
+        <p class="eyebrow">Edit Item</p>
+        <h1 class="dashboardEditHero__title"><%= item.title %></h1>
+        <p class="dashboardEditHero__lead muted">販売ページに表示されるタイトル・クリエイター名・価格を整えられます。作品そのものとライセンス重要項目は固定です。</p>
+        <div class="dashboardEditHero__meta muted">
+          <span>現在価格: ¥<%= Number(item.price || 0).toLocaleString(locale) %></span>
+          <span>作成日: <%= new Date(item.createdAt).toLocaleDateString(locale) %></span>
+        </div>
+        <section class="dashboardEditInfo card">
+          <div class="dashboardEditInfo__row">
+            <span class="dashboardEditInfo__label">ライセンス</span>
+            <strong class="dashboardEditInfo__value"><%= licenseView.label %></strong>
+          </div>
+          <p class="dashboardEditInfo__desc muted"><%= licenseView.desc %></p>
+          <p class="dashboardEditInfo__note muted">※ 元画像・配布ファイル・ライセンス重要項目は編集できません。</p>
+        </section>
+        <div class="dashboardEditHero__actions">
+          <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">詳細へ戻る</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card dashboardFormCard dashboardFormCard--edit">
+      <div class="dashboardEditSectionHead">
+        <div>
+          <p class="eyebrow">Sale Settings</p>
+          <h2 class="dashboardEditSectionHead__title">販売情報を編集</h2>
+        </div>
+      </div>
+
+      <% if (errorMessage) { %>
+        <div class="dashboardAlert dashboardAlert--error"><%= errorMessage %></div>
+      <% } %>
+      <% if (successMessage) { %>
+        <div class="dashboardAlert dashboardAlert--success"><%= successMessage %></div>
+      <% } %>
+
+      <form action="/dashboard/items/<%= item._id %>/edit" method="post" class="dashboardForm dashboardForm--edit">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="dashboardEditFields">
+          <label class="field dashboardEditField">
+            <span class="fieldLabel">タイトル</span>
+            <span class="fieldHelp">販売ページの見出しとして表示されます。</span>
+            <input class="textInput" type="text" name="title" maxlength="120" required value="<%= formValues.title %>">
+          </label>
+
+          <label class="field dashboardEditField">
+            <span class="fieldLabel">クリエイター名</span>
+            <span class="fieldHelp">任意です。販売ページで by 表記として表示されます。</span>
+            <input class="textInput" type="text" name="creatorName" maxlength="120" value="<%= formValues.creatorName %>">
+          </label>
+
+          <label class="field dashboardEditField dashboardEditField--price">
+            <span class="fieldLabel">価格</span>
+            <span class="fieldHelp">税込み価格として表示されます。</span>
+            <input class="textInput" type="number" name="price" min="<%= minPrice %>" step="1" required value="<%= formValues.price %>">
+            <span class="fieldHelp"><%= minPrice %>円以上で入力してください。</span>
+          </label>
+        </div>
+
+        <div class="dashboardForm__actions dashboardForm__actions--edit">
+          <button class="btn btn--primary" type="submit">保存する</button>
+          <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">キャンセル</a>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
