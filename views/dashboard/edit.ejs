@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, canonical: baseUrl + '/dashboard/items/' + item._id + '/edit', robots: 'noindex,nofollow' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage dashboardPage--narrow">
+    <div class="dashboardBreadcrumbs muted">
+      <a href="/dashboard">ダッシュボード</a>
+      <span>/</span>
+      <a href="/dashboard/items/<%= item._id %>"><%= item.title %></a>
+      <span>/</span>
+      <span>編集</span>
+    </div>
+
+    <section class="card dashboardFormCard">
+      <div class="dashboardSectionHead dashboardSectionHead--stack">
+        <div>
+          <p class="eyebrow">Edit Item</p>
+          <h1 class="dashboardDetail__title">販売情報を編集</h1>
+        </div>
+        <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">詳細へ戻る</a>
+      </div>
+
+      <% if (errorMessage) { %>
+        <div class="dashboardAlert dashboardAlert--error"><%= errorMessage %></div>
+      <% } %>
+      <% if (successMessage) { %>
+        <div class="dashboardAlert dashboardAlert--success"><%= successMessage %></div>
+      <% } %>
+
+      <form action="/dashboard/items/<%= item._id %>/edit" method="post" class="dashboardForm">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <label class="field">
+          <span class="fieldLabel">タイトル</span>
+          <input class="textInput" type="text" name="title" maxlength="120" required value="<%= formValues.title %>">
+        </label>
+
+        <label class="field">
+          <span class="fieldLabel">クリエイター名</span>
+          <input class="textInput" type="text" name="creatorName" maxlength="120" value="<%= formValues.creatorName %>">
+        </label>
+
+        <label class="field">
+          <span class="fieldLabel">価格</span>
+          <input class="textInput" type="number" name="price" min="<%= minPrice %>" step="1" required value="<%= formValues.price %>">
+          <span class="fieldHelp"><%= minPrice %>円以上で入力してください。</span>
+        </label>
+
+        <section class="dashboardLocked card">
+          <h2 class="dashboardSectionTitle">今回編集しない項目</h2>
+          <ul class="dashboardLocked__list muted">
+            <% lockedFields.forEach(function(label){ %>
+              <li><%= label %> は編集不可です。</li>
+            <% }) %>
+            <li>ライセンスの重要部分（<code>licensePreset</code> / <code>licenseNotes</code>）は変更できません。</li>
+          </ul>
+        </section>
+
+        <div class="dashboardForm__actions">
+          <button class="btn btn--primary" type="submit">保存する</button>
+          <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">キャンセル</a>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
