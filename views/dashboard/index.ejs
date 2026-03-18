@@ -9,13 +9,12 @@
   <main class="container dashboardPage">
     <section class="dashboardHero card">
       <div>
-        <p class="eyebrow">Dashboard</p>
-        <h1 class="dashboardHero__title">出品ダッシュボード</h1>
-        <p class="muted dashboardHero__lead">ログイン中のアカウントに紐づく出品作品だけを、新しい順で一覧表示しています。</p>
+        <p class="eyebrow">ダッシュボード</p>
+        <p class="muted dashboardHero__lead">ログイン中のアカウントに紐づく出品作品を、新しい順で一覧表示しています。</p>
       </div>
       <div class="dashboardHero__meta">
         <div class="dashboardStat">
-          <span class="dashboardStat__label">表示中</span>
+          <span class="dashboardStat__label">出品中</span>
           <strong class="dashboardStat__value"><%= summary.totalCount %>件</strong>
         </div>
         <a class="btn btn--primary" href="/creator">新しく出品する</a>
@@ -25,7 +24,7 @@
 
     <section>
       <div class="dashboardSectionHead">
-        <h2 class="dashboardSectionTitle">自分の出品作品</h2>
+        <h2 class="dashboardSectionTitle">出品作品</h2>
         <span class="muted"><%= dashboardItems.length %>件を表示</span>
       </div>
 
