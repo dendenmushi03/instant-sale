@@ -19,12 +19,12 @@
       </section>
 
       <section class="card dashboardDetail__body">
-        <div class="dashboardDetail__head">
-          <div class="dashboardDetail__heading">
+        <div class="dashboardDetailHeader">
+          <div class="dashboardDetailHeader__main">
             <p class="eyebrow">Item Detail</p>
             <h1 class="dashboardDetail__title"><%= item.title %></h1>
           </div>
-          <div class="dashboardDetail__actions">
+          <div class="dashboardDetailHeader__actions">
             <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集</a>
             <form action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm" onsubmit="return confirm('この作品を削除します。よろしいですか？');">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">

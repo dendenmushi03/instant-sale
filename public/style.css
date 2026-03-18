@@ -2552,6 +2552,9 @@ body.menu-open{
   gap:10px;
   margin:0;
 }
+.dashboardDetailHeader + .dashboardDetailList{
+  margin-top:0;
+}
 .dashboardMetaList div,
 .dashboardDetailList div{
   display:flex;
@@ -2594,20 +2597,22 @@ body.menu-open{
 .dashboardDetail__body{
   padding:18px;
 }
-.dashboardDetail__head{
+.dashboardDetailHeader{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
   gap:16px;
+  margin-bottom:20px;
 }
-.dashboardDetail__heading{
+.dashboardDetailHeader__main{
   min-width:0;
+  flex:1;
 }
-.dashboardDetail__actions{
+.dashboardDetailHeader__actions{
   display:flex;
-  gap:10px;
-  align-items:center;
   justify-content:flex-end;
+  align-items:center;
+  gap:10px;
   flex-wrap:wrap;
 }
 .dashboardInlineForm{
@@ -2688,11 +2693,8 @@ body.menu-open{
     grid-template-columns:1fr;
     display:grid;
   }
-  .dashboardDetail__head{
-    flex-direction:column;
-  }
-  .dashboardDetail__actions{
-    justify-content:flex-start;
+  .dashboardDetailHeader__actions{
+    justify-content:flex-end;
   }
   .dashboardForm__actions{
     flex-direction:column;
