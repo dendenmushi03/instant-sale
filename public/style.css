@@ -2734,22 +2734,10 @@ body.menu-open{
 }
 .dashboardEditHero__body{
   padding:18px;
-  display:grid;
-  gap:10px;
 }
 .dashboardEditHero__title,
 .dashboardEditSectionHead__title{
   margin:0;
-}
-.dashboardEditHero__lead{
-  margin:0;
-  line-height:1.7;
-}
-.dashboardEditHero__meta{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  font-size:13px;
 }
 .dashboardEditInfo{
   padding:14px 16px;
@@ -2775,14 +2763,19 @@ body.menu-open{
   margin:8px 0 0;
   line-height:1.65;
 }
-.dashboardEditHero__actions{
-  margin-top:4px;
-}
-.dashboardEditHero__actions .btn{
-  width:auto;
-}
 .dashboardEditSectionHead{
   margin-bottom:16px;
+}
+.dashboardEditSectionHead__lead{
+  margin:10px 0 0;
+  line-height:1.7;
+}
+.dashboardEditSectionHead__meta{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:10px;
+  font-size:13px;
 }
 .dashboardForm--edit{
   gap:20px;
@@ -2829,11 +2822,11 @@ body.menu-open{
   }
 }
 @media (max-width: 860px){
-  .dashboardEditHero__actions .btn,
+  .dashboardEditSectionHead .btn,
   .dashboardForm__actions--edit .btn{
     width:100%;
   }
-  .dashboardEditHero__meta{
+  .dashboardEditSectionHead__meta{
     flex-direction:column;
     gap:6px;
   }
