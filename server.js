@@ -129,6 +129,54 @@ function licenseViewOf(item) {
   return map[key] || map['standard'];
 }
 
+function saleUrlFor(item) {
+  return `${BASE_URL}/s/${item.slug}`;
+}
+
+function dashboardPreviewPath(item) {
+  return item.previewPath || `/previews/${item.slug}-preview.jpg`;
+}
+
+function dashboardItemView(item) {
+  return {
+    ...item,
+    previewPath: dashboardPreviewPath(item),
+    saleUrl: saleUrlFor(item)
+  };
+}
+
+function pickEditableItemFields(body = {}) {
+  const next = {};
+
+  if (typeof body.title === 'string') {
+    next.title = body.title.trim().slice(0, 120);
+  }
+
+  if (typeof body.creatorName === 'string') {
+    next.creatorName = body.creatorName.trim().slice(0, 120);
+  }
+
+  if (typeof body.price !== 'undefined') {
+    const priceNum = Number(body.price);
+    if (!Number.isFinite(priceNum) || !Number.isInteger(priceNum) || priceNum < MIN_PRICE) {
+      throw new Error(`価格は${MIN_PRICE}円以上の整数で入力してください。`);
+    }
+    next.price = priceNum;
+  }
+
+  if (!next.title) {
+    throw new Error('タイトルは必須です。');
+  }
+
+  return next;
+}
+
+async function findOwnedItem(itemId, userId) {
+  if (!mongoose.Types.ObjectId.isValid(String(itemId))) return null;
+  const item = await Item.findOne({ _id: itemId, ownerUser: userId, isDeleted: { $ne: true } }).lean();
+  return item;
+}
+
 const CREATOR_SECRET = process.env.CREATOR_SECRET || 'changeme';
 const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
@@ -544,6 +592,36 @@ const ensureAuthed = (req, res, next) => {
   }
   return res.redirect('/login');
 };
+
+async function getOwnedItemSummary(userId) {
+  const ownerObjectId = new mongoose.Types.ObjectId(String(userId));
+  const [items, totalCount] = await Promise.all([
+    Item.find({ ownerUser: ownerObjectId, isDeleted: { $ne: true } })
+      .sort({ createdAt: -1, _id: -1 })
+      .select('slug title price currency creatorName previewPath ownerUser createdAt updatedAt')
+      .lean(),
+    Item.countDocuments({ ownerUser: ownerObjectId, isDeleted: { $ne: true } })
+  ]);
+
+  return {
+    items: items.map(dashboardItemView),
+    totalCount
+  };
+}
+
+function dashboardBaseView(req, extra = {}) {
+  const lng = getLng(req);
+  const locale = toNumberLocale(lng);
+  return {
+    baseUrl: BASE_URL,
+    lng,
+    locale,
+    minPrice: MIN_PRICE,
+    editableFields: ['title', 'creatorName', 'price'],
+    nonEditableFields: ['previewPath', 'filePath', 's3Key', 'licensePreset', 'licenseNotes', 'requireCredit', 'mimeType'],
+    ...extra
+  };
+}
 
 app.get('/terms', (req, res) => {
   res.locals.canonical = `${BASE_URL}/terms`;
@@ -1057,6 +1135,183 @@ app.post('/connect/reset', ensureAuthed, async (req, res) => {
   return res.redirect('/connect/onboard');
 });
 
+app.get('/dashboard', ensureAuthed, async (req, res) => {
+  try {
+    const summary = await getOwnedItemSummary(req.user._id);
+    return res.render('dashboard/index', dashboardBaseView(req, {
+      title: 'ダッシュボード',
+      summary,
+      dashboardItems: summary.items,
+      og: {
+        title: `Dashboard | ${req.t('brand')}`,
+        desc: '自分の出品作品を一覧で確認できます。',
+        url: `${BASE_URL}/dashboard`,
+        image: `${BASE_URL}/public/og/instantsale_ogp.jpg`
+      }
+    }));
+  } catch (e) {
+    console.error('[dashboard:index]', e);
+    return res.status(500).render('error', { message: 'ダッシュボードの表示に失敗しました。' });
+  }
+});
+
+app.get('/dashboard/items/:id/original', ensureAuthed, async (req, res) => {
+  try {
+    const item = await findOwnedItem(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    const absRaw = path.resolve(String(item.filePath || '').trim());
+    const hasLocalFile = !!(item.filePath || '').trim() &&
+      fs.existsSync(absRaw) &&
+      (() => { try { return fs.statSync(absRaw).isFile(); } catch { return false; } })();
+
+    if (hasLocalFile) {
+      if (item.mimeType) {
+        res.setHeader('Content-Type', item.mimeType);
+      }
+      return res.sendFile(absRaw);
+    }
+
+    if (s3 && item.s3Key) {
+      const signedTtlSec = Number(process.env.S3_SIGNED_TTL_SEC || '60');
+      const cmd = new GetObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: item.s3Key
+      });
+      const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
+      return res.redirect(302, signedUrl);
+    }
+
+    if (item.previewPath) {
+      return res.redirect(302, item.previewPath);
+    }
+
+    return res.status(404).render('error', { message: '表示できる画像が見つかりません。' });
+  } catch (e) {
+    console.error('[dashboard:original]', e);
+    return res.status(500).render('error', { message: '作品画像の表示に失敗しました。' });
+  }
+});
+
+app.get('/dashboard/items/:id', ensureAuthed, async (req, res) => {
+  try {
+    const item = await findOwnedItem(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    const viewItem = dashboardItemView(item);
+    return res.render('dashboard/show', dashboardBaseView(req, {
+      title: `${item.title} | ダッシュボード`,
+      item: viewItem,
+      licenseView: licenseViewOf(item),
+      og: {
+        title: `${item.title} | Dashboard`,
+        desc: '出品作品の販売ページURLと販売情報を確認できます。',
+        url: `${BASE_URL}/dashboard/items/${item._id}`,
+        image: toAbs(viewItem.previewPath)
+      }
+    }));
+  } catch (e) {
+    console.error('[dashboard:show]', e);
+    return res.status(500).render('error', { message: '作品詳細の表示に失敗しました。' });
+  }
+});
+
+app.get('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
+  try {
+    const item = await findOwnedItem(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    return res.render('dashboard/edit', dashboardBaseView(req, {
+      title: `${item.title} | 編集`,
+      item: dashboardItemView(item),
+      formValues: {
+        title: item.title || '',
+        creatorName: item.creatorName || '',
+        price: item.price || MIN_PRICE
+      },
+      errorMessage: '',
+      successMessage: '',
+      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+    }));
+  } catch (e) {
+    console.error('[dashboard:edit:get]', e);
+    return res.status(500).render('error', { message: '編集画面の表示に失敗しました。' });
+  }
+});
+
+app.post('/dashboard/items/:id/delete', ensureAuthed, async (req, res) => {
+  try {
+    const item = await findOwnedItem(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    await Item.updateOne(
+      { _id: req.params.id, ownerUser: req.user._id, isDeleted: { $ne: true } },
+      { $set: { isDeleted: true, deletedAt: new Date() } }
+    );
+
+    return res.redirect(303, '/dashboard');
+  } catch (e) {
+    console.error('[dashboard:delete]', e);
+    return res.status(500).render('error', { message: '作品の削除に失敗しました。' });
+  }
+});
+
+app.post('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
+  try {
+    const current = await findOwnedItem(req.params.id, req.user._id);
+    if (!current) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    const updates = pickEditableItemFields(req.body);
+    const updated = await Item.findOneAndUpdate(
+      { _id: req.params.id, ownerUser: req.user._id },
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+
+    return res.render('dashboard/edit', dashboardBaseView(req, {
+      title: `${updated.title} | 編集`,
+      item: dashboardItemView(updated),
+      formValues: {
+        title: updated.title || '',
+        creatorName: updated.creatorName || '',
+        price: updated.price || MIN_PRICE
+      },
+      errorMessage: '',
+      successMessage: '販売情報を更新しました。',
+      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+    }));
+  } catch (e) {
+    console.error('[dashboard:edit:post]', e);
+    const item = await findOwnedItem(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    return res.status(400).render('dashboard/edit', dashboardBaseView(req, {
+      title: `${item.title} | 編集`,
+      item: dashboardItemView(item),
+      formValues: {
+        title: typeof req.body.title === 'string' ? req.body.title : item.title || '',
+        creatorName: typeof req.body.creatorName === 'string' ? req.body.creatorName : item.creatorName || '',
+        price: typeof req.body.price !== 'undefined' ? req.body.price : item.price || MIN_PRICE
+      },
+      errorMessage: e?.message || '販売情報の更新に失敗しました。',
+      successMessage: '',
+      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+    }));
+  }
+});
+
 // クリエイター：特商法（売主）情報の設定画面
 app.get('/creator/legal', ensureAuthed, async (req, res) => {
   const me = await User.findById(req.user._id).lean();
@@ -1491,7 +1746,7 @@ res.set('Cache-Control', 'private, max-age=60');
 app.get('/view/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const item = await Item.findOne({ slug }).lean();
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } }).lean();
     if (!item) return res.status(404).send('Not found');
 
     // 1) CDN（HTTPS）を最優先：/previews/<slug>-full.jpg
@@ -1536,7 +1791,7 @@ app.post('/checkout/:slug', async (req, res) => {
     }
 
     const { slug } = req.params;
-    const item = await Item.findOne({ slug });
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
 
 // 仕様固定の収益分配（出品者80% / プラットフォーム20%）
@@ -1936,7 +2191,7 @@ app.get('/success', async (req, res) => {
     const { session_id, slug } = req.query;
     if (!stripe) return res.status(500).render('error', { message: '決済設定が未完了です（STRIPE_SECRET_KEY）。' });
 
-    const item = await Item.findOne({ slug });
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
 
     const session = await stripe.checkout.sessions.retrieve(String(session_id));
