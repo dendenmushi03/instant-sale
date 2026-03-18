@@ -22,15 +22,6 @@
       </div>
     </section>
 
-    <section class="dashboardNotice card">
-      <h2 class="dashboardSectionTitle">既存作品の扱い</h2>
-      <p class="muted">`ownerUser` が現在ログイン中ユーザーと一致する既存作品は、この機能追加前の過去データも一覧対象に含めています。</p>
-      <% if (summary.missingOwnerCount > 0) { %>
-        <p class="muted">`ownerUser` が未設定の作品は所有者判定ができないため一覧に出せません。現在確認できる未紐づけ作品は <strong><%= summary.missingOwnerCount %>件</strong> です。</p>
-      <% } else { %>
-        <p class="muted">未紐づけの作品は検出されませんでした。</p>
-      <% } %>
-    </section>
 
     <section>
       <div class="dashboardSectionHead">

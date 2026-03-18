@@ -24,7 +24,13 @@
             <p class="eyebrow">Item Detail</p>
             <h1 class="dashboardDetail__title"><%= item.title %></h1>
           </div>
-          <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集する</a>
+          <div class="dashboardActionRow">
+            <a class="btn btn--primary" href="/dashboard/items/<%= item._id %>/edit">編集する</a>
+            <form action="/dashboard/items/<%= item._id %>/delete" method="post" class="dashboardInlineForm" onsubmit="return confirm('この作品を削除します。よろしいですか？');">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn--ghost dashboardDangerBtn" type="submit">削除</button>
+            </form>
+          </div>
         </div>
 
         <dl class="dashboardDetailList">
@@ -36,12 +42,14 @@
 
         <section class="dashboardUrlBox">
           <h2 class="dashboardSectionTitle">販売ページURL</h2>
-          <div class="dashboardUrlBox__row">
-            <input id="saleUrlField" class="textInput dashboardUrlBox__input" type="text" readonly value="<%= item.saleUrl %>" />
+          <div class="dashboardUrlCompact">
+            <code id="saleUrlField" class="dashboardUrlCompact__value" tabindex="0"><%= item.saleUrl %></code>
+          </div>
+          <div class="dashboardUrlBox__actions">
             <button id="copySaleUrlBtn" class="btn btn--ghost" type="button">URLコピー</button>
             <a class="btn btn--primary" href="<%= item.saleUrl %>" target="_blank" rel="noopener">販売ページを開く</a>
           </div>
-          <p id="copySaleUrlMessage" class="muted" aria-live="polite"></p>
+          <p id="copySaleUrlMessage" class="muted dashboardUrlBox__message" aria-live="polite"></p>
         </section>
       </section>
     </article>
@@ -55,12 +63,16 @@
       if (!btn || !field) return;
       btn.addEventListener('click', async function(){
         try {
-          await navigator.clipboard.writeText(field.value);
+          await navigator.clipboard.writeText(field.textContent);
           if (message) message.textContent = '販売ページURLをコピーしました。';
         } catch (err) {
-          field.focus();
-          field.select();
+          const range = document.createRange();
+          range.selectNodeContents(field);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
           document.execCommand('copy');
+          selection.removeAllRanges();
           if (message) message.textContent = '販売ページURLをコピーしました。';
         }
       });

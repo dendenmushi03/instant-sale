@@ -171,9 +171,9 @@ function pickEditableItemFields(body = {}) {
   return next;
 }
 
-async function findOwnedItemOrThrow(itemId, userId) {
+async function findOwnedItem(itemId, userId) {
   if (!mongoose.Types.ObjectId.isValid(String(itemId))) return null;
-  const item = await Item.findOne({ _id: itemId, ownerUser: userId }).lean();
+  const item = await Item.findOne({ _id: itemId, ownerUser: userId, isDeleted: { $ne: true } }).lean();
   return item;
 }
 
@@ -595,19 +595,17 @@ const ensureAuthed = (req, res, next) => {
 
 async function getOwnedItemSummary(userId) {
   const ownerObjectId = new mongoose.Types.ObjectId(String(userId));
-  const [items, totalCount, missingOwnerCount] = await Promise.all([
-    Item.find({ ownerUser: ownerObjectId })
+  const [items, totalCount] = await Promise.all([
+    Item.find({ ownerUser: ownerObjectId, isDeleted: { $ne: true } })
       .sort({ createdAt: -1, _id: -1 })
       .select('slug title price currency creatorName previewPath ownerUser createdAt updatedAt')
       .lean(),
-    Item.countDocuments({ ownerUser: ownerObjectId }),
-    Item.countDocuments({ ownerUser: null })
+    Item.countDocuments({ ownerUser: ownerObjectId, isDeleted: { $ne: true } })
   ]);
 
   return {
     items: items.map(dashboardItemView),
-    totalCount,
-    missingOwnerCount
+    totalCount
   };
 }
 
@@ -1159,7 +1157,7 @@ app.get('/dashboard', ensureAuthed, async (req, res) => {
 
 app.get('/dashboard/items/:id', ensureAuthed, async (req, res) => {
   try {
-    const item = await findOwnedItemOrThrow(req.params.id, req.user._id);
+    const item = await findOwnedItem(req.params.id, req.user._id);
     if (!item) {
       return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
     }
@@ -1184,7 +1182,7 @@ app.get('/dashboard/items/:id', ensureAuthed, async (req, res) => {
 
 app.get('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
   try {
-    const item = await findOwnedItemOrThrow(req.params.id, req.user._id);
+    const item = await findOwnedItem(req.params.id, req.user._id);
     if (!item) {
       return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
     }
@@ -1207,9 +1205,28 @@ app.get('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
   }
 });
 
+app.post('/dashboard/items/:id/delete', ensureAuthed, async (req, res) => {
+  try {
+    const item = await findOwnedItem(req.params.id, req.user._id);
+    if (!item) {
+      return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
+    }
+
+    await Item.updateOne(
+      { _id: req.params.id, ownerUser: req.user._id, isDeleted: { $ne: true } },
+      { $set: { isDeleted: true, deletedAt: new Date() } }
+    );
+
+    return res.redirect(303, '/dashboard');
+  } catch (e) {
+    console.error('[dashboard:delete]', e);
+    return res.status(500).render('error', { message: '作品の削除に失敗しました。' });
+  }
+});
+
 app.post('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
   try {
-    const current = await findOwnedItemOrThrow(req.params.id, req.user._id);
+    const current = await findOwnedItem(req.params.id, req.user._id);
     if (!current) {
       return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
     }
@@ -1235,7 +1252,7 @@ app.post('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
     }));
   } catch (e) {
     console.error('[dashboard:edit:post]', e);
-    const item = await findOwnedItemOrThrow(req.params.id, req.user._id);
+    const item = await findOwnedItem(req.params.id, req.user._id);
     if (!item) {
       return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
     }
@@ -1689,7 +1706,7 @@ res.set('Cache-Control', 'private, max-age=60');
 app.get('/view/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const item = await Item.findOne({ slug }).lean();
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } }).lean();
     if (!item) return res.status(404).send('Not found');
 
     // 1) CDN（HTTPS）を最優先：/previews/<slug>-full.jpg
@@ -1734,7 +1751,7 @@ app.post('/checkout/:slug', async (req, res) => {
     }
 
     const { slug } = req.params;
-    const item = await Item.findOne({ slug });
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
 
 // 仕様固定の収益分配（出品者80% / プラットフォーム20%）
@@ -2134,7 +2151,7 @@ app.get('/success', async (req, res) => {
     const { session_id, slug } = req.query;
     if (!stripe) return res.status(500).render('error', { message: '決済設定が未完了です（STRIPE_SECRET_KEY）。' });
 
-    const item = await Item.findOne({ slug });
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
 
     const session = await stripe.checkout.sessions.retrieve(String(session_id));
