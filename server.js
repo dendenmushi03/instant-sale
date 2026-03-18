@@ -1237,7 +1237,7 @@ app.get('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
       },
       errorMessage: '',
       successMessage: '',
-      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+      licenseView: licenseViewOf(item)
     }));
   } catch (e) {
     console.error('[dashboard:edit:get]', e);
@@ -1288,7 +1288,7 @@ app.post('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
       },
       errorMessage: '',
       successMessage: '販売情報を更新しました。',
-      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+      licenseView: licenseViewOf(updated)
     }));
   } catch (e) {
     console.error('[dashboard:edit:post]', e);
@@ -1307,7 +1307,7 @@ app.post('/dashboard/items/:id/edit', ensureAuthed, async (req, res) => {
       },
       errorMessage: e?.message || '販売情報の更新に失敗しました。',
       successMessage: '',
-      lockedFields: ['元画像', '配布ファイル', 'ライセンス重要項目']
+      licenseView: licenseViewOf(item)
     }));
   }
 });

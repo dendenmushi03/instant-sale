@@ -17,16 +17,24 @@
 
     <section class="card dashboardEditHero">
       <div class="dashboardEditHero__mediaWrap">
-        <img class="dashboardEditHero__image" src="/dashboard/items/<%= item._id %>/original" alt="<%= item.title %>" onerror="this.onerror=null;this.src='<%= item.previewPath %>';"><!-- keep compact -->
+        <img class="dashboardEditHero__image" src="/dashboard/items/<%= item._id %>/original" alt="<%= item.title %>" onerror="this.onerror=null;this.src='<%= item.previewPath %>';">
       </div>
       <div class="dashboardEditHero__body">
         <p class="eyebrow">Edit Item</p>
         <h1 class="dashboardEditHero__title"><%= item.title %></h1>
-        <p class="dashboardEditHero__lead muted">販売ページに表示される情報を編集できます。元画像・配布ファイル・ライセンス重要項目はここでは変更できません。</p>
+        <p class="dashboardEditHero__lead muted">販売ページに表示されるタイトル・クリエイター名・価格を整えられます。作品そのものとライセンス重要項目は固定です。</p>
         <div class="dashboardEditHero__meta muted">
           <span>現在価格: ¥<%= Number(item.price || 0).toLocaleString(locale) %></span>
           <span>作成日: <%= new Date(item.createdAt).toLocaleDateString(locale) %></span>
         </div>
+        <section class="dashboardEditInfo card">
+          <div class="dashboardEditInfo__row">
+            <span class="dashboardEditInfo__label">ライセンス</span>
+            <strong class="dashboardEditInfo__value"><%= licenseView.label %></strong>
+          </div>
+          <p class="dashboardEditInfo__desc muted"><%= licenseView.desc %></p>
+          <p class="dashboardEditInfo__note muted">※ 元画像・配布ファイル・ライセンス重要項目は編集できません。</p>
+        </section>
         <div class="dashboardEditHero__actions">
           <a class="btn btn--ghost" href="/dashboard/items/<%= item._id %>">詳細へ戻る</a>
         </div>
@@ -71,18 +79,6 @@
             <span class="fieldHelp"><%= minPrice %>円以上で入力してください。</span>
           </label>
         </div>
-
-        <section class="dashboardLocked dashboardLocked--edit card">
-          <div class="dashboardLocked__head">
-            <h3 class="dashboardSectionTitle">編集しない項目</h3>
-            <p class="muted">次の項目は安全のためこの画面では固定です。</p>
-          </div>
-          <ul class="dashboardLocked__list muted">
-            <% lockedFields.forEach(function(label){ %>
-              <li><%= label %></li>
-            <% }) %>
-          </ul>
-        </section>
 
         <div class="dashboardForm__actions dashboardForm__actions--edit">
           <button class="btn btn--primary" type="submit">保存する</button>
