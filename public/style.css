@@ -877,18 +877,21 @@ body.menu-open{
   background:rgba(255,255,255,.66);
 }
 
-#progressModal .modal__result-actions{
+#progressModal .modalActionGrid{
   margin-top:14px;
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
+  gap:12px;
+  align-items:stretch;
 }
 
-#progressModal .modal__result-actions .btn,
-#progressModal .modal__result-actions a.btn{
+#progressModal .modalActionGrid .btn,
+#progressModal .modalActionGrid a.btn{
   min-width:0;
   width:100%;
-  height:44px;
+  height:48px;
+  justify-content:center;
+  text-align:center;
 }
 
 #progressModal #tweetOnX,
@@ -898,7 +901,7 @@ body.menu-open{
   border-color:var(--primary);
 }
 
-#progressModal .modal__result-actions .btn--ghost{
+#progressModal .modalActionGrid .btn--ghost{
   background:rgba(20,20,20,.04);
   border-color:rgba(20,20,20,.14);
   color:rgba(20,20,20,.86);
@@ -953,8 +956,8 @@ body.menu-open{
   }
 }
 
-@media (max-width:560px){
-  #progressModal .modal__result-actions{
+@media (max-width:359px){
+  #progressModal .modalActionGrid{
     grid-template-columns:1fr;
   }
 }
