@@ -521,16 +521,19 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
   right:16px;
   top:calc(72px + env(safe-area-inset-top));
   z-index:81;
+  overflow:hidden;
 }
 
 .mnav__panelInner{
+  display:flex;
+  flex-direction:column;
   background:rgba(255,255,255,.98);
   border:1px solid rgba(17,24,39,.10);
   border-radius:24px;
   box-shadow:0 24px 60px rgba(15,23,42,.16);
-  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  padding:20px 20px 0;
   max-height:calc(100dvh - 92px - env(safe-area-inset-top));
-  overflow:auto;
+  overflow:hidden;
 }
 
 .mnav__panelHeader{
@@ -561,6 +564,15 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
   font-size:24px;
   line-height:1;
   cursor:pointer;
+}
+
+.mnav__body{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding-bottom:calc(148px + env(safe-area-inset-bottom));
 }
 
 .mnav__section + .mnav__section{margin-top:22px}
@@ -679,7 +691,11 @@ body.menu-open{
 
   .mnav__panelInner{
     border-radius:20px;
-    padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+    padding:18px 16px 0;
+  }
+
+  .mnav__body{
+    padding-bottom:calc(160px + env(safe-area-inset-bottom));
   }
 
   .mnav__item,
