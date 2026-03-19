@@ -289,18 +289,23 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
   <div class="modalDivider"></div>
   <section class="modalBlock" aria-label="actions">
     <div class="modalBlock__title"><%= (lng === 'en') ? 'Actions' : '操作' %></div>
-    <div class="modal__result-actions">
+    <div class="modal__result-actions modalActionGrid">
 
 <a id="tweetOnX" class="btn btn--primary" href="#" target="_blank" rel="noopener">
   <img src="/public/x-icon.png" alt="X">
   <% if (lng === 'en') { %>
     <span>Sell on</span>
   <% } else { %>
-    <span>で販売する</span>
+    <span>Xで販売する</span>
   <% } %>
 </a>
 
 <a id="openResultUrl" class="btn btn--primary" href="#" target="_blank" rel="noopener"><%= t('upload.modal.btn_open_sale') %></a>
+
+<% if (me) { %>
+<a class="btn btn--ghost" href="/dashboard">ダッシュボード</a>
+<a class="btn btn--ghost" href="/connect/portal">売上管理</a>
+<% } %>
 
     </div>
   </section>

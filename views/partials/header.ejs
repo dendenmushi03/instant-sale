@@ -5,45 +5,102 @@
       <img class="siteHeader__logo" src="/public/logo.png?v=<%= assetVer %>" alt="Instant Sale" />
     </a>
 
-    <!-- ▼ モバイル: 折りたたみメニュー（JS不要） -->
     <details class="mnav" id="mnav">
-      <summary class="mnav__btn" aria-label="menu" aria-expanded="false">
+      <summary class="mnav__btn" aria-label="menu" aria-expanded="false" aria-controls="mnav-panel">
         <span class="mnav__icon" aria-hidden="true"></span>
         <span class="mnav__label">Menu</span>
       </summary>
 
-      <div class="mnav__panel">
-        <nav class="siteHeader__nav mnav__nav" aria-label="primary">
-          <a class="siteHeader__link <%= (currentPath === '/' ? 'is-active' : '') %>" href="/"><%= t('nav.home') %></a>
-          <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/image-license') ? 'is-active' : '') %>" href="/image-license"><%= t('nav.license') %></a>
-          <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/terms') ? 'is-active' : '') %>" href="/terms"><%= t('nav.terms') %></a>
-          <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/privacy') ? 'is-active' : '') %>" href="/privacy"><%= t('nav.privacy') %></a>
-        </nav>
-
-        <div class="siteHeader__actions mnav__actions">
-          <div class="langSwitch" aria-label="language">
-            <% if (langMenu && langMenu.length) { %>
-              <select class="langSwitch__select" aria-label="language" onchange="location.href=this.value">
-                <% langMenu.forEach(function(x){ %>
-                  <option value="<%= x.url %>" <%= x.active ? 'selected' : '' %>><%= x.label %></option>
-                <% }) %>
-              </select>
-            <% } %>
+      <div class="mnav__panel" id="mnav-panel">
+        <div class="mnav__panelInner">
+          <div class="mnav__panelHeader">
+            <p class="mnav__panelTitle">Menu</p>
+            <button type="button" class="mnav__close" aria-label="<%= t('menu.close') || 'Close menu' %>">
+              <span aria-hidden="true">×</span>
+            </button>
           </div>
 
-          <% if (me) { %>
-            <a class="btn btn--ghost" href="/creator"><%= t('nav.creator') %></a>
-            <a class="btn btn--ghost" href="/dashboard"><%= t('nav.dashboard') %></a>
-            <a class="btn btn--ghost" href="/connect/portal"><%= t('nav.payouts') %></a>
-            <a class="btn btn--ghost" href="/logout"><%= t('nav.logout') %></a>
-          <% } else { %>
-            <a class="btn btn--primary" href="/auth/google"><%= t('nav.login') %></a>
-          <% } %>
+          <div class="mnav__body">
+            <section class="mnav__section" aria-labelledby="mnav-section-top">
+              <h2 class="mnav__sectionTitle" id="mnav-section-top"><%= t('menu.section.top') || 'Site top' %></h2>
+              <nav class="mnav__list" aria-label="site top">
+                <a class="mnav__itemLink <%= (currentPath === '/' ? 'is-active' : '') %>" href="/">
+                  <span class="mnav__itemLabel"><%= t('nav.home') %></span>
+                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                </a>
+              </nav>
+            </section>
+
+            <section class="mnav__section" aria-labelledby="mnav-section-account">
+              <h2 class="mnav__sectionTitle" id="mnav-section-account"><%= t('menu.section.account') || 'Account' %></h2>
+              <div class="mnav__list">
+                <% if (me) { %>
+                  <a class="mnav__itemLink" href="/creator">
+                    <span class="mnav__itemLabel"><%= t('nav.creator') %></span>
+                    <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                  </a>
+                  <a class="mnav__itemLink" href="/dashboard">
+                    <span class="mnav__itemLabel"><%= t('nav.dashboard') %></span>
+                    <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                  </a>
+                  <a class="mnav__itemLink" href="/connect/portal">
+                    <span class="mnav__itemLabel"><%= t('nav.payouts') %></span>
+                    <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                  </a>
+                  <a class="mnav__itemLink" href="/logout">
+                    <span class="mnav__itemLabel"><%= t('nav.logout') %></span>
+                    <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                  </a>
+                <% } else { %>
+                  <a class="mnav__itemLink" href="/auth/google">
+                    <span class="mnav__itemLabel"><%= t('nav.login') %></span>
+                    <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                  </a>
+                <% } %>
+              </div>
+            </section>
+
+            <section class="mnav__section" aria-labelledby="mnav-section-language">
+              <h2 class="mnav__sectionTitle" id="mnav-section-language"><%= t('nav.language') %></h2>
+              <nav class="mnav__list" aria-label="language">
+                <% if (langMenu && langMenu.length) { %>
+                  <% langMenu.forEach(function(x){ %>
+                    <a class="mnav__itemLink <%= x.active ? 'is-active' : '' %>" href="<%= x.url %>" hreflang="<%= x.code || '' %>">
+                      <span class="mnav__itemLabel"><%= x.label %></span>
+                      <span class="mnav__itemSuffix">
+                        <% if (x.active) { %>
+                          <span class="mnav__itemStatus" aria-hidden="true">✓</span>
+                        <% } %>
+                        <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                      </span>
+                    </a>
+                  <% }) %>
+                <% } %>
+              </nav>
+            </section>
+
+            <section class="mnav__section" aria-labelledby="mnav-section-main">
+              <h2 class="mnav__sectionTitle" id="mnav-section-main"><%= t('menu.section.main') || 'Main navigation' %></h2>
+              <nav class="mnav__list" aria-label="primary">
+                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/image-license') ? 'is-active' : '') %>" href="/image-license">
+                  <span class="mnav__itemLabel"><%= t('nav.license') %></span>
+                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                </a>
+                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/terms') ? 'is-active' : '') %>" href="/terms">
+                  <span class="mnav__itemLabel"><%= t('nav.terms') %></span>
+                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                </a>
+                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/privacy') ? 'is-active' : '') %>" href="/privacy">
+                  <span class="mnav__itemLabel"><%= t('nav.privacy') %></span>
+                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                </a>
+              </nav>
+            </section>
+          </div>
         </div>
       </div>
     </details>
 
-    <!-- ▼ PC: 従来の横並び（CSSでPCだけ表示） -->
     <nav class="siteHeader__nav siteHeader__nav--desktop" aria-label="primary">
       <a class="siteHeader__link <%= (currentPath === '/' ? 'is-active' : '') %>" href="/"><%= t('nav.home') %></a>
       <a class="siteHeader__link <%= (String(currentPath || '').startsWith('/image-license') ? 'is-active' : '') %>" href="/image-license"><%= t('nav.license') %></a>
