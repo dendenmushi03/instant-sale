@@ -242,5 +242,9 @@
   "nav.dashboard": "Dashboard",
   "nav.creator": "Creator",
   "nav.payouts": "Payouts",
-  "nav.login": "Log in"
+  "nav.login": "Log in",
+  "menu.section.top": "Site top",
+  "menu.section.main": "Main navigation",
+  "menu.section.account": "Account",
+  "menu.close": "Close menu"
 }

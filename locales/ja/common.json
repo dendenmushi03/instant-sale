@@ -242,5 +242,9 @@
   "nav.dashboard": "ダッシュボード",
   "nav.creator": "クリエイター",
   "nav.payouts": "売上管理",
-  "nav.login": "ログイン"
+  "nav.login": "ログイン",
+  "menu.section.top": "サイトTOP",
+  "menu.section.main": "メインナビ",
+  "menu.section.account": "アカウント",
+  "menu.close": "メニューを閉じる"
 }
