@@ -626,6 +626,33 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
   line-height:1;
 }
 
+.mnav__itemSuffix{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  flex:0 0 auto;
+}
+
+.mnav__itemStatus{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:22px;
+  height:22px;
+  padding:0 6px;
+  border-radius:999px;
+  background:rgba(17,24,39,.08);
+  color:rgba(17,24,39,.72);
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+}
+
+.mnav__itemLink.is-active .mnav__itemStatus{
+  background:rgba(17,24,39,.12);
+  color:rgba(17,24,39,.9);
+}
+
 .mnav__langRow{
   padding-right:2px;
 }

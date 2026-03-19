@@ -21,23 +21,11 @@
           </div>
 
           <div class="mnav__body">
-            <section class="mnav__section" aria-labelledby="mnav-section-main">
-              <h2 class="mnav__sectionTitle" id="mnav-section-main"><%= t('menu.section.main') || 'Main' %></h2>
-              <nav class="mnav__list" aria-label="primary">
+            <section class="mnav__section" aria-labelledby="mnav-section-top">
+              <h2 class="mnav__sectionTitle" id="mnav-section-top"><%= t('menu.section.top') || 'Site top' %></h2>
+              <nav class="mnav__list" aria-label="site top">
                 <a class="mnav__itemLink <%= (currentPath === '/' ? 'is-active' : '') %>" href="/">
                   <span class="mnav__itemLabel"><%= t('nav.home') %></span>
-                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
-                </a>
-                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/image-license') ? 'is-active' : '') %>" href="/image-license">
-                  <span class="mnav__itemLabel"><%= t('nav.license') %></span>
-                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
-                </a>
-                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/terms') ? 'is-active' : '') %>" href="/terms">
-                  <span class="mnav__itemLabel"><%= t('nav.terms') %></span>
-                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
-                </a>
-                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/privacy') ? 'is-active' : '') %>" href="/privacy">
-                  <span class="mnav__itemLabel"><%= t('nav.privacy') %></span>
                   <span class="mnav__itemArrow" aria-hidden="true">›</span>
                 </a>
               </nav>
@@ -74,19 +62,39 @@
 
             <section class="mnav__section" aria-labelledby="mnav-section-language">
               <h2 class="mnav__sectionTitle" id="mnav-section-language"><%= t('nav.language') %></h2>
-              <div class="mnav__langRow">
+              <nav class="mnav__list" aria-label="language">
                 <% if (langMenu && langMenu.length) { %>
-                  <div class="langSwitch" aria-label="language">
-                    <label class="sr-only" for="mnav-language-select"><%= t('nav.language') %></label>
-                    <select id="mnav-language-select" class="langSwitch__select langSwitch__select--menu" aria-label="language" onchange="location.href=this.value">
-                      <% langMenu.forEach(function(x){ %>
-                        <option value="<%= x.url %>" <%= x.active ? 'selected' : '' %>><%= x.label %></option>
-                      <% }) %>
-                    </select>
-                  </div>
+                  <% langMenu.forEach(function(x){ %>
+                    <a class="mnav__itemLink <%= x.active ? 'is-active' : '' %>" href="<%= x.url %>" hreflang="<%= x.code || '' %>">
+                      <span class="mnav__itemLabel"><%= x.label %></span>
+                      <span class="mnav__itemSuffix">
+                        <% if (x.active) { %>
+                          <span class="mnav__itemStatus" aria-hidden="true">✓</span>
+                        <% } %>
+                        <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                      </span>
+                    </a>
+                  <% }) %>
                 <% } %>
-                <span class="mnav__itemArrow" aria-hidden="true">›</span>
-              </div>
+              </nav>
+            </section>
+
+            <section class="mnav__section" aria-labelledby="mnav-section-main">
+              <h2 class="mnav__sectionTitle" id="mnav-section-main"><%= t('menu.section.main') || 'Main navigation' %></h2>
+              <nav class="mnav__list" aria-label="primary">
+                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/image-license') ? 'is-active' : '') %>" href="/image-license">
+                  <span class="mnav__itemLabel"><%= t('nav.license') %></span>
+                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                </a>
+                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/terms') ? 'is-active' : '') %>" href="/terms">
+                  <span class="mnav__itemLabel"><%= t('nav.terms') %></span>
+                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                </a>
+                <a class="mnav__itemLink <%= (String(currentPath || '').startsWith('/privacy') ? 'is-active' : '') %>" href="/privacy">
+                  <span class="mnav__itemLabel"><%= t('nav.privacy') %></span>
+                  <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                </a>
+              </nav>
             </section>
           </div>
         </div>
