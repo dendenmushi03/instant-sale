@@ -80,7 +80,7 @@
         <td>
           <%= t('tokushoho.value.otherFees_prefix') || 'プラットフォーム手数料やStripe決済手数料が発生する場合があります。' %><br>
           <%= t('tokushoho.value.otherFees_seller_prefix') || '出品者向け：' %>
-          <strong><%= t('tokushoho.value.platform_fee', { pct: (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) }) || `プラットフォーム手数料：販売価格（税込）の ${(typeof platformFeePct !== 'undefined' ? platformFeePct : 20)}％` %></strong>
+          <strong><%= t('tokushoho.value.platform_fee') || 'プラットフォーム手数料：販売価格（税込）の4% + 30円' %></strong>
         </td>
       </tr>
 

@@ -31,7 +31,7 @@
     <p>
       <%= t('terms.fees.intro_html') || '本サービスの決済は Stripe…' %>
       <br>
-      <strong><%= t('terms.fees.platform_fee', { pct: (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) }) || `販売価格（税込）の ${(typeof platformFeePct !== 'undefined' ? platformFeePct : 20)}％` %></strong>
+      <strong><%= t('terms.fees.platform_fee') || '販売価格（税込）の4% + 30円' %></strong>
     </p>
     <ul>
       <li><%= t('terms.fees.li_settlement') || '販売手数料は決済確定時に控除…' %></li>
