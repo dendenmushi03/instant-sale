@@ -6,9 +6,9 @@ const DAYS_180_MS = 1000 * 60 * 60 * 24 * 180;
 const PendingTransferSchema = new mongoose.Schema({
   seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   item:   { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
-  amount: { type: Number, required: true },                // 送金額（= seller取り分80%）
+  amount: { type: Number, required: true },                // 送金額（= seller取り分）
   grossAmount: { type: Number, required: true },           // 売上総額（100%）
-  platformFeeAmount: { type: Number, required: true },     // プラットフォーム取り分（20%）
+  platformFeeAmount: { type: Number, required: true },     // プラットフォーム取り分（4% + 30円）
   currency: { type: String, required: true },              // 'jpy' など
   paymentIntentId: { type: String, required: true, unique: true }, // 同一決済の重複送金防止
   transferGroup: { type: String, default: '' },

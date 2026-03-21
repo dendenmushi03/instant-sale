@@ -13,11 +13,10 @@
 3. 後続transferで送金不能（Stripe未接続 or payouts無効 等）の場合は `PendingTransfer` に upsert で保留登録する。
 4. 出品者がConnect設定を完了して `/connect/return` へ戻ったタイミング、または管理者の `/admin/retry-pending` で保留分を再送金する。
 
-## 2) 80%分配ロジックの有無と実装箇所
-- **有り**。設計は「プラットフォーム手数料を20%」として実装され、販売者受取は `price - floor(price * feePercent/100)`。
-- 既定値は `PLATFORM_FEE_PERCENT=20`（環境変数で上書き可能）。
-- destination charge時は `application_fee_amount = platformFee` を設定しているため、Stripe側で実質80/20配分になる。
-- Webhook後続transfer時も同様に `sellerAmount = item.price - fee` で送金額を算出している。
+## 2) 4% + 30円 の収益分配ロジックの有無と実装箇所
+- **有り**。設計は「プラットフォーム手数料を `Math.floor(price * 0.04) + 30`」として実装され、販売者受取は `price - platformFeeAmount`。
+- destination charge時は `application_fee_amount = platformFeeAmount` を設定しているため、Stripe側でも同じ手数料式になる。
+- Webhook後続transfer時も同じ共通ヘルパーから `sellerAmount` / `platformFeeAmount` / `grossAmount` を算出している。
 
 ## 3) 未設定ユーザーの売上保留ロジックの有無と実装箇所
 - **有り**。Webhook内の `markPending()` で `PendingTransfer.updateOne(..., { upsert: true })` を実行。
@@ -34,8 +33,8 @@
   2. `/admin/retry-pending` でも同様に全保留を走査して再送金。
 
 ## 5) 不足実装・危険箇所
-1. **「80%固定」ではない**
-   - `PLATFORM_FEE_PERCENT` は環境変数で変更可能。運用設定次第で80%保証が崩れる。
+1. **手数料式の変更時は共通ヘルパー更新が必須**
+   - `utils/revenue.js` を単一の計算元として使う前提で、他箇所の直接計算を増やさないこと。
 2. **PendingTransferの状態管理が実質未使用**
    - モデルに `status (queued/transferred/expired)` と `expiresAt` があるが、更新処理はなく、実際は「成功時に削除」方式。
 3. **失効処理がない**
@@ -52,12 +51,11 @@
 4. `/connect/return` で payouts有効化後、保留分が送金され削除される。
 5. `/admin/retry-pending` 実行で送金可能分だけ処理され、不可分はskipのまま残る。
 6. 同一Webhook再送時に `ProcessedEvent` で二重処理されない。
-7. 価格や手数料設定境界（最小価格、fee変更、sellerAmount<=0）で期待通り保留になる。
+7. 価格や手数料設定境界（最低価格100円、100円商品の sellerAmount=66、sellerAmount<=0）で期待通り保留になる。
 
 ## 7) 結論
-- **現状コードは「概ね仕様を満たす経路」を持つ**（80/20計算、未設定時保留、設定後再送金）。
+- **現状コードは「概ね仕様を満たす経路」を持つ**（4%+30円計算、未設定時保留、設定後再送金）。
 - ただし次の理由で「設計どおり完全担保」とは言い切れない。
-  - 80%は環境変数依存で固定保証ではない。
   - PendingTransferの `status/expired` 設計が実運用コードに接続されていない。
   - 送金済みの監査証跡が弱い（削除方式）。
 

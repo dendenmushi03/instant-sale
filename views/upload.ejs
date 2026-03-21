@@ -122,15 +122,16 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       </p>
 
       <div class="priceRow" id="priceRow"
-           data-rate="<%= (typeof platformFeePct !== 'undefined' ? platformFeePct : 20) %>">
+           data-fee-label-ja="<%= platformFeeDisplay || '4% + 30円' %>"
+           data-fee-label-en="<%= platformFeeDisplayEn || '4% + ¥30' %>">
 
         <label class="priceCol priceCol--wide">
           <span class="priceLabel"><%= t('upload.price.price') %></span>
           
           <input class="textInput" id="priceInput" type="number" name="price"
-                 min="<%= (typeof minPrice === 'number' ? minPrice : 300) %>"
+                 min="<%= (typeof minPrice === 'number' ? minPrice : 100) %>"
                  step="1"
-                 placeholder="¥<%= (typeof minPrice === 'number' ? minPrice : 300) %>〜"
+                 placeholder="¥<%= (typeof minPrice === 'number' ? minPrice : 100) %>〜"
                  inputmode="numeric"
                  autocomplete="off"
                  required />
@@ -417,7 +418,8 @@ if (imageInput && imageFileName) {
   // === 横一列UI：価格 → 手数料 → 利益 のリアルタイム計算 ===
   const priceInput = document.getElementById('priceInput');
   const row        = document.getElementById('priceRow');
-  const feeRate    = row ? (Number(row.dataset.rate) || 20) : 20; // %
+  const feeLabelJa = row?.dataset.feeLabelJa || '4% + 30円';
+  const feeLabelEn = row?.dataset.feeLabelEn || '4% + ¥30';
   const feeRateTextEl = document.getElementById('feeRateText');
   const feeValEl      = document.getElementById('feeVal');
   const profitValEl   = document.getElementById('profitVal');
@@ -431,13 +433,13 @@ if (imageInput && imageFileName) {
       profitValEl.value = '¥0';
       return;
     }
-    const fee    = Math.floor(price * (feeRate / 100)); // 端数切り捨て
-    const profit = price - fee;                          // 決済手数料の控除方針は運用に合わせて調整
+    const fee = Math.floor(price * 0.04) + 30;
+    const profit = price - fee;
     feeValEl.value    = jpy(fee);
     profitValEl.value = jpy(profit);
   }
 
-  if (feeRateTextEl) feeRateTextEl.textContent = feeRate + '%';
+  if (feeRateTextEl) feeRateTextEl.textContent = (LNG === 'en') ? feeLabelEn : feeLabelJa;
 
   function buildTweetText(templateType, createdUrl) {
     const isEn = LNG === 'en';

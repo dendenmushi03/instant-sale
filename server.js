@@ -30,6 +30,11 @@ const DownloadToken = require('./models/DownloadToken');
 const User = require('./models/User');
 
 const PendingTransfer = require('./models/PendingTransfer');
+const {
+  PLATFORM_FEE_DISPLAY,
+  PLATFORM_FEE_DISPLAY_EN,
+  calculateRevenueSplit,
+} = require('./utils/revenue');
 
 const FileType = require('file-type'); // ★ 追加：実体MIME検査（CJSはfromFileを使う）
 
@@ -61,8 +66,11 @@ if (isProd) BASE_URL = BASE_URL.replace(/^http:\/\//, 'https://');
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/instant_sale';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const CURRENCY = (process.env.CURRENCY || 'jpy').toLowerCase();
-// 最低価格（未設定なら JPY は 50）
-const MIN_PRICE = Number(process.env.MIN_PRICE || (CURRENCY === 'jpy' ? 50 : 50));
+// 最低価格（本番仕様固定）
+const MIN_PRICE = 100;
+if (process.env.MIN_PRICE && Number(process.env.MIN_PRICE) != MIN_PRICE) {
+  console.warn(`[WARN] MIN_PRICE=${process.env.MIN_PRICE} は無視されます（固定 ${MIN_PRICE}円）`);
+}
 
 const ProcessedEvent = mongoose.models.ProcessedEvent || mongoose.model('ProcessedEvent', new mongoose.Schema({
   eventId: { type: String, unique: true, index: true },
@@ -183,16 +191,6 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const USE_STRIPE_CONNECT = process.env.USE_STRIPE_CONNECT === 'true';
-// 収益分配は仕様固定: 出品者80% / プラットフォーム20%
-const SELLER_SHARE_PERCENT = 80;
-const PLATFORM_FEE_PERCENT = 20;
-if (process.env.PLATFORM_FEE_PERCENT && Number(process.env.PLATFORM_FEE_PERCENT) !== PLATFORM_FEE_PERCENT) {
-  const msg = `[WARN] PLATFORM_FEE_PERCENT=${process.env.PLATFORM_FEE_PERCENT} は無視されます（固定 ${PLATFORM_FEE_PERCENT}%）`;
-  if (isProd) {
-    throw new Error(msg);
-  }
-  console.warn(msg);
-}
 // 業種(MCC) と 商品説明の既定値（必要なら .env で上書き）
 const DEFAULT_MCC  = process.env.DEFAULT_MCC || '5399'; // Misc. General Merchandise
 const DEFAULT_PRODUCT_DESC =
@@ -212,9 +210,7 @@ const sessionStore = MongoStore.create({
 });
 
 function calcRevenueSplit(grossAmount) {
-  const sellerAmount = Math.max(0, Math.floor(grossAmount * (SELLER_SHARE_PERCENT / 100)));
-  const platformFeeAmount = Math.max(0, grossAmount - sellerAmount);
-  return { sellerAmount, platformFeeAmount, grossAmount };
+  return calculateRevenueSplit(grossAmount);
 }
 
 function isExpiredPending(pending, now = new Date()) {
@@ -709,36 +705,55 @@ async function processQueuedPendingTransfersForSeller({ sellerId, stripeAccountI
       continue;
     }
 
+    const revenueSplit = calcRevenueSplit(latest.grossAmount);
+    if (revenueSplit.sellerAmount <= 0) {
+      await PendingTransfer.updateOne(
+        { _id: latest._id, status: 'queued' },
+        {
+          $set: {
+            amount: revenueSplit.sellerAmount,
+            platformFeeAmount: revenueSplit.platformFeeAmount,
+            reason: 'non_positive_amount',
+            updatedAt: now
+          }
+        }
+      );
+      results.push({ id: latest._id, status: 'non_positive_amount' });
+      continue;
+    }
+
     try {
       const tr = await stripe.transfers.create({
-        amount: p.amount,
-        currency: p.currency,
+        amount: revenueSplit.sellerAmount,
+        currency: latest.currency,
         destination: stripeAccountId,
-        transfer_group: p.transferGroup || undefined
+        transfer_group: latest.transferGroup || undefined
       }, {
-        idempotencyKey: `pending_transfer_${p.paymentIntentId}`
+        idempotencyKey: `pending_transfer_${latest.paymentIntentId}`
       });
 
       const updated = await PendingTransfer.updateOne(
-        { _id: p._id, status: 'queued' },
+        { _id: latest._id, status: 'queued' },
         {
           $set: {
+            amount: revenueSplit.sellerAmount,
+            platformFeeAmount: revenueSplit.platformFeeAmount,
             status: 'transferred',
             transferId: tr.id,
             transferredAt: new Date(),
             updatedAt: new Date(),
-            reason: p.reason || 'queued_then_transferred'
+            reason: latest.reason || 'queued_then_transferred'
           }
         }
       );
 
       if (updated.modifiedCount === 1) {
-        results.push({ id: p._id, status: 'transferred', transferId: tr.id, amount: p.amount });
+        results.push({ id: latest._id, status: 'transferred', transferId: tr.id, amount: revenueSplit.sellerAmount });
       } else {
-        results.push({ id: p._id, status: 'skip_race_condition' });
+        results.push({ id: latest._id, status: 'skip_race_condition' });
       }
     } catch (e) {
-      results.push({ id: p._id, status: 'error', error: e?.raw?.message || e.message });
+      results.push({ id: latest._id, status: 'error', error: e?.raw?.message || e.message });
     }
   }
 
@@ -1344,7 +1359,8 @@ res.render('upload', {
   legalReady,
   isBiz,
   minPrice: MIN_PRICE,                    // ← 追加
-  platformFeePct: PLATFORM_FEE_PERCENT   // ← 追加
+  platformFeeDisplay: PLATFORM_FEE_DISPLAY,
+  platformFeeDisplayEn: PLATFORM_FEE_DISPLAY_EN
 });
 
 });
@@ -1396,9 +1412,9 @@ if (!/^image\/(png|jpe?g|webp|gif)$/i.test(realMime)) {
 
     const priceNum = Number(price);
     
-if (!title || !priceNum || priceNum < MIN_PRICE) {
+if (!title || !Number.isInteger(priceNum) || priceNum < MIN_PRICE) {
   await fsp.unlink(req.file.path).catch(() => {});
-  return res.status(400).render('error', { message: `タイトルと価格（${MIN_PRICE}以上）は必須です。` });
+  return res.status(400).render('error', { message: `タイトルと価格（${MIN_PRICE}円以上の整数）は必須です。` });
 }
 
 const licensePresetSafe = (['standard','editorial','commercial-lite','exclusive'].includes(licensePreset))
@@ -1537,7 +1553,8 @@ return res.render('upload', {
   isBiz: isBizAfter,
   createdUrl: saleUrl,
   minPrice: MIN_PRICE,                   // ← 追加
-  platformFeePct: PLATFORM_FEE_PERCENT  // ← 追加
+  platformFeeDisplay: PLATFORM_FEE_DISPLAY,
+  platformFeeDisplayEn: PLATFORM_FEE_DISPLAY_EN
 });
 
 }
@@ -1650,7 +1667,8 @@ return res.render('upload', {
   isBiz: isBizAfter,
   createdUrl: saleUrl,
   minPrice: MIN_PRICE,                   // ← 追加
-  platformFeePct: PLATFORM_FEE_PERCENT  // ← 追加
+  platformFeeDisplay: PLATFORM_FEE_DISPLAY,
+  platformFeeDisplayEn: PLATFORM_FEE_DISPLAY_EN
 });
 
 } catch (e) {
@@ -1794,7 +1812,7 @@ app.post('/checkout/:slug', async (req, res) => {
     const item = await Item.findOne({ slug, isDeleted: { $ne: true } });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
 
-// 仕様固定の収益分配（出品者80% / プラットフォーム20%）
+// 仕様固定の収益分配（プラットフォーム手数料 4% + 30円）
 const { platformFeeAmount: platformFee } = calcRevenueSplit(item.price);
 
 // 販売者（オーナー）
@@ -2014,7 +2032,7 @@ app.post('/webhooks/stripe', async (req, res) => {
             } else {
               const seller = await User.findById(item.ownerUser);
 
-              // 仕様固定の80/20金額計算
+              // 仕様固定の手数料計算（4% + 30円）
               const { sellerAmount, platformFeeAmount, grossAmount } = calcRevenueSplit(item.price);
               const transferGroup = pi.transfer_group || `item_${item._id}`;
               const now = new Date();

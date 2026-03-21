@@ -8,7 +8,11 @@ const ItemSchema = new mongoose.Schema(
 price: {
   type: Number,
   required: true,
-  min: 300 // ★300円未満を拒否
+  min: 100, // ★100円未満を拒否
+  validate: {
+    validator: Number.isInteger,
+    message: 'Price must be an integer amount in JPY'
+  }
 }, // jpyは最小単位=1円
     currency: { type: String, default: 'jpy', lowercase: true, trim: true },
 

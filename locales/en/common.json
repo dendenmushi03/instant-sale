@@ -85,11 +85,11 @@
     "license_html": "The usage scope on each product page prevails. Unless otherwise noted, personal use only; redistribution, resale, public transmission, and secondary distribution of modifications are prohibited.",
     "fees": {
       "intro_html": "Payments are processed via Stripe or equivalent. A platform fee is deducted from sales.",
-      "platform_fee": "{{pct}}% of the tax-included price",
+      "platform_fee": "4% of the tax-included price + ¥30",
       "li_settlement": "The fee is deducted at payment capture.",
       "li_payout": "Payouts follow Stripe Connect rules and schedule.",
       "li_chargeback": "Refunds/chargebacks/fraud may be offset against sales or adjusted later.",
-      "li_change": "The fee rate may change with prior notice on the Service."
+      "li_change": "The platform fee terms may change with prior notice on the Service."
     },
     "refund_html": "Due to the nature of digital goods, purchases are non-refundable after completion. Double charges, wrong charges, or defective files are handled individually.",
     "prohibited": {
@@ -170,7 +170,7 @@
       "price": "Displayed on each product page",
       "otherFees_prefix": "Platform fee and Stripe payment fee may apply.",
       "otherFees_seller_prefix": "For sellers:",
-      "platform_fee": "Platform fee",
+      "platform_fee": "Platform fee: 4% of the tax-included price + ¥30",
       "paymentMethod": "Credit/debit card via Stripe",
       "paymentTiming": "Charged at the time of purchase (may vary by payment method)",
       "delivery": "A downloadable URL is issued immediately after payment confirmation",
