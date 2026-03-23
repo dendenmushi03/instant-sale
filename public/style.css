@@ -2989,8 +2989,7 @@ body.menu-open{
   display: grid;
   gap: 8px;
 }
-.sellerProfileField__required,
-.sellerProfileField__optional{
+.sellerProfileField__required{
   display: inline-flex;
   margin-left: 6px;
   padding: 2px 8px;
@@ -2999,7 +2998,13 @@ body.menu-open{
   vertical-align: middle;
 }
 .sellerProfileField__required{ background: #fee2e2; color: #b91c1c; }
-.sellerProfileField__optional{ background: #eef2ff; color: #4338ca; }
+.sellerProfileField .textInput:not(textarea){
+  min-height: 52px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 16px;
+  line-height: 1.4;
+}
 .sellerProfileField__textarea{
   min-height: 104px;
   resize: vertical;
@@ -3008,13 +3013,6 @@ body.menu-open{
   color: #b91c1c;
   font-size: .92rem;
 }
-.sellerProfileNote{
-  padding: 16px;
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-}
-.sellerProfileNote p{ margin: 8px 0 0; }
-.sellerProfileNote__meta{ font-size: .92rem; }
 .sellerProfileForm__actions{
   justify-content: flex-start;
 }

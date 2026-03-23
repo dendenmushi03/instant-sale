@@ -597,8 +597,8 @@ function getSellerProfileCompletion(user) {
 
 function sanitizeSellerProfileInput(body = {}) {
   const normalize = (value, max) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
-  const normalizePostal = (value) => String(value || '').replace(/[^0-9-]/g, '').trim().slice(0, 8);
-  const normalizePhone = (value) => String(value || '').replace(/[^0-9+()\-\s]/g, '').replace(/\s+/g, ' ').trim().slice(0, 30);
+  const normalizePostal = (value) => String(value || '').replace(/-/g, '').replace(/\D/g, '').slice(0, 7);
+  const normalizePhone = (value) => String(value || '').replace(/-/g, '').replace(/\D/g, '').slice(0, 11);
 
   return {
     legalName: normalize(body.legalName, 120),
@@ -614,23 +614,21 @@ function validateSellerProfileInput(input = {}) {
   if (!input.legalName) errors.legalName = '法定名義を入力してください';
   else if (input.legalName.length > 120) errors.legalName = '法定名義は120文字以内で入力してください';
 
+  if (!input.postalCode) {
+    errors.postalCode = '郵便番号を入力してください';
+  } else if (!/^\d{7}$/.test(input.postalCode)) {
+    errors.postalCode = '郵便番号は半角数字7桁で入力してください';
+  }
+
   if (!input.address) errors.address = '住所を入力してください';
   else if (input.address.length > 240) errors.address = '住所は240文字以内で入力してください';
 
   if (!input.phoneNumber) {
     errors.phoneNumber = '電話番号を入力してください';
-  } else {
-    const digits = input.phoneNumber.replace(/\D/g, '');
-    if (digits.length < 9 || digits.length > 15) {
-      errors.phoneNumber = '電話番号の形式を確認してください';
-    }
-  }
-
-  if (input.postalCode) {
-    const normalizedPostal = input.postalCode.replace(/-/g, '');
-    if (!/^\d{7}$/.test(normalizedPostal)) {
-      errors.postalCode = '郵便番号は7桁で入力してください';
-    }
+  } else if (!/^\d+$/.test(input.phoneNumber)) {
+    errors.phoneNumber = '電話番号は半角数字のみで入力してください';
+  } else if (input.phoneNumber.length < 10 || input.phoneNumber.length > 11) {
+    errors.phoneNumber = '電話番号の形式を確認してください';
   }
 
   return errors;
