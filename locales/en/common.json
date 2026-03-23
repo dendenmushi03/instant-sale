@@ -24,7 +24,7 @@
   "upload.field.file": "File to sell",
   "upload.field.title": "Title",
   "upload.field.title_ph": "Work title",
-  "upload.field.creator": "Creator name (optional)",
+  "upload.field.creator": "Creator name",
   "upload.field.creator_ph": "Display name (optional)",
   "upload.price.price": "Price (JPY)",
   "upload.price.fee": "Platform fee",

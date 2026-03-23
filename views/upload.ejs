@@ -111,7 +111,11 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
 
       <div class="field">
         <span class="fieldLabel"><%= t('upload.field.creator') %></span>
-        <span class="fieldHelp"><%= (lng==='en') ? 'Shown automatically from your seller profile.' : '販売ページの表示名は販売者情報から自動反映されます。' %></span>
+        <span class="fieldHelp"><%= (lng==='en') ? 'Shown automatically from your seller profile.' : '販売者情報から自動で反映されます。' %></span>
+      </div>
+
+      <div class="field">
+        <span class="fieldLabel"><%= (lng==='en') ? 'Pricing' : '価格設定' %></span>
       </div>
 
       <p class="priceHelp muted">
