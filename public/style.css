@@ -1238,10 +1238,31 @@ body.menu-open{
   width:100%;
 }
 
+.saleSectionHeading{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+
+.saleSectionHeading::before{
+  content:"";
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  border:1.5px solid rgba(20,20,20,.72);
+  background:transparent;
+  box-sizing:border-box;
+  flex:0 0 auto;
+}
+
 .priceHelp{
   margin:4px 0 0;
   font-size:12px;
   line-height:1.6;
+}
+
+.priceHelp--section{
+  margin-top:-2px;
 }
 
 .priceRow{
@@ -3160,18 +3181,7 @@ body.menu-open{
 }
 
 .dashboardHub{
-  max-width:980px;
-}
-.dashboardHubHero{
-  margin-top:18px;
-  padding:28px;
-}
-.dashboardHubHero .dashboardHero__title{
-  margin:0;
-}
-.dashboardHubHero .dashboardHero__lead{
-  margin:10px 0 0;
-  max-width:560px;
+  max-width:760px;
 }
 .dashboardHub__list{
   display:grid;
@@ -3241,14 +3251,13 @@ body.menu-open{
   width:18px;
   height:18px;
 }
-@media (min-width: 861px){
-  .dashboardHub__list{
-    grid-template-columns:repeat(2, minmax(0,1fr));
-  }
-}
 @media (max-width: 640px){
-  .dashboardHubHero{
-    padding:22px 18px;
+  .dashboardHub{
+    max-width:none;
+  }
+  .dashboardHub__list{
+    gap:14px;
+    margin-top:12px;
   }
   .dashboardHubCard{
     grid-template-columns:auto minmax(0,1fr) auto;
@@ -3272,11 +3281,20 @@ body.menu-open{
   gap:18px;
 }
 .sellerProfileSummaryCard__head{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:start;
   gap:16px;
-  flex-wrap:wrap;
+}
+.sellerProfileSummaryCard__heading{
+  min-width:0;
+}
+.sellerProfileSummaryCard__edit{
+  align-self:start;
+  min-height:38px;
+  padding-inline:14px;
+  font-size:.94rem;
+  box-shadow:0 10px 20px rgba(0,0,0,.14);
 }
 .sellerProfileSummaryList{
   display:grid;
@@ -3304,7 +3322,14 @@ body.menu-open{
   margin-top:6px;
 }
 @media (max-width: 640px){
-  .sellerProfileSummaryCard__head .btn,
+  .sellerProfileSummaryCard__head{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:12px;
+  }
+  .sellerProfileSummaryCard__edit{
+    padding-inline:12px;
+    font-size:.9rem;
+  }
   .dashboardHubCard .btn{
     width:100%;
   }
