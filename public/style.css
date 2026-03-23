@@ -3186,7 +3186,7 @@ body.menu-open{
 .dashboardHub__list{
   display:grid;
   grid-template-columns:1fr;
-  gap:14px;
+  gap:12px;
   margin-top:18px;
 }
 .dashboardHubCard{
@@ -3256,7 +3256,7 @@ body.menu-open{
     max-width:none;
   }
   .dashboardHub__list{
-    gap:12px;
+    gap:10px;
     margin-top:12px;
   }
   .dashboardHubCard{
