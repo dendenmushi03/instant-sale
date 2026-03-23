@@ -1489,6 +1489,8 @@ app.get('/creator/seller-profile', ensureAuthed, async (req, res) => {
     returnTo,
     backPath: resolveSellerProfileBackPath(returnTo, getSellerProfileCompletion(me))
   });
+
+  return res.redirect(303, withQueryParam(returnTo, 'sellerProfileSaved', '1'));
 });
 
 app.get('/creator/legal', ensureAuthed, (req, res) => {
