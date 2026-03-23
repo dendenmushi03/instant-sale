@@ -1,17 +1,23 @@
 <!doctype html>
 <html lang="<%= lng || 'ja' %>">
 <head>
-  <%- include('../partials/head', { title, og, canonical: baseUrl + '/dashboard' }) %>
+  <%- include('../partials/head', { title, og, canonical: baseUrl + '/dashboard/listings' }) %>
 </head>
 <body class="layout">
   <%- include('../partials/header') %>
 
   <main class="container dashboardPage">
+    <div class="dashboardBreadcrumbs muted">
+      <a href="/dashboard">ダッシュボード</a>
+      <span>/</span>
+      <span>出品情報</span>
+    </div>
+
     <section class="dashboardHero card">
       <div>
-        <p class="eyebrow">Dashboard</p>
-        <h1 class="dashboardHero__title">出品ダッシュボード</h1>
-        <p class="muted dashboardHero__lead">ログイン中のアカウントに紐づく出品作品だけを、新しい順で一覧表示しています。</p>
+        <p class="eyebrow">Listings</p>
+        <h1 class="dashboardHero__title">出品情報</h1>
+        <p class="muted dashboardHero__lead">ログイン中のアカウントに紐づく出品作品を、新しい順で一覧表示しています。</p>
       </div>
       <div class="dashboardHero__meta">
         <div class="dashboardStat">
@@ -21,7 +27,6 @@
         <a class="btn btn--primary" href="/creator">新しく出品する</a>
       </div>
     </section>
-
 
     <section>
       <div class="dashboardSectionHead">
@@ -46,14 +51,8 @@
                 <div class="dashboardCard__body">
                   <h3 class="dashboardCard__title"><%= item.title %></h3>
                   <dl class="dashboardMetaList">
-                    <div>
-                      <dt>価格</dt>
-                      <dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd>
-                    </div>
-                    <div>
-                      <dt>作成日</dt>
-                      <dd><%= new Date(item.createdAt).toLocaleDateString(locale) %></dd>
-                    </div>
+                    <div><dt>価格</dt><dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd></div>
+                    <div><dt>作成日</dt><dd><%= new Date(item.createdAt).toLocaleDateString(locale) %></dd></div>
                   </dl>
                   <div class="dashboardCard__footer">
                     <span class="dashboardCard__url"><%= item.saleUrl %></span>
