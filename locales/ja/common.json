@@ -24,7 +24,7 @@
   "upload.field.file": "販売データ",
   "upload.field.title": "タイトル",
   "upload.field.title_ph": "作品タイトル",
-  "upload.field.creator": "クリエイター名（任意）",
+  "upload.field.creator": "クリエイター名",
   "upload.field.creator_ph": "表示用の名前（任意）",
   "upload.price.price": "販売価格（円）",
   "upload.price.fee": "販売手数料",

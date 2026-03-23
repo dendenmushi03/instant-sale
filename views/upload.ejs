@@ -104,17 +104,21 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
       </h2>
 
       <label class="field">
-        <span class="fieldLabel"><%= t('upload.field.title') %></span>
+        <span class="fieldLabel saleSectionHeading"><%= t('upload.field.title') %></span>
         <span class="fieldHelp"><%= (lng==='en') ? 'Displayed on the sale page.' : '販売ページに表示されます。' %></span>
         <input class="textInput" type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
       </label>
 
       <div class="field">
-        <span class="fieldLabel"><%= t('upload.field.creator') %></span>
-        <span class="fieldHelp"><%= (lng==='en') ? 'Shown automatically from your seller profile.' : '販売ページの表示名は販売者情報から自動反映されます。' %></span>
+        <span class="fieldLabel saleSectionHeading"><%= t('upload.field.creator') %></span>
+        <span class="fieldHelp"><%= (lng==='en') ? 'Shown automatically from your seller profile.' : '販売者情報から自動で反映されます。' %></span>
       </div>
 
-      <p class="priceHelp muted">
+      <div class="field">
+        <span class="fieldLabel saleSectionHeading"><%= (lng==='en') ? 'Pricing' : '価格設定' %></span>
+      </div>
+
+      <p class="fieldHelp priceHelp priceHelp--section muted">
         <%= (lng==='en')
           ? 'Platform fee is automatically calculated. You receive the profit amount.'
           : '手数料は自動計算され、利益額がそのまま受取額になります。' %>
