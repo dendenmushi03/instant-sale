@@ -160,10 +160,6 @@ function pickEditableItemFields(body = {}) {
     next.title = body.title.trim().slice(0, 120);
   }
 
-  if (typeof body.creatorName === 'string') {
-    next.creatorName = body.creatorName.trim().slice(0, 120);
-  }
-
   if (typeof body.price !== 'undefined') {
     const priceNum = Number(body.price);
     if (!Number.isFinite(priceNum) || !Number.isInteger(priceNum) || priceNum < MIN_PRICE) {
@@ -592,16 +588,38 @@ const ensureAuthed = (req, res, next) => {
 
 function getSellerProfileCompletion(user) {
   const profile = user?.sellerProfile || {};
-  return !!(profile.isCompleted && profile.legalName && profile.address && profile.phoneNumber);
+  const businessType = profile.businessType;
+  const commonReady = !!(
+    businessType &&
+    profile.creatorDisplayName &&
+    /^\d{7}$/.test(profile.postalCode || '') &&
+    profile.address &&
+    /^\d{10,11}$/.test(profile.phoneNumber || '')
+  );
+
+  if (businessType === 'sole_proprietor') {
+    return !!(commonReady && profile.legalName);
+  }
+
+  if (businessType === 'corporation') {
+    return !!(commonReady && profile.legalName && profile.representativeName);
+  }
+
+  return false;
 }
 
 function sanitizeSellerProfileInput(body = {}) {
   const normalize = (value, max) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
   const normalizePostal = (value) => String(value || '').replace(/-/g, '').replace(/\D/g, '').slice(0, 7);
   const normalizePhone = (value) => String(value || '').replace(/-/g, '').replace(/\D/g, '').slice(0, 11);
+  const normalizeBusinessType = (value) => String(value || '').trim();
 
+  const businessType = normalizeBusinessType(body.businessType);
   return {
+    businessType,
+    creatorDisplayName: normalize(body.creatorDisplayName, 120),
     legalName: normalize(body.legalName, 120),
+    representativeName: businessType === 'corporation' ? normalize(body.representativeName, 120) : '',
     postalCode: normalizePostal(body.postalCode),
     address: normalize(body.address, 240),
     phoneNumber: normalizePhone(body.phoneNumber),
@@ -611,8 +629,33 @@ function sanitizeSellerProfileInput(body = {}) {
 function validateSellerProfileInput(input = {}) {
   const errors = {};
 
-  if (!input.legalName) errors.legalName = '法定名義を入力してください';
-  else if (input.legalName.length > 120) errors.legalName = '法定名義は120文字以内で入力してください';
+  if (!['sole_proprietor', 'corporation'].includes(input.businessType)) {
+    errors.businessType = '事業種別を選択してください';
+  }
+
+  if (!input.creatorDisplayName) {
+    errors.creatorDisplayName = 'クリエイター名を入力してください';
+  } else if (input.creatorDisplayName.length > 120) {
+    errors.creatorDisplayName = 'クリエイター名は120文字以内で入力してください';
+  }
+
+  if (!input.legalName) {
+    errors.legalName = input.businessType === 'corporation'
+      ? '法人名を入力してください'
+      : '法定名義を入力してください';
+  } else if (input.legalName.length > 120) {
+    errors.legalName = input.businessType === 'corporation'
+      ? '法人名は120文字以内で入力してください'
+      : '法定名義は120文字以内で入力してください';
+  }
+
+  if (input.businessType === 'corporation') {
+    if (!input.representativeName) {
+      errors.representativeName = '代表者名または通信販売責任者名を入力してください';
+    } else if (input.representativeName.length > 120) {
+      errors.representativeName = '代表者名または通信販売責任者名は120文字以内で入力してください';
+    }
+  }
 
   if (!input.postalCode) {
     errors.postalCode = '郵便番号を入力してください';
@@ -626,9 +669,9 @@ function validateSellerProfileInput(input = {}) {
   if (!input.phoneNumber) {
     errors.phoneNumber = '電話番号を入力してください';
   } else if (!/^\d+$/.test(input.phoneNumber)) {
-    errors.phoneNumber = '電話番号は半角数字のみで入力してください';
+    errors.phoneNumber = '電話番号はハイフンなしの半角数字で入力してください';
   } else if (input.phoneNumber.length < 10 || input.phoneNumber.length > 11) {
-    errors.phoneNumber = '電話番号の形式を確認してください';
+    errors.phoneNumber = '電話番号はハイフンなしの半角数字で入力してください';
   }
 
   return errors;
@@ -711,7 +754,7 @@ function dashboardBaseView(req, extra = {}) {
     lng,
     locale,
     minPrice: MIN_PRICE,
-    editableFields: ['title', 'creatorName', 'price'],
+    editableFields: ['title', 'price'],
     nonEditableFields: ['previewPath', 'filePath', 's3Key', 'licensePreset', 'licenseNotes', 'requireCredit', 'mimeType'],
     ...extra
   };
@@ -1345,7 +1388,6 @@ app.get('/dashboard/items/:id/edit', ensureAuthed, ensureSellerProfileCompleted,
       item: dashboardItemView(item),
       formValues: {
         title: item.title || '',
-        creatorName: item.creatorName || '',
         price: item.price || MIN_PRICE
       },
       errorMessage: '',
@@ -1396,7 +1438,6 @@ app.post('/dashboard/items/:id/edit', ensureAuthed, ensureSellerProfileCompleted
       item: dashboardItemView(updated),
       formValues: {
         title: updated.title || '',
-        creatorName: updated.creatorName || '',
         price: updated.price || MIN_PRICE
       },
       errorMessage: '',
@@ -1415,7 +1456,6 @@ app.post('/dashboard/items/:id/edit', ensureAuthed, ensureSellerProfileCompleted
       item: dashboardItemView(item),
       formValues: {
         title: typeof req.body.title === 'string' ? req.body.title : item.title || '',
-        creatorName: typeof req.body.creatorName === 'string' ? req.body.creatorName : item.creatorName || '',
         price: typeof req.body.price !== 'undefined' ? req.body.price : item.price || MIN_PRICE
       },
       errorMessage: e?.message || '販売情報の更新に失敗しました。',
@@ -1433,7 +1473,10 @@ app.get('/creator/seller-profile', ensureAuthed, async (req, res) => {
   return res.render('seller-profile', {
     baseUrl: BASE_URL,
     formValues: {
+      businessType: sellerProfile.businessType || '',
+      creatorDisplayName: sellerProfile.creatorDisplayName || '',
       legalName: sellerProfile.legalName || '',
+      representativeName: sellerProfile.representativeName || '',
       postalCode: sellerProfile.postalCode || '',
       address: sellerProfile.address || '',
       phoneNumber: sellerProfile.phoneNumber || ''
@@ -1446,13 +1489,15 @@ app.get('/creator/seller-profile', ensureAuthed, async (req, res) => {
     returnTo,
     backPath: resolveSellerProfileBackPath(returnTo, getSellerProfileCompletion(me))
   });
+
+  return res.redirect(303, withQueryParam(returnTo, 'sellerProfileSaved', '1'));
 });
 
 app.get('/creator/legal', ensureAuthed, (req, res) => {
   return res.redirect(302, buildSellerProfilePath(req.query.returnTo || '/creator', { legacy: '1' }));
 });
 
-app.post('/creator/seller-profile', ensureAuthed, async (req, res) => {
+async function handleSellerProfileSave(req, res) {
   const formValues = sanitizeSellerProfileInput(req.body);
   const errors = validateSellerProfileInput(formValues);
   const returnTo = sanitizeReturnPath(req.body.returnTo || req.query.returnTo || '/creator');
@@ -1472,15 +1517,24 @@ app.post('/creator/seller-profile', ensureAuthed, async (req, res) => {
   }
 
   const now = new Date();
+  const completedProfile = {
+    ...formValues,
+    updatedAt: now
+  };
+  const isCompleted = getSellerProfileCompletion({ sellerProfile: completedProfile });
+
   await User.updateOne(
     { _id: req.user._id },
     {
       $set: {
+        'sellerProfile.businessType': formValues.businessType,
+        'sellerProfile.creatorDisplayName': formValues.creatorDisplayName,
         'sellerProfile.legalName': formValues.legalName,
+        'sellerProfile.representativeName': formValues.representativeName,
         'sellerProfile.postalCode': formValues.postalCode,
         'sellerProfile.address': formValues.address,
         'sellerProfile.phoneNumber': formValues.phoneNumber,
-        'sellerProfile.isCompleted': true,
+        'sellerProfile.isCompleted': isCompleted,
         'sellerProfile.updatedAt': now
       }
     }
@@ -1488,12 +1542,15 @@ app.post('/creator/seller-profile', ensureAuthed, async (req, res) => {
 
   console.info('[sellerProfile:saved]', {
     userId: String(req.user._id),
-    completed: true,
+    completed: isCompleted,
     updatedAt: now.toISOString()
   });
 
   return res.redirect(303, withQueryParam(returnTo, 'sellerProfileSaved', '1'));
-});
+}
+
+app.post('/creator/legal', ensureAuthed, handleSellerProfileSave);
+app.post('/creator/seller-profile', ensureAuthed, handleSellerProfileSave);
 
 app.get('/creator', ensureAuthed, ensureSellerProfileCompleted, async (req, res) => {
   const connect = await getConnectStatus(req.user);
@@ -1516,9 +1573,15 @@ app.post('/upload', ensureAuthed, ensureSellerProfileCompleted, upload.single('i
   try {
 
 const {
-  title, price, creatorName, creatorSecret, ownerEmail, attestOwner,
-  licensePreset,            licenseNotes, aiGenerated, aiModelName
+  title, creatorSecret, ownerEmail, attestOwner,
+  licensePreset, licenseNotes, aiGenerated, aiModelName
 } = req.body;
+const sellerProfileForUpload = req.user?._id
+  ? await User.findById(req.user._id).select('sellerProfile').lean()
+  : null;
+// クリエイター名の正規ソースは sellerProfile.creatorDisplayName。
+const creatorDisplayName = sellerProfileForUpload?.sellerProfile?.creatorDisplayName || '';
+const price = req.body.price;
 
 const currency = CURRENCY; // ← フォーム値は無視して固定
 
@@ -1664,7 +1727,9 @@ if (!s3) {
   filePath: req.file.path,
   previewPath: `/previews/${previewName}`,
   mimeType,
-  creatorName: creatorName || '',
+  // Item.creatorName は後方互換用の補助保存。正規ソースは sellerProfile.creatorDisplayName。
+  // Item.creatorName は後方互換用の補助保存。正規ソースは sellerProfile.creatorDisplayName。
+  creatorName: creatorDisplayName || '',
   ownerUser: req.user?._id || null,
   createdBySecret: creatorSecret || '',
   ownerEmail: (req.user?.email || ownerEmail || ''),
@@ -1774,7 +1839,7 @@ const item = await Item.create({
 filePath: '',
 
   mimeType,
-  creatorName: creatorName || '',
+  creatorName: creatorDisplayName || '',
   ownerUser: req.user?._id || null,
   createdBySecret: creatorSecret || '',
   ownerEmail: (req.user?.email || ownerEmail || ''),
@@ -1837,7 +1902,7 @@ app.get('/s/:slug', async (req, res) => {
     let seller = null;
     if (item.ownerUser) {
       seller = await User.findById(item.ownerUser)
-        .select('stripeAccountId payoutsEnabled')
+        .select('stripeAccountId payoutsEnabled sellerProfile.creatorDisplayName')
         .lean();
     }
 
@@ -1859,6 +1924,9 @@ app.get('/s/:slug', async (req, res) => {
       const p = item.previewPath || `/previews/${item.slug}-preview.jpg`;
       return /^https?:\/\//i.test(p) ? p : `${BASE_URL}${p.startsWith('/') ? '' : '/'}${p}`;
     })();
+
+    // 販売ページの表示名は sellerProfile.creatorDisplayName を正とし、item.creatorName は既存データ用フォールバックのみ。
+    const creatorDisplayName = seller?.sellerProfile?.creatorDisplayName || item.creatorName || '';
 
     // OGP
     const og = {
@@ -1884,6 +1952,7 @@ res.set('Cache-Control', 'private, max-age=60');
       baseUrl: BASE_URL,
       item,
       ownerPayoutWarning,
+      creatorDisplayName,
       tokushohoUrl,
       og,
       licenseView,

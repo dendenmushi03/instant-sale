@@ -3020,3 +3020,18 @@ body.menu-open{
   .sellerProfileCard{ gap: 16px; }
   .sellerProfileForm__actions{ display: grid; }
 }
+
+
+.sellerTypeSection{display:grid;gap:12px}
+.sellerTypeChoices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sellerTypeChoice{display:grid;gap:6px;padding:16px;border:1px solid #d1d5db;border-radius:16px;background:#fff;cursor:pointer;transition:border-color .2s ease, box-shadow .2s ease, background .2s ease}
+.sellerTypeChoice input{position:absolute;opacity:0;pointer-events:none}
+.sellerTypeChoice.is-selected{border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.08);background:#f8fafc}
+.sellerTypeChoice__title{font-weight:700;color:#111827}
+.sellerTypeChoice__desc{font-size:.94rem;color:#6b7280;line-height:1.6}
+.sellerProfileFields{display:grid;gap:18px}
+.sellerProfileFields:not(.is-ready){display:none}
+.sellerProfileField--representative.is-hidden{display:none}
+.buyCard__creatorRow{display:flex;flex-wrap:wrap;gap:8px;row-gap:4px;align-items:center;word-break:break-word}
+.buyCard__legalLink{font-size:.92rem}
+@media (max-width: 640px){.sellerTypeChoices{grid-template-columns:1fr}}

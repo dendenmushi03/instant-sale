@@ -65,14 +65,10 @@
         <section class="buyCard" aria-label="purchase">
           <div class="buyCard__top">
             <h1 class="product-title"><%= item.title %></h1>
-            <% if (item.creatorName) { %><div class="muted">by <%= item.creatorName %></div><% } %>
+            <% if (creatorDisplayName) { %><div class="muted buyCard__creatorRow">by <%= creatorDisplayName %> <a href="<%= tokushohoUrl %>" rel="nofollow" class="buyCard__legalLink"><%= t('product.legal_link') %></a></div><% } else { %><div class="muted buyCard__creatorRow"><a href="<%= tokushohoUrl %>" rel="nofollow" class="buyCard__legalLink"><%= t('product.legal_link') %></a></div><% } %>
 
             <div class="price">¥<%= item.price.toLocaleString(locale) %></div>
             <div class="muted buyCard__tax"><%= t('product.tax_note') %></div>
-
-            <div class="muted buyCard__meta">
-              <a href="<%= tokushohoUrl %>" rel="nofollow"><%= t('product.legal_link') %></a>
-            </div>
 
             <div class="muted buyCard__meta buyCard__meta--spaced">
               <%= t('product.download_note') %>

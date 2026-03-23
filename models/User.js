@@ -29,12 +29,15 @@ const userSchema = new mongoose.Schema(
 
     // 新規の販売者情報登録フローにおける正規ソース。
     sellerProfile: {
-      legalName:    { type: String, default: '' },
-      postalCode:   { type: String, default: '' },
-      address:      { type: String, default: '' },
-      phoneNumber:  { type: String, default: '' },
-      isCompleted:  { type: Boolean, default: false, index: true },
-      updatedAt:    { type: Date, default: null },
+      businessType:       { type: String, enum: ['sole_proprietor', 'corporation'], default: undefined },
+      creatorDisplayName: { type: String, default: '' },
+      legalName:          { type: String, default: '' },
+      representativeName: { type: String, default: '' },
+      postalCode:         { type: String, default: '' },
+      address:            { type: String, default: '' },
+      phoneNumber:        { type: String, default: '' },
+      isCompleted:        { type: Boolean, default: false, index: true },
+      updatedAt:          { type: Date, default: null },
     },
   },
   { timestamps: true }
