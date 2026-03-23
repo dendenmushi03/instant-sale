@@ -1288,6 +1288,10 @@ app.get('/connect/portal', ensureAuthed, async (req, res) => {
   });
 
   try {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
     if (!stripe) {
       console.error('[connect/portal] stripe_not_configured', { stripeMode });
       return res.status(500).render('error', { message: 'Stripeが未設定です（STRIPE_SECRET_KEY）。' });
