@@ -1470,6 +1470,61 @@ app.get('/connect/portal', ensureAuthed, async (req, res) => {
       redirectUrl: `${BASE_URL}/creator`
     });
 
+    let stripeAccountType = null;
+    try {
+      const stripeAccount = await stripe.accounts.retrieve(accountId);
+      stripeAccountType = stripeAccount?.type || null;
+      console.info('[connect/portal] account_retrieve:success', {
+        userId: String(userId),
+        stripeAccountId: maskStripeAccountId(accountId),
+        stripeMode,
+        type: stripeAccountType,
+        payoutsEnabled: !!stripeAccount?.payouts_enabled,
+        chargesEnabled: !!stripeAccount?.charges_enabled,
+        detailsSubmitted: !!stripeAccount?.details_submitted
+      });
+
+    } catch (retrieveErr) {
+      console.error('[connect/portal] account_retrieve:failed', {
+        userId: String(userId),
+        stripeAccountId: maskStripeAccountId(accountId),
+        stripeMode,
+        message: retrieveErr?.message,
+        type: retrieveErr?.type || retrieveErr?.name || null,
+        code: retrieveErr?.code || retrieveErr?.raw?.code || null,
+        rawMessage: retrieveErr?.raw?.message || null,
+        rawCode: retrieveErr?.raw?.code || null
+      });
+
+      const shouldReOnboard = ['resource_missing', 'account_invalid', 'invalid_request_error'].includes(retrieveErr?.code)
+        || ['resource_missing', 'account_invalid', 'invalid_request_error'].includes(retrieveErr?.raw?.code)
+        || retrieveErr?.statusCode === 404;
+
+      if (shouldReOnboard) {
+        console.info('[connect/portal] redirect_to_onboard:retrieve_failed', {
+          userId: String(userId),
+          stripeAccountId: maskStripeAccountId(accountId),
+          stripeMode,
+          code: retrieveErr?.code || retrieveErr?.raw?.code || null
+        });
+        return res.redirect('/connect/onboard');
+      }
+
+      return res.status(500).render('error', {
+        message: '売上ダッシュボードに遷移できませんでした。時間をおいて再度お試しください。',
+        primaryAction: { href: '/connect/portal', label: '再試行する' },
+        secondaryAction: { href: '/dashboard', label: 'ダッシュボードに戻る' }
+      });
+    }
+
+    console.info('[connect/portal] create_login_link:start', {
+      userId: String(userId),
+      stripeAccountId: maskStripeAccountId(accountId),
+      stripeMode,
+      accountType: stripeAccountType,
+      redirectUrl: `${BASE_URL}/creator`
+    });
+
     // 一時ログインリンクを発行（数十秒〜1分有効）
     const link = await stripe.accounts.createLoginLink(accountId, {
       redirect_url: `${BASE_URL}/creator`  // 閲覧後の戻り先
