@@ -3160,18 +3160,7 @@ body.menu-open{
 }
 
 .dashboardHub{
-  max-width:980px;
-}
-.dashboardHubHero{
-  margin-top:18px;
-  padding:28px;
-}
-.dashboardHubHero .dashboardHero__title{
-  margin:0;
-}
-.dashboardHubHero .dashboardHero__lead{
-  margin:10px 0 0;
-  max-width:560px;
+  max-width:760px;
 }
 .dashboardHub__list{
   display:grid;
@@ -3241,14 +3230,13 @@ body.menu-open{
   width:18px;
   height:18px;
 }
-@media (min-width: 861px){
-  .dashboardHub__list{
-    grid-template-columns:repeat(2, minmax(0,1fr));
-  }
-}
 @media (max-width: 640px){
-  .dashboardHubHero{
-    padding:22px 18px;
+  .dashboardHub{
+    max-width:none;
+  }
+  .dashboardHub__list{
+    gap:12px;
+    margin-top:12px;
   }
   .dashboardHubCard{
     grid-template-columns:auto minmax(0,1fr) auto;
