@@ -19,7 +19,7 @@
       <h1 class="errorCard__title"><%= (lng === 'en') ? 'Opening the payout dashboard…' : '売上管理ページを開いています…' %></h1>
       <p class="errorCard__desc"><%= (lng === 'en') ? 'If you are not redirected automatically, use the button below.' : '自動で移動しない場合は、下のボタンから開いてください。' %></p>
       <div class="errorCard__actions">
-        <a class="btn btn--primary" href="/connect/portal"><%= (lng === 'en') ? 'Open payout dashboard' : '売上管理を開く' %></a>
+        <a class="btn btn--primary" href="<%= redirectUrl %>" rel="noreferrer"><%= (lng === 'en') ? 'Open payout dashboard' : '売上管理を開く' %></a>
         <a class="btn btn--soft" href="<%= fallbackPath || '/dashboard' %>"><%= (lng === 'en') ? 'Back to dashboard' : 'ダッシュボードに戻る' %></a>
       </div>
     </section>
