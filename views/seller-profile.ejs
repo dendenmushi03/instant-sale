@@ -25,6 +25,9 @@
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="returnTo" value="<%= returnTo %>">
 
+        <div id="sellerProfileFields" class="sellerProfileFields <%= formValues.businessType ? 'is-ready' : '' %>">
+          <p class="sellerProfileInfoNote">クリエイター名以外の情報は、公開販売ページには表示されません。出品者確認のために管理者のみ確認できる情報です。</p>
+
         <section class="sellerTypeSection">
           <div class="fieldLabel">事業種別 <span class="sellerProfileField__required">必須</span></div>
           <div class="sellerTypeChoices" role="radiogroup" aria-label="事業種別">
@@ -54,9 +57,6 @@
           <% if (errors.businessType) { %><span class="sellerProfileField__error"><%= errors.businessType %></span><% } %>
         </section>
 
-        <div id="sellerProfileFields" class="sellerProfileFields <%= formValues.businessType ? 'is-ready' : '' %>">
-          <p class="sellerProfileInfoNote">クリエイター名以外の情報は公開されず、管理者のみが確認します。</p>
-
           <label class="field sellerProfileField">
             <span class="fieldLabel">クリエイター名 <span class="sellerProfileField__required">必須</span></span>
             <span class="fieldHelp">販売ページに表示される名前です。</span>
@@ -65,8 +65,8 @@
           </label>
 
           <label class="field sellerProfileField">
-            <span class="fieldLabel" id="legalNameLabel"><%= formValues.businessType === 'corporation' ? '法人名' : '法定名義' %> <span class="sellerProfileField__required">必須</span></span>
-            <span class="fieldHelp"><%= formValues.businessType === 'corporation' ? '登記上の法人名を入力してください。' : '法定名義を入力してください。' %></span>
+            <span class="fieldLabel" id="legalNameLabel"><%= formValues.businessType === 'corporation' ? '法人名' : '氏名（本名）' %> <span class="sellerProfileField__required">必須</span></span>
+            <span class="fieldHelp"><%= formValues.businessType === 'corporation' ? '登記上の法人名を入力してください。' : '本人確認書類と一致する氏名を入力してください。' %></span>
             <input class="textInput" type="text" name="legalName" maxlength="120" required value="<%= formValues.legalName %>">
             <% if (errors.legalName) { %><span class="sellerProfileField__error"><%= errors.legalName %></span><% } %>
           </label>
@@ -86,7 +86,8 @@
 
           <label class="field sellerProfileField">
             <span class="fieldLabel">住所 <span class="sellerProfileField__required">必須</span></span>
-            <textarea class="textInput sellerProfileField__textarea" name="address" rows="4" maxlength="240" required><%= formValues.address %></textarea>
+            <span class="fieldHelp">建物名・部屋番号まで省略せず、正確にご入力ください。</span>
+　　　　　　 <textarea class="textInput sellerProfileField__textarea" name="address" rows="4" maxlength="240" required><%= formValues.address %></textarea>
             <% if (errors.address) { %><span class="sellerProfileField__error"><%= errors.address %></span><% } %>
           </label>
 
