@@ -1428,11 +1428,7 @@ app.get('/connect/portal', ensureAuthed, async (req, res) => {
       hasLinkUrl: !!link?.url
     });
 
-    // one-time URL を履歴に残さないよう、手前ページで replace 遷移する
-    return res.render('portal-handoff', {
-      redirectUrl: link.url,
-      fallbackPath: '/dashboard'
-    });
+    return res.redirect(link.url);
   } catch (err) {
     console.error('[connect/portal] failed', {
       userId: userId ? String(userId) : null,
