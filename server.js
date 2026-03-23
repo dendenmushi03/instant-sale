@@ -1422,15 +1422,20 @@ app.get('/dashboard/items/:id/original', ensureAuthed, async (req, res) => {
 
 app.get('/dashboard/items/:id', ensureAuthed, async (req, res) => {
   try {
-    const item = await findOwnedItem(req.params.id, req.user._id);
+    const [item, me] = await Promise.all([
+      findOwnedItem(req.params.id, req.user._id),
+      User.findById(req.user._id).select('sellerProfile.creatorDisplayName').lean()
+    ]);
     if (!item) {
       return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
     }
 
     const viewItem = dashboardItemView(item);
+    const creatorDisplayName = me?.sellerProfile?.creatorDisplayName || item.creatorName || '';
     return res.render('dashboard/show', dashboardBaseView(req, {
       title: `${item.title} | ダッシュボード`,
       item: viewItem,
+      creatorDisplayName,
       licenseView: licenseViewOf(item),
       og: {
         title: `${item.title} | Dashboard`,

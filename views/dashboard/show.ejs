@@ -30,7 +30,7 @@
         </h1>
 
         <dl class="dashboardDetailList">
-          <div><dt>クリエイター名</dt><dd><%= item.creatorName || '未設定' %></dd></div>
+          <div><dt>クリエイター名</dt><dd><%= creatorDisplayName || '未設定' %></dd></div>
           <div><dt>価格</dt><dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd></div>
           <div><dt>作成日</dt><dd><%= new Date(item.createdAt).toLocaleString(locale) %></dd></div>
           <div><dt>ライセンス</dt><dd><%= licenseView.label %> / 編集不可</dd></div>
