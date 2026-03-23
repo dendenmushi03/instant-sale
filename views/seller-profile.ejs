@@ -30,22 +30,22 @@
           <div class="sellerTypeChoices" role="radiogroup" aria-label="事業種別">
             <label class="sellerTypeChoice <%= formValues.businessType === 'sole_proprietor' ? 'is-selected' : '' %>">
               <input type="radio" name="businessType" value="sole_proprietor" <%= formValues.businessType === 'sole_proprietor' ? 'checked' : '' %>>
+              <span class="sellerTypeChoice__badge" aria-hidden="true">選択中</span>
               <span class="sellerTypeChoice__control" aria-hidden="true"></span>
               <span class="sellerTypeChoice__body">
                 <span class="sellerTypeChoice__titleRow">
                   <span class="sellerTypeChoice__title">個人で販売する</span>
-                  <span class="sellerTypeChoice__badge" aria-hidden="true">選択中</span>
                 </span>
                 <span class="sellerTypeChoice__desc">個人名義で作品を販売する方</span>
               </span>
             </label>
             <label class="sellerTypeChoice <%= formValues.businessType === 'corporation' ? 'is-selected' : '' %>">
               <input type="radio" name="businessType" value="corporation" <%= formValues.businessType === 'corporation' ? 'checked' : '' %>>
+              <span class="sellerTypeChoice__badge" aria-hidden="true">選択中</span>
               <span class="sellerTypeChoice__control" aria-hidden="true"></span>
               <span class="sellerTypeChoice__body">
                 <span class="sellerTypeChoice__titleRow">
                   <span class="sellerTypeChoice__title">法人で販売する</span>
-                  <span class="sellerTypeChoice__badge" aria-hidden="true">選択中</span>
                 </span>
                 <span class="sellerTypeChoice__desc">法人名義で作品を販売する方</span>
               </span>

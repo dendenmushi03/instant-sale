@@ -3014,11 +3014,15 @@ body.menu-open{
   font-size: .92rem;
 }
 .sellerProfileForm__actions{
-  justify-content: flex-start;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:center;
+  justify-content:flex-start;
 }
 @media (max-width: 640px){
   .sellerProfileCard{ gap: 16px; }
-  .sellerProfileForm__actions{ display: grid; }
+  .sellerProfileForm__actions{ gap:10px; }
 }
 
 
@@ -3066,17 +3070,20 @@ body.menu-open{
   min-width:0;
   display:grid;
   gap:8px;
+  padding-top:14px;
 }
 .sellerTypeChoice__titleRow{
   display:flex;
   align-items:center;
-  justify-content:space-between;
   gap:12px;
 }
 .sellerTypeChoice__title{font-weight:700;color:#111827;line-height:1.4}
 .sellerTypeChoice__badge{
   display:none;
-  flex-shrink:0;
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:1;
   padding:4px 9px;
   border-radius:999px;
   background:#111827;
@@ -3126,9 +3133,11 @@ body.menu-open{
   .sellerTypeChoice__body{gap:7px}
   .sellerTypeChoice__titleRow{
     align-items:flex-start;
-    flex-direction:column;
-    gap:6px;
   }
-  .sellerTypeChoice__badge{font-size:.7rem}
+  .sellerTypeChoice__badge{
+    top:12px;
+    right:12px;
+    font-size:.7rem;
+  }
   .sellerTypeChoice__desc{font-size:.92rem;line-height:1.65}
 }
