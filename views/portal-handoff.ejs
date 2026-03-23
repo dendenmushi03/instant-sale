@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title><%= (lng === 'en') ? 'Opening payouts...' : '売上管理を開いています…' %> | Instant Sale</title>
+  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
+  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
+</head>
+<body class="layout">
+  <%- include('partials/header') %>
+
+  <main class="container errorPage">
+    <section class="card errorCard errorCard--success">
+      <p class="errorCard__eyebrow"><%= (lng === 'en') ? 'REDIRECTING' : '移動中' %></p>
+      <h1 class="errorCard__title"><%= (lng === 'en') ? 'Opening the payout dashboard…' : '売上管理ページを開いています…' %></h1>
+      <p class="errorCard__desc"><%= (lng === 'en') ? 'If you are not redirected automatically, use the button below.' : '自動で移動しない場合は、下のボタンから開いてください。' %></p>
+      <div class="errorCard__actions">
+        <a class="btn btn--primary" href="/connect/portal"><%= (lng === 'en') ? 'Open payout dashboard' : '売上管理を開く' %></a>
+        <a class="btn btn--soft" href="<%= fallbackPath || '/dashboard' %>"><%= (lng === 'en') ? 'Back to dashboard' : 'ダッシュボードに戻る' %></a>
+      </div>
+    </section>
+  </main>
+
+  <%- include('partials/footer') %>
+
+  <script>
+    (function () {
+      var target = <%- JSON.stringify(redirectUrl) %>;
+      if (!target) return;
+      window.location.replace(target);
+    })();
+  </script>
+</body>
+</html>
