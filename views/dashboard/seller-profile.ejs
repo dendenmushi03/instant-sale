@@ -15,12 +15,12 @@
 
     <section class="card sellerProfileCard sellerProfileSummaryCard">
       <div class="sellerProfileSummaryCard__head">
-        <div>
+        <div class="sellerProfileSummaryCard__heading">
           <p class="sellerProfileCard__eyebrow">SELLER PROFILE</p>
           <h1 class="sellerProfileCard__title">販売者情報</h1>
           <p class="sellerProfileCard__lead">現在登録されている販売者情報を確認できます。</p>
         </div>
-        <a class="btn btn--primary" href="/dashboard/seller-profile/edit">編集する</a>
+        <a class="btn btn--primary btn--compact sellerProfileSummaryCard__edit" href="/dashboard/seller-profile/edit">編集</a>
       </div>
 
       <% if (successMessage) { %><div class="dashboardAlert dashboardAlert--success"><%= successMessage %></div><% } %>
