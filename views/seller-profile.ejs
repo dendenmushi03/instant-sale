@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= pageTitle %> | Instant Sale</title>
+  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
+  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
+</head>
+<body class="layout">
+  <%- include('partials/header') %>
+
+  <main class="container dashboardPage dashboardPage--narrow sellerProfilePage">
+    <section class="card sellerProfileCard">
+      <div class="sellerProfileCard__head">
+        <p class="sellerProfileCard__eyebrow">SELLER PROFILE</p>
+        <h1 class="sellerProfileCard__title"><%= pageTitle %></h1>
+        <p class="sellerProfileCard__lead">出品を行うには、販売者情報の登録が必要です。</p>
+      </div>
+
+      <% if (errorMessage) { %><div class="dashboardAlert dashboardAlert--error"><%= errorMessage %></div><% } %>
+      <% if (successMessage) { %><div class="dashboardAlert dashboardAlert--success"><%= successMessage %></div><% } %>
+
+      <form action="/creator/seller-profile" method="post" class="dashboardForm sellerProfileForm" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+
+        <section class="sellerTypeSection">
+          <div class="fieldLabel">事業種別 <span class="sellerProfileField__required">必須</span></div>
+          <div class="sellerTypeChoices" role="radiogroup" aria-label="事業種別">
+            <label class="sellerTypeChoice <%= formValues.businessType === 'sole_proprietor' ? 'is-selected' : '' %>">
+              <input type="radio" name="businessType" value="sole_proprietor" <%= formValues.businessType === 'sole_proprietor' ? 'checked' : '' %>>
+              <span class="sellerTypeChoice__title">個人で販売する</span>
+              <span class="sellerTypeChoice__desc">個人名義で作品を販売する方</span>
+            </label>
+            <label class="sellerTypeChoice <%= formValues.businessType === 'corporation' ? 'is-selected' : '' %>">
+              <input type="radio" name="businessType" value="corporation" <%= formValues.businessType === 'corporation' ? 'checked' : '' %>>
+              <span class="sellerTypeChoice__title">法人で販売する</span>
+              <span class="sellerTypeChoice__desc">法人名義で作品を販売する方</span>
+            </label>
+          </div>
+          <% if (errors.businessType) { %><span class="sellerProfileField__error"><%= errors.businessType %></span><% } %>
+        </section>
+
+        <div id="sellerProfileFields" class="sellerProfileFields <%= formValues.businessType ? 'is-ready' : '' %>">
+          <label class="field sellerProfileField">
+            <span class="fieldLabel">クリエイター名 <span class="sellerProfileField__required">必須</span></span>
+            <span class="fieldHelp">販売ページに表示される名前です。</span>
+            <input class="textInput" type="text" name="creatorDisplayName" maxlength="120" required value="<%= formValues.creatorDisplayName %>">
+            <% if (errors.creatorDisplayName) { %><span class="sellerProfileField__error"><%= errors.creatorDisplayName %></span><% } %>
+          </label>
+
+          <label class="field sellerProfileField">
+            <span class="fieldLabel" id="legalNameLabel"><%= formValues.businessType === 'corporation' ? '法人名' : '法定名義' %> <span class="sellerProfileField__required">必須</span></span>
+            <span class="fieldHelp"><%= formValues.businessType === 'corporation' ? '登記上の法人名を入力してください。' : '法定名義を入力してください。' %></span>
+            <input class="textInput" type="text" name="legalName" maxlength="120" required value="<%= formValues.legalName %>">
+            <% if (errors.legalName) { %><span class="sellerProfileField__error"><%= errors.legalName %></span><% } %>
+          </label>
+
+          <label class="field sellerProfileField sellerProfileField--representative <%= formValues.businessType === 'corporation' ? '' : 'is-hidden' %>" id="representativeField">
+            <span class="fieldLabel">代表者名 / 通信販売責任者名 <span class="sellerProfileField__required">必須</span></span>
+            <input class="textInput" type="text" name="representativeName" maxlength="120" value="<%= formValues.representativeName %>">
+            <% if (errors.representativeName) { %><span class="sellerProfileField__error"><%= errors.representativeName %></span><% } %>
+          </label>
+
+          <label class="field sellerProfileField">
+            <span class="fieldLabel">郵便番号 <span class="sellerProfileField__required">必須</span></span>
+            <span class="fieldHelp">半角数字7桁で入力してください。</span>
+            <input class="textInput" type="text" name="postalCode" inputmode="numeric" pattern="\d{7}" maxlength="7" required value="<%= formValues.postalCode %>">
+            <% if (errors.postalCode) { %><span class="sellerProfileField__error"><%= errors.postalCode %></span><% } %>
+          </label>
+
+          <label class="field sellerProfileField">
+            <span class="fieldLabel">住所 <span class="sellerProfileField__required">必須</span></span>
+            <textarea class="textInput sellerProfileField__textarea" name="address" rows="4" maxlength="240" required><%= formValues.address %></textarea>
+            <% if (errors.address) { %><span class="sellerProfileField__error"><%= errors.address %></span><% } %>
+          </label>
+
+          <label class="field sellerProfileField">
+            <span class="fieldLabel">電話番号 <span class="sellerProfileField__required">必須</span></span>
+            <span class="fieldHelp">ハイフンなしの半角数字で入力してください。</span>
+            <input class="textInput" type="text" name="phoneNumber" inputmode="numeric" pattern="\d{10,11}" maxlength="11" required value="<%= formValues.phoneNumber %>">
+            <% if (errors.phoneNumber) { %><span class="sellerProfileField__error"><%= errors.phoneNumber %></span><% } %>
+          </label>
+        </div>
+
+        <div class="dashboardForm__actions sellerProfileForm__actions">
+          <button class="btn btn--primary" type="submit">保存する</button>
+          <a class="btn btn--ghost" href="<%= backPath || returnTo %>">戻る</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script nonce="<%= cspNonce %>">
+    (function () {
+      const radios = Array.from(document.querySelectorAll('input[name="businessType"]'));
+      const legalNameLabel = document.getElementById('legalNameLabel');
+      const representativeField = document.getElementById('representativeField');
+      const fieldsWrap = document.getElementById('sellerProfileFields');
+      const legalHelp = legalNameLabel ? legalNameLabel.nextElementSibling : null;
+
+      function renderBusinessType() {
+        const selected = radios.find((radio) => radio.checked)?.value || '';
+        fieldsWrap.classList.toggle('is-ready', !!selected);
+        radios.forEach((radio) => {
+          const choice = radio.closest('.sellerTypeChoice');
+          if (choice) choice.classList.toggle('is-selected', radio.checked);
+        });
+        if (selected === 'corporation') {
+          legalNameLabel.childNodes[0].nodeValue = '法人名 ';
+          if (legalHelp) legalHelp.textContent = '登記上の法人名を入力してください。';
+          representativeField.classList.remove('is-hidden');
+        } else {
+          legalNameLabel.childNodes[0].nodeValue = '法定名義 ';
+          if (legalHelp) legalHelp.textContent = '法定名義を入力してください。';
+          representativeField.classList.add('is-hidden');
+        }
+      }
+
+      radios.forEach((radio) => radio.addEventListener('change', renderBusinessType));
+      renderBusinessType();
+    })();
+  </script>
+
+  <%- include('partials/footer') %>
+</body>
+</html>

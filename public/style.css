@@ -2956,3 +2956,82 @@ body.menu-open{
   .dashboardModal__actions{flex-direction:column}
   .dashboardModal__actions .btn{width:100%}
 }
+
+.sellerProfilePage{
+  padding-bottom: 48px;
+}
+.sellerProfileCard{
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+}
+.sellerProfileCard__eyebrow{
+  margin: 0 0 8px;
+  font-size: .78rem;
+  letter-spacing: .12em;
+  color: #6b7280;
+}
+.sellerProfileCard__title{
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2rem);
+}
+.sellerProfileCard__lead{
+  margin: 12px 0 0;
+  color: #4b5563;
+  line-height: 1.8;
+}
+.sellerProfileForm{
+  display: grid;
+  gap: 18px;
+}
+.sellerProfileField{
+  display: grid;
+  gap: 8px;
+}
+.sellerProfileField__required{
+  display: inline-flex;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: .72rem;
+  vertical-align: middle;
+}
+.sellerProfileField__required{ background: #fee2e2; color: #b91c1c; }
+.sellerProfileField .textInput:not(textarea){
+  min-height: 52px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.sellerProfileField__textarea{
+  min-height: 104px;
+  resize: vertical;
+}
+.sellerProfileField__error{
+  color: #b91c1c;
+  font-size: .92rem;
+}
+.sellerProfileForm__actions{
+  justify-content: flex-start;
+}
+@media (max-width: 640px){
+  .sellerProfileCard{ gap: 16px; }
+  .sellerProfileForm__actions{ display: grid; }
+}
+
+
+.sellerTypeSection{display:grid;gap:12px}
+.sellerTypeChoices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sellerTypeChoice{display:grid;gap:6px;padding:16px;border:1px solid #d1d5db;border-radius:16px;background:#fff;cursor:pointer;transition:border-color .2s ease, box-shadow .2s ease, background .2s ease}
+.sellerTypeChoice input{position:absolute;opacity:0;pointer-events:none}
+.sellerTypeChoice.is-selected{border-color:#111827;box-shadow:0 0 0 3px rgba(17,24,39,.08);background:#f8fafc}
+.sellerTypeChoice__title{font-weight:700;color:#111827}
+.sellerTypeChoice__desc{font-size:.94rem;color:#6b7280;line-height:1.6}
+.sellerProfileFields{display:grid;gap:18px}
+.sellerProfileFields:not(.is-ready){display:none}
+.sellerProfileField--representative.is-hidden{display:none}
+.buyCard__creatorRow{display:flex;flex-wrap:wrap;gap:8px;row-gap:4px;align-items:center;word-break:break-word}
+.buyCard__legalLink{font-size:.92rem}
+@media (max-width: 640px){.sellerTypeChoices{grid-template-columns:1fr}}

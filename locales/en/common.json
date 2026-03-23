@@ -80,7 +80,7 @@
       "buyer": "\"Buyer\": a person who purchases content on the Service",
       "content": "\"Content\": images or other digital data"
     },
-    "account_html": "The Service uses external authentication such as Google. Users must keep their registration accurate and manage their accounts responsibly.",
+    "account_html": "The Service uses external authentication such as Google. Users must keep their registration accurate and manage their accounts responsibly. Users who wish to sell must also register the seller information designated by us. We collect and retain seller information, do not display it on public sale pages by default, and will respond without undue delay to lawful disclosure requests.",
     "warranty_html": "Sellers represent and warrant that (1) they hold necessary rights, (2) do not infringe third-party rights, and (3) comply with laws and public order.",
     "license_html": "The usage scope on each product page prevails. Unless otherwise noted, personal use only; redistribution, resale, public transmission, and secondary distribution of modifications are prohibited.",
     "fees": {
@@ -138,7 +138,7 @@
       "item3": "To prevent abuse and improve security/operations",
       "item4": "To comply with laws and respond to inquiries"
     },
-    "sharing_html": "We share the minimum necessary data with Stripe for payment processing. We do not sell or rent data to third parties except as required by law.",
+    "sharing_html": "We share the minimum necessary data with Stripe for payment processing. We also collect and retain seller profile information such as legal name, address, and phone number to operate seller features and respond to legal requests. This seller information is not displayed on public sale pages by default, and we will respond without undue delay when lawful disclosure is required. We do not sell or rent data to third parties except as required by law.",
     "security_html": "We implement reasonable security measures such as access control and encryption, though perfect security cannot be guaranteed.",
     "retention_html": "We retain data only as long as necessary for legal or operational purposes, and delete it appropriately when no longer needed.",
     "contact_prefix": "For inquiries about this policy: "
