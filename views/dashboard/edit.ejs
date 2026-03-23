@@ -34,6 +34,7 @@
     <section class="card dashboardFormCard dashboardFormCard--edit">
       <div class="dashboardEditSectionHead">
         <h2 class="dashboardEditSectionHead__title">販売情報</h2>
+        <p class="muted">販売ページのクリエイター名は販売者情報の内容が表示されます。</p>
       </div>
 
       <% if (errorMessage) { %>
@@ -51,12 +52,6 @@
             <span class="fieldLabel">タイトル</span>
             <span class="fieldHelp">販売ページの見出しとして表示されます。</span>
             <input class="textInput" type="text" name="title" maxlength="120" required value="<%= formValues.title %>">
-          </label>
-
-          <label class="field dashboardEditField">
-            <span class="fieldLabel">クリエイター名</span>
-            <span class="fieldHelp">任意です。販売ページで by 表記として表示されます。</span>
-            <input class="textInput" type="text" name="creatorName" maxlength="120" value="<%= formValues.creatorName %>">
           </label>
 
           <label class="field dashboardEditField dashboardEditField--price">
