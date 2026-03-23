@@ -3159,28 +3159,114 @@ body.menu-open{
   .sellerTypeChoice__desc{font-size:.92rem;line-height:1.65}
 }
 
-.dashboardHubGrid{
+.dashboardHub{
+  max-width:980px;
+}
+.dashboardHubHero{
+  margin-top:18px;
+  padding:28px;
+}
+.dashboardHubHero .dashboardHero__title{
+  margin:0;
+}
+.dashboardHubHero .dashboardHero__lead{
+  margin:10px 0 0;
+  max-width:560px;
+}
+.dashboardHub__list{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:18px;
+  grid-template-columns:1fr;
+  gap:14px;
   margin-top:18px;
 }
 .dashboardHubCard{
   display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
   gap:16px;
-  padding:22px;
+  padding:20px 22px;
+  color:inherit;
+  text-decoration:none;
+  border:1px solid rgba(17,24,39,.08);
+  background:#fff;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
 }
-.dashboardHubCard__eyebrow{
-  margin:0;
-  font-size:.78rem;
-  letter-spacing:.12em;
+.dashboardHubCard:hover{
+  transform:translateY(-1px);
+  border-color:rgba(17,24,39,.16);
+  box-shadow:0 14px 28px rgba(15,23,42,.07);
+  background:#fcfcfc;
+}
+.dashboardHubCard:focus-visible{
+  outline:none;
+  border-color:#111827;
+  box-shadow:0 0 0 3px rgba(17,24,39,.10);
+}
+.dashboardHubCard__icon{
+  display:grid;
+  place-items:center;
+  width:52px;
+  height:52px;
+  border-radius:16px;
+  background:rgba(17,24,39,.04);
+  color:#111827;
+  flex:0 0 auto;
+}
+.dashboardHubCard__icon svg{
+  width:24px;
+  height:24px;
+}
+.dashboardHubCard__body{
+  min-width:0;
+  display:grid;
+  gap:6px;
+}
+.dashboardHubCard__title{
+  font-size:1.05rem;
+  font-weight:700;
+  line-height:1.5;
+}
+.dashboardHubCard__desc{
+  color:var(--muted);
+  line-height:1.7;
+}
+.dashboardHubCard__chevron{
+  display:grid;
+  place-items:center;
+  width:24px;
+  height:24px;
   color:#6b7280;
 }
-.dashboardHubCard__meta{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
+.dashboardHubCard__chevron svg{
+  width:18px;
+  height:18px;
+}
+@media (min-width: 861px){
+  .dashboardHub__list{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+  }
+}
+@media (max-width: 640px){
+  .dashboardHubHero{
+    padding:22px 18px;
+  }
+  .dashboardHubCard{
+    grid-template-columns:auto minmax(0,1fr) auto;
+    gap:14px;
+    padding:18px 16px;
+  }
+  .dashboardHubCard__icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+  }
+  .dashboardHubCard__title{
+    font-size:1rem;
+  }
+  .dashboardHubCard__desc{
+    font-size:.94rem;
+    line-height:1.65;
+  }
 }
 .sellerProfileSummaryCard{
   gap:18px;
