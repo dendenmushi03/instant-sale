@@ -10,6 +10,8 @@
     <div class="dashboardBreadcrumbs muted">
       <a href="/dashboard">ダッシュボード</a>
       <span>/</span>
+      <a href="/dashboard/listings">出品情報</a>
+      <span>/</span>
       <span><%= item.title %></span>
     </div>
 
@@ -28,7 +30,7 @@
         </h1>
 
         <dl class="dashboardDetailList">
-          <div><dt>クリエイター名</dt><dd><%= item.creatorName || '未設定' %></dd></div>
+          <div><dt>クリエイター名</dt><dd><%= creatorDisplayName || '未設定' %></dd></div>
           <div><dt>価格</dt><dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd></div>
           <div><dt>作成日</dt><dd><%= new Date(item.createdAt).toLocaleString(locale) %></dd></div>
           <div><dt>ライセンス</dt><dd><%= licenseView.label %> / 編集不可</dd></div>
@@ -46,7 +48,7 @@
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <button id="openDeleteModalBtn" class="btn btn--ghost dashboardDangerBtn" type="button">削除</button>
             </form>
-            <a class="btn btn--ghost" href="/dashboard">戻る</a>
+            <a class="btn btn--ghost" href="/dashboard/listings">戻る</a>
           </div>
           <p id="copySaleUrlMessage" class="muted dashboardUrlBox__message" aria-live="polite"></p>
         </section>

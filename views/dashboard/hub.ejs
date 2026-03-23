@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, og, canonical: baseUrl + '/dashboard' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage">
+    <section class="dashboardHero card">
+      <div>
+        <p class="eyebrow">Dashboard</p>
+        <h1 class="dashboardHero__title">ダッシュボード</h1>
+        <p class="muted dashboardHero__lead">出品情報や販売者情報を確認・編集できます。</p>
+      </div>
+    </section>
+
+    <section class="dashboardHubGrid">
+      <article class="card dashboardHubCard">
+        <p class="dashboardHubCard__eyebrow">LISTINGS</p>
+        <h2 class="dashboardSectionTitle">出品情報</h2>
+        <p class="muted">出品中の作品や販売ページを確認できます。</p>
+        <div class="dashboardHubCard__meta">
+          <div class="dashboardStat">
+            <span class="dashboardStat__label">出品数</span>
+            <strong class="dashboardStat__value"><%= summary.totalCount %>件</strong>
+          </div>
+        </div>
+        <a class="btn btn--primary" href="/dashboard/listings">出品情報を見る</a>
+      </article>
+
+      <article class="card dashboardHubCard">
+        <p class="dashboardHubCard__eyebrow">SELLER PROFILE</p>
+        <h2 class="dashboardSectionTitle">販売者情報</h2>
+        <p class="muted">クリエイター名や販売者情報を確認・編集できます。</p>
+        <div class="dashboardHubCard__meta">
+          <div class="dashboardStat">
+            <span class="dashboardStat__label">登録状況</span>
+            <strong class="dashboardStat__value"><%= sellerProfileCompleted ? '登録済み' : '未登録' %></strong>
+          </div>
+        </div>
+        <a class="btn btn--primary" href="/dashboard/seller-profile">販売者情報を見る</a>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

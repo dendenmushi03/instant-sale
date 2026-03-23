@@ -3158,3 +3158,68 @@ body.menu-open{
   }
   .sellerTypeChoice__desc{font-size:.92rem;line-height:1.65}
 }
+
+.dashboardHubGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:18px;
+  margin-top:18px;
+}
+.dashboardHubCard{
+  display:grid;
+  gap:16px;
+  padding:22px;
+}
+.dashboardHubCard__eyebrow{
+  margin:0;
+  font-size:.78rem;
+  letter-spacing:.12em;
+  color:#6b7280;
+}
+.dashboardHubCard__meta{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.sellerProfileSummaryCard{
+  gap:18px;
+}
+.sellerProfileSummaryCard__head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.sellerProfileSummaryList{
+  display:grid;
+  gap:14px;
+  margin:0;
+}
+.sellerProfileSummaryList div{
+  display:grid;
+  gap:6px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:rgba(17,24,39,.03);
+}
+.sellerProfileSummaryList dt{
+  color:var(--muted);
+}
+.sellerProfileSummaryList dd{
+  margin:0;
+  line-height:1.7;
+  word-break:break-word;
+}
+.sellerProfileSummaryList dd .fieldHelp{
+  display:block;
+  margin-top:6px;
+}
+@media (max-width: 640px){
+  .sellerProfileSummaryCard__head .btn,
+  .dashboardHubCard .btn{
+    width:100%;
+  }
+}
