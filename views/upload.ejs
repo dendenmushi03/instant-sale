@@ -109,11 +109,10 @@ const _ngBtn     = (lng==='en') ? 'Get started (Stripe)' : 'はじめる（Strip
         <input class="textInput" type="text" name="title" placeholder="<%= t('upload.field.title_ph') %>" required />
       </label>
 
-      <label class="field">
+      <div class="field">
         <span class="fieldLabel"><%= t('upload.field.creator') %></span>
-        <span class="fieldHelp"><%= (lng==='en') ? 'Optional. Shown as “by …”.' : '任意。販売ページで「by ○○」として表示。' %></span>
-        <input class="textInput" type="text" name="creatorName" placeholder="<%= t('upload.field.creator_ph') %>" />
-      </label>
+        <span class="fieldHelp"><%= (lng==='en') ? 'Shown automatically from your seller profile.' : '販売ページの表示名は販売者情報から自動反映されます。' %></span>
+      </div>
 
       <p class="priceHelp muted">
         <%= (lng==='en')
