@@ -1264,6 +1264,10 @@ app.get('/connect/refresh', ensureAuthed, (req, res) => {
 // ★ 出品者用：Stripe Express ダッシュボード（売上/入金）へ遷移
 app.get('/connect/portal', ensureAuthed, async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
     if (!stripe) {
       return res.status(500).render('error', { message: 'Stripeが未設定です（STRIPE_SECRET_KEY）。' });
     }
@@ -1282,11 +1286,17 @@ app.get('/connect/portal', ensureAuthed, async (req, res) => {
       redirect_url: `${BASE_URL}/creator`  // 閲覧後の戻り先
     });
 
-    return res.redirect(link.url);
+    // one-time URL を履歴に残さないよう、手前ページで replace 遷移する
+    return res.render('portal-handoff', {
+      redirectUrl: link.url,
+      fallbackPath: '/dashboard'
+    });
   } catch (err) {
     console.error('[connect/portal] failed:', err?.raw?.message || err.message);
     return res.status(500).render('error', {
-      message: '売上ダッシュボードに遷移できませんでした。時間をおいて再度お試しください。'
+      message: '売上ダッシュボードに遷移できませんでした。時間をおいて再度お試しください。',
+      primaryAction: { href: '/connect/portal', label: '再試行する' },
+      secondaryAction: { href: '/dashboard', label: 'ダッシュボードに戻る' }
     });
   }
 });
