@@ -49,9 +49,19 @@ const PREVIEW_DIR = path.join(ROOT_DIR, 'previews');
 const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production';
 
-// --- Asset version for cache-busting (prod: set ASSET_VER env) ---
-const PKG_VER  = (() => { try { return require('./package.json').version || ''; } catch { return ''; } })();
-const ASSET_VER = process.env.ASSET_VER || PKG_VER || 'v1';
+// --- Asset version for cache-busting ---
+const resolveAssetVersion = () => {
+  const candidate = [
+    process.env.ASSET_VER,
+    process.env.RENDER_GIT_COMMIT,
+    process.env.RENDER_GIT_SHA,
+    process.env.GIT_COMMIT,
+  ].find((value) => typeof value === 'string' && value.trim());
+
+  return candidate ? candidate.trim().slice(0, 12) : 'dev';
+};
+
+const ASSET_VER = resolveAssetVersion();
 
 const RAW_BASE_URL = process.env.BASE_URL;
 if (isProd && !RAW_BASE_URL) {
