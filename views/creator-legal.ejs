@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>事業者情報（特商法） | Instant Sale</title>
-  <link rel="stylesheet" href="/public/style.css" />
-  <link rel="icon" href="/public/logo.png" />
+  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
+  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
   <style>
     .muted{opacity:.85}
     .card + .card{margin-top:12px}
@@ -15,7 +15,7 @@
 <body class="layout">
 <header class="nav">
   <a class="nav__brand" href="/">
-    <img class="nav__logo" src="/public/logo.png" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
+    <img class="nav__logo" src="/public/logo.png?v=<%= assetVer %>" alt="Instant Sale" width="28" height="28" loading="eager" decoding="async" />
     <span class="nav__brandText">Instant Sale</span>
   </a>
   <nav class="nav__right">
