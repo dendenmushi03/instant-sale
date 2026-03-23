@@ -760,6 +760,52 @@ function dashboardBaseView(req, extra = {}) {
   };
 }
 
+function sellerProfileFormValues(profile = {}) {
+  return {
+    businessType: profile.businessType || '',
+    creatorDisplayName: profile.creatorDisplayName || '',
+    legalName: profile.legalName || '',
+    representativeName: profile.representativeName || '',
+    postalCode: profile.postalCode || '',
+    address: profile.address || '',
+    phoneNumber: profile.phoneNumber || ''
+  };
+}
+
+async function saveSellerProfile(userId, formValues) {
+  const now = new Date();
+  const completedProfile = {
+    ...formValues,
+    updatedAt: now
+  };
+  const isCompleted = getSellerProfileCompletion({ sellerProfile: completedProfile });
+
+  await User.updateOne(
+    { _id: userId },
+    {
+      $set: {
+        'sellerProfile.businessType': formValues.businessType,
+        'sellerProfile.creatorDisplayName': formValues.creatorDisplayName,
+        'sellerProfile.legalName': formValues.legalName,
+        'sellerProfile.representativeName': formValues.representativeName,
+        'sellerProfile.postalCode': formValues.postalCode,
+        'sellerProfile.address': formValues.address,
+        'sellerProfile.phoneNumber': formValues.phoneNumber,
+        'sellerProfile.isCompleted': isCompleted,
+        'sellerProfile.updatedAt': now
+      }
+    }
+  );
+
+  console.info('[sellerProfile:saved]', {
+    userId: String(userId),
+    completed: isCompleted,
+    updatedAt: now.toISOString()
+  });
+
+  return { isCompleted, updatedAt: now };
+}
+
 app.get('/terms', (req, res) => {
   res.locals.canonical = `${BASE_URL}/terms`;
   res.render('legal/terms', {
@@ -1293,21 +1339,44 @@ app.post('/connect/reset', ensureAuthed, async (req, res) => {
 
 app.get('/dashboard', ensureAuthed, async (req, res) => {
   try {
-    const summary = await getOwnedItemSummary(req.user._id);
-    return res.render('dashboard/index', dashboardBaseView(req, {
+    const [summary, me] = await Promise.all([
+      getOwnedItemSummary(req.user._id),
+      User.findById(req.user._id).select('sellerProfile').lean()
+    ]);
+    return res.render('dashboard/hub', dashboardBaseView(req, {
       title: 'ダッシュボード',
       summary,
-      dashboardItems: summary.items,
+      sellerProfileCompleted: getSellerProfileCompletion(me),
       og: {
         title: `Dashboard | ${req.t('brand')}`,
-        desc: '自分の出品作品を一覧で確認できます。',
+        desc: '出品情報や販売者情報を確認・編集できます。',
         url: `${BASE_URL}/dashboard`,
         image: `${BASE_URL}/public/og/instantsale_ogp.jpg`
       }
     }));
   } catch (e) {
-    console.error('[dashboard:index]', e);
+    console.error('[dashboard:hub]', e);
     return res.status(500).render('error', { message: 'ダッシュボードの表示に失敗しました。' });
+  }
+});
+
+app.get('/dashboard/listings', ensureAuthed, async (req, res) => {
+  try {
+    const summary = await getOwnedItemSummary(req.user._id);
+    return res.render('dashboard/index', dashboardBaseView(req, {
+      title: '出品情報',
+      summary,
+      dashboardItems: summary.items,
+      og: {
+        title: `Listings | ${req.t('brand')}`,
+        desc: '自分の出品作品を一覧で確認できます。',
+        url: `${BASE_URL}/dashboard/listings`,
+        image: `${BASE_URL}/public/og/instantsale_ogp.jpg`
+      }
+    }));
+  } catch (e) {
+    console.error('[dashboard:listings]', e);
+    return res.status(500).render('error', { message: '出品情報の表示に失敗しました。' });
   }
 });
 
@@ -1353,15 +1422,20 @@ app.get('/dashboard/items/:id/original', ensureAuthed, async (req, res) => {
 
 app.get('/dashboard/items/:id', ensureAuthed, async (req, res) => {
   try {
-    const item = await findOwnedItem(req.params.id, req.user._id);
+    const [item, me] = await Promise.all([
+      findOwnedItem(req.params.id, req.user._id),
+      User.findById(req.user._id).select('sellerProfile.creatorDisplayName').lean()
+    ]);
     if (!item) {
       return res.status(404).render('error', { message: '作品が見つからないか、アクセス権がありません。' });
     }
 
     const viewItem = dashboardItemView(item);
+    const creatorDisplayName = me?.sellerProfile?.creatorDisplayName || item.creatorName || '';
     return res.render('dashboard/show', dashboardBaseView(req, {
       title: `${item.title} | ダッシュボード`,
       item: viewItem,
+      creatorDisplayName,
       licenseView: licenseViewOf(item),
       og: {
         title: `${item.title} | Dashboard`,
@@ -1412,7 +1486,7 @@ app.post('/dashboard/items/:id/delete', ensureAuthed, async (req, res) => {
       { $set: { isDeleted: true, deletedAt: new Date() } }
     );
 
-    return res.redirect(303, '/dashboard');
+    return res.redirect(303, '/dashboard/listings');
   } catch (e) {
     console.error('[dashboard:delete]', e);
     return res.status(500).render('error', { message: '作品の削除に失敗しました。' });
@@ -1472,85 +1546,98 @@ app.get('/creator/seller-profile', ensureAuthed, async (req, res) => {
 
   return res.render('seller-profile', {
     baseUrl: BASE_URL,
-    formValues: {
-      businessType: sellerProfile.businessType || '',
-      creatorDisplayName: sellerProfile.creatorDisplayName || '',
-      legalName: sellerProfile.legalName || '',
-      representativeName: sellerProfile.representativeName || '',
-      postalCode: sellerProfile.postalCode || '',
-      address: sellerProfile.address || '',
-      phoneNumber: sellerProfile.phoneNumber || ''
-    },
+    formValues: sellerProfileFormValues(sellerProfile),
     errors: {},
     sellerProfile,
     pageTitle: '販売者情報の登録',
+    pageLead: '出品を行うには、販売者情報の登録が必要です。',
+    actionPath: '/creator/seller-profile',
+    submitLabel: '保存する',
+    cancelLabel: '戻る',
     errorMessage: '',
     successMessage: (req.query.saved === '1' || req.query.sellerProfileSaved === '1') ? '販売者情報を保存しました。' : '',
     returnTo,
     backPath: resolveSellerProfileBackPath(returnTo, getSellerProfileCompletion(me))
   });
+});
 
-  return res.redirect(303, withQueryParam(returnTo, 'sellerProfileSaved', '1'));
+app.get('/dashboard/seller-profile', ensureAuthed, async (req, res) => {
+  try {
+    const me = await User.findById(req.user._id).select('sellerProfile').lean();
+    const sellerProfile = me?.sellerProfile || {};
+    return res.render('dashboard/seller-profile', dashboardBaseView(req, {
+      title: '販売者情報',
+      sellerProfile,
+      sellerProfileCompleted: getSellerProfileCompletion(me),
+      successMessage: req.query.sellerProfileSaved === '1' ? '販売者情報を保存しました。' : ''
+    }));
+  } catch (e) {
+    console.error('[dashboard:seller-profile]', e);
+    return res.status(500).render('error', { message: '販売者情報の表示に失敗しました。' });
+  }
+});
+
+app.get('/dashboard/seller-profile/edit', ensureAuthed, async (req, res) => {
+  try {
+    const me = await User.findById(req.user._id).select('sellerProfile').lean();
+    const sellerProfile = me?.sellerProfile || {};
+    return res.render('seller-profile', {
+      ...dashboardBaseView(req),
+      formValues: sellerProfileFormValues(sellerProfile),
+      errors: {},
+      sellerProfile,
+      pageTitle: '販売者情報の編集',
+      pageLead: 'クリエイター名や販売者情報を更新できます。',
+      actionPath: '/dashboard/seller-profile/edit',
+      submitLabel: '保存して戻る',
+      cancelLabel: 'キャンセル',
+      errorMessage: '',
+      successMessage: '',
+      returnTo: '/dashboard/seller-profile',
+      backPath: '/dashboard/seller-profile'
+    });
+  } catch (e) {
+    console.error('[dashboard:seller-profile:edit:get]', e);
+    return res.status(500).render('error', { message: '販売者情報の編集画面の表示に失敗しました。' });
+  }
 });
 
 app.get('/creator/legal', ensureAuthed, (req, res) => {
   return res.redirect(302, buildSellerProfilePath(req.query.returnTo || '/creator', { legacy: '1' }));
 });
 
-async function handleSellerProfileSave(req, res) {
+async function handleSellerProfileSave(req, res, options = {}) {
   const formValues = sanitizeSellerProfileInput(req.body);
   const errors = validateSellerProfileInput(formValues);
-  const returnTo = sanitizeReturnPath(req.body.returnTo || req.query.returnTo || '/creator');
+  const returnTo = sanitizeReturnPath(req.body.returnTo || req.query.returnTo || options.defaultReturnTo || '/creator');
+  const isDashboardEdit = options.variant === 'dashboard-edit';
 
   if (Object.keys(errors).length) {
     return res.status(400).render('seller-profile', {
-      baseUrl: BASE_URL,
+      ...dashboardBaseView(req),
       formValues,
       errors,
       sellerProfile: { isCompleted: false },
-      pageTitle: '販売者情報の登録',
+      pageTitle: isDashboardEdit ? '販売者情報の編集' : '販売者情報の登録',
+      pageLead: isDashboardEdit ? 'クリエイター名や販売者情報を更新できます。' : '出品を行うには、販売者情報の登録が必要です。',
+      actionPath: isDashboardEdit ? '/dashboard/seller-profile/edit' : '/creator/seller-profile',
+      submitLabel: isDashboardEdit ? '保存して戻る' : '保存する',
+      cancelLabel: isDashboardEdit ? 'キャンセル' : '戻る',
       errorMessage: '入力内容を確認してください。',
       successMessage: '',
       returnTo,
-      backPath: resolveSellerProfileBackPath(returnTo, false)
+      backPath: isDashboardEdit ? '/dashboard/seller-profile' : resolveSellerProfileBackPath(returnTo, false)
     });
   }
 
-  const now = new Date();
-  const completedProfile = {
-    ...formValues,
-    updatedAt: now
-  };
-  const isCompleted = getSellerProfileCompletion({ sellerProfile: completedProfile });
-
-  await User.updateOne(
-    { _id: req.user._id },
-    {
-      $set: {
-        'sellerProfile.businessType': formValues.businessType,
-        'sellerProfile.creatorDisplayName': formValues.creatorDisplayName,
-        'sellerProfile.legalName': formValues.legalName,
-        'sellerProfile.representativeName': formValues.representativeName,
-        'sellerProfile.postalCode': formValues.postalCode,
-        'sellerProfile.address': formValues.address,
-        'sellerProfile.phoneNumber': formValues.phoneNumber,
-        'sellerProfile.isCompleted': isCompleted,
-        'sellerProfile.updatedAt': now
-      }
-    }
-  );
-
-  console.info('[sellerProfile:saved]', {
-    userId: String(req.user._id),
-    completed: isCompleted,
-    updatedAt: now.toISOString()
-  });
-
-  return res.redirect(303, withQueryParam(returnTo, 'sellerProfileSaved', '1'));
+  await saveSellerProfile(req.user._id, formValues);
+  const redirectPath = isDashboardEdit ? '/dashboard/seller-profile?sellerProfileSaved=1' : withQueryParam(returnTo, 'sellerProfileSaved', '1');
+  return res.redirect(303, redirectPath);
 }
 
-app.post('/creator/legal', ensureAuthed, handleSellerProfileSave);
-app.post('/creator/seller-profile', ensureAuthed, handleSellerProfileSave);
+app.post('/creator/legal', ensureAuthed, (req, res) => handleSellerProfileSave(req, res));
+app.post('/creator/seller-profile', ensureAuthed, (req, res) => handleSellerProfileSave(req, res));
+app.post('/dashboard/seller-profile/edit', ensureAuthed, (req, res) => handleSellerProfileSave(req, res, { variant: 'dashboard-edit', defaultReturnTo: '/dashboard/seller-profile' }));
 
 app.get('/creator', ensureAuthed, ensureSellerProfileCompleted, async (req, res) => {
   const connect = await getConnectStatus(req.user);

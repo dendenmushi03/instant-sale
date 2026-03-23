@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, canonical: baseUrl + '/dashboard/seller-profile', robots: 'noindex,nofollow' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage dashboardPage--narrow sellerProfilePage">
+    <div class="dashboardBreadcrumbs muted">
+      <a href="/dashboard">ダッシュボード</a>
+      <span>/</span>
+      <span>販売者情報</span>
+    </div>
+
+    <section class="card sellerProfileCard sellerProfileSummaryCard">
+      <div class="sellerProfileSummaryCard__head">
+        <div>
+          <p class="sellerProfileCard__eyebrow">SELLER PROFILE</p>
+          <h1 class="sellerProfileCard__title">販売者情報</h1>
+          <p class="sellerProfileCard__lead">現在登録されている販売者情報を確認できます。</p>
+        </div>
+        <a class="btn btn--primary" href="/dashboard/seller-profile/edit">編集する</a>
+      </div>
+
+      <% if (successMessage) { %><div class="dashboardAlert dashboardAlert--success"><%= successMessage %></div><% } %>
+
+      <% if (!sellerProfileCompleted) { %>
+        <div class="dashboardEmpty">
+          <h2 class="dashboardSectionTitle">販売者情報は未登録です</h2>
+          <p class="muted">販売者情報を登録すると、クリエイター名や出品前に必要な情報を管理できます。</p>
+          <a class="btn btn--primary" href="/dashboard/seller-profile/edit">販売者情報を登録する</a>
+        </div>
+      <% } else { %>
+        <p class="sellerProfileInfoNote">クリエイター名以外の情報は、公開販売ページには表示されません。</p>
+        <dl class="sellerProfileSummaryList">
+          <div>
+            <dt>事業種別</dt>
+            <dd><%= sellerProfile.businessType === 'corporation' ? '法人で販売する' : '個人で販売する' %></dd>
+          </div>
+          <div>
+            <dt>クリエイター名</dt>
+            <dd>
+              <strong><%= sellerProfile.creatorDisplayName || '未設定' %></strong>
+              <span class="fieldHelp">販売ページに表示される名前です</span>
+            </dd>
+          </div>
+          <div>
+            <dt><%= sellerProfile.businessType === 'corporation' ? '法人名' : '氏名（本名）' %></dt>
+            <dd><%= sellerProfile.legalName || '未設定' %></dd>
+          </div>
+          <% if (sellerProfile.businessType === 'corporation') { %>
+            <div>
+              <dt>代表者名 / 通信販売責任者名</dt>
+              <dd><%= sellerProfile.representativeName || '未設定' %></dd>
+            </div>
+          <% } %>
+          <div><dt>郵便番号</dt><dd><%= sellerProfile.postalCode || '未設定' %></dd></div>
+          <div><dt>住所</dt><dd><%= sellerProfile.address || '未設定' %></dd></div>
+          <div><dt>電話番号</dt><dd><%= sellerProfile.phoneNumber || '未設定' %></dd></div>
+        </dl>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>

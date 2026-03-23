@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, og, canonical: baseUrl + '/dashboard' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage dashboardHub">
+    <section class="dashboardHero card dashboardHubHero">
+      <div>
+        <h1 class="dashboardHero__title">ダッシュボード</h1>
+        <p class="muted dashboardHero__lead">出品情報や販売者情報を確認できます。</p>
+      </div>
+    </section>
+
+    <nav class="dashboardHub__list" aria-label="ダッシュボードメニュー">
+      <a class="card dashboardHubCard" href="/dashboard/listings">
+        <span class="dashboardHubCard__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3.5" y="4.5" width="17" height="15" rx="2.5"></rect>
+            <path d="M7.5 15.5l3.2-3.2a1 1 0 0 1 1.4 0l1.9 1.9"></path>
+            <path d="M13.5 12.5l1.6-1.6a1 1 0 0 1 1.4 0l2 2"></path>
+            <circle cx="9" cy="9" r="1.2"></circle>
+          </svg>
+        </span>
+        <span class="dashboardHubCard__body">
+          <span class="dashboardHubCard__title">出品情報</span>
+          <span class="dashboardHubCard__desc">出品中の作品や販売ページを確認できます。</span>
+        </span>
+        <span class="dashboardHubCard__chevron" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 4.5l5.5 5.5L7 15.5"></path>
+          </svg>
+        </span>
+      </a>
+
+      <a class="card dashboardHubCard" href="/dashboard/seller-profile">
+        <span class="dashboardHubCard__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="3.25"></circle>
+            <path d="M5 18.5c1.7-2.8 4.1-4.2 7-4.2s5.3 1.4 7 4.2"></path>
+          </svg>
+        </span>
+        <span class="dashboardHubCard__body">
+          <span class="dashboardHubCard__title">販売者情報</span>
+          <span class="dashboardHubCard__desc">クリエイター名や販売者情報を確認・編集できます。</span>
+        </span>
+        <span class="dashboardHubCard__chevron" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 4.5l5.5 5.5L7 15.5"></path>
+          </svg>
+        </span>
+      </a>
+    </nav>
+  </main>
+</body>
+</html>
