@@ -1238,10 +1238,31 @@ body.menu-open{
   width:100%;
 }
 
+.saleSectionHeading{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+
+.saleSectionHeading::before{
+  content:"";
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  border:1.5px solid rgba(20,20,20,.72);
+  background:transparent;
+  box-sizing:border-box;
+  flex:0 0 auto;
+}
+
 .priceHelp{
   margin:4px 0 0;
   font-size:12px;
   line-height:1.6;
+}
+
+.priceHelp--section{
+  margin-top:-2px;
 }
 
 .priceRow{
