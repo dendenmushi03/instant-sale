@@ -576,6 +576,13 @@ passport.use(new GoogleStrategy({
   }));
 }
 
+function maskStripeAccountId(accountId) {
+  if (!accountId) return null;
+  const value = String(accountId);
+  if (value.length <= 10) return value;
+  return `${value.slice(0, 8)}...${value.slice(-4)}`;
+}
+
 const ensureAuthed = (req, res, next) => {
   if (req.user) return next();
   // ★ AJAX から来た場合は JSON 返却にする（フロントがアラート表示→/login遷移）
@@ -1263,30 +1270,158 @@ app.get('/connect/refresh', ensureAuthed, (req, res) => {
 
 // ★ 出品者用：Stripe Express ダッシュボード（売上/入金）へ遷移
 app.get('/connect/portal', ensureAuthed, async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+
+  const userId = req.user?._id || req.user?.id || null;
+  const sessionAccountId = req.user?.stripeAccountId || '';
+  const stripeMode = STRIPE_SECRET_KEY
+    ? (STRIPE_SECRET_KEY.startsWith('sk_live_') ? 'live' : (STRIPE_SECRET_KEY.startsWith('sk_test_') ? 'test' : 'unknown'))
+    : 'not_configured';
+  console.info('[connect/portal] start', {
+    userId: userId ? String(userId) : null,
+    stripeAccountId: maskStripeAccountId(sessionAccountId),
+    stripeMode,
+    hasSessionUser: !!req.user,
+    hasSessionStripeAccountId: !!sessionAccountId
+  });
+
   try {
     if (!stripe) {
+      console.error('[connect/portal] stripe_not_configured', { stripeMode });
       return res.status(500).render('error', { message: 'Stripeが未設定です（STRIPE_SECRET_KEY）。' });
     }
 
-    // DBから最新ユーザーを取得（stripeAccountIdを確実に参照）
-    const me = await User.findById(req.user._id);
-    const accountId = me?.stripeAccountId;
+    if (!userId) {
+      console.error('[connect/portal] missing_user_id');
+      return res.redirect('/login');
+    }
 
-    // まだ接続アカウントがない場合 → まずオンボーディングへ
+    let connectStatus = null;
+    try {
+      connectStatus = await getConnectStatus({ _id: userId });
+      console.info('[connect/portal] connect_status', {
+        userId: String(userId),
+        hasAccount: !!connectStatus?.hasAccount,
+        payoutsEnabled: !!connectStatus?.payoutsEnabled
+      });
+    } catch (statusErr) {
+      console.warn('[connect/portal] connect_status_failed', {
+        userId: String(userId),
+        message: statusErr?.message,
+        type: statusErr?.type || statusErr?.name || null
+      });
+    }
+
+    // DBから最新ユーザーを取得（stripeAccountIdを確実に参照）
+    const me = await User.findById(userId).select('_id stripeAccountId payoutsEnabled').lean();
+    const accountId = me?.stripeAccountId || sessionAccountId;
+    console.info('[connect/portal] account_lookup', {
+      userId: String(userId),
+      stripeAccountId: maskStripeAccountId(accountId),
+      stripeMode,
+      hasDbUser: !!me,
+      hasDbStripeAccountId: !!me?.stripeAccountId,
+      hasSessionStripeAccountId: !!sessionAccountId,
+      usingFallbackSessionStripeAccountId: !me?.stripeAccountId && !!sessionAccountId
+    });
+
+    // account が無いユーザーのみオンボーディングへ送る
     if (!accountId) {
+      console.warn('[connect/portal] missing_stripe_account_id', {
+        userId: String(userId),
+        stripeAccountId: null,
+        stripeMode,
+        hasDbUser: !!me,
+        connectStatus
+      });
       return res.redirect('/connect/onboard');
     }
+
+    let stripeAccount;
+    try {
+      stripeAccount = await stripe.accounts.retrieve(accountId);
+      console.info('[connect/portal] account_retrieve:success', {
+        userId: String(userId),
+        stripeAccountId: maskStripeAccountId(accountId),
+        stripeMode,
+        type: stripeAccount?.type || null,
+        payoutsEnabled: !!stripeAccount?.payouts_enabled,
+        chargesEnabled: !!stripeAccount?.charges_enabled,
+        detailsSubmitted: !!stripeAccount?.details_submitted
+      });
+
+    } catch (retrieveErr) {
+      console.error('[connect/portal] account_retrieve:failed', {
+        userId: String(userId),
+        stripeAccountId: maskStripeAccountId(accountId),
+        stripeMode,
+        message: retrieveErr?.message,
+        type: retrieveErr?.type || retrieveErr?.name || null,
+        code: retrieveErr?.code || retrieveErr?.raw?.code || null,
+        rawMessage: retrieveErr?.raw?.message || null,
+        rawCode: retrieveErr?.raw?.code || null
+      });
+
+      const shouldReOnboard = ['resource_missing', 'account_invalid', 'invalid_request_error'].includes(retrieveErr?.code)
+        || ['resource_missing', 'account_invalid', 'invalid_request_error'].includes(retrieveErr?.raw?.code)
+        || retrieveErr?.statusCode === 404;
+
+      if (shouldReOnboard) {
+        console.info('[connect/portal] redirect_to_onboard:retrieve_failed', {
+          userId: String(userId),
+          stripeAccountId: maskStripeAccountId(accountId),
+          stripeMode,
+          code: retrieveErr?.code || retrieveErr?.raw?.code || null
+        });
+        return res.redirect('/connect/onboard');
+      }
+
+      return res.status(500).render('error', {
+        message: '売上ダッシュボードに遷移できませんでした。時間をおいて再度お試しください。',
+        primaryAction: { href: '/connect/portal', label: '再試行する' },
+        secondaryAction: { href: '/dashboard', label: 'ダッシュボードに戻る' }
+      });
+    }
+
+    console.info('[connect/portal] create_login_link:start', {
+      userId: String(userId),
+      stripeAccountId: maskStripeAccountId(accountId),
+      stripeMode,
+      accountType: stripeAccount?.type || null,
+      redirectUrl: `${BASE_URL}/creator`
+    });
 
     // 一時ログインリンクを発行（数十秒〜1分有効）
     const link = await stripe.accounts.createLoginLink(accountId, {
       redirect_url: `${BASE_URL}/creator`  // 閲覧後の戻り先
     });
 
+    console.info('[connect/portal] create_login_link:success', {
+      userId: String(userId),
+      stripeAccountId: maskStripeAccountId(accountId),
+      stripeMode,
+      hasLinkUrl: !!link?.url
+    });
+
     return res.redirect(link.url);
   } catch (err) {
-    console.error('[connect/portal] failed:', err?.raw?.message || err.message);
+    console.error('[connect/portal] failed', {
+      userId: userId ? String(userId) : null,
+      stripeAccountId: maskStripeAccountId(sessionAccountId),
+      stripeMode,
+      message: err?.message,
+      type: err?.type || err?.name || null,
+      code: err?.code || err?.raw?.code || null,
+      rawMessage: err?.raw?.message || null,
+      rawCode: err?.raw?.code || null,
+      stack: err?.stack ? String(err.stack).split('\n').slice(0, 5).join(' | ') : null
+    });
     return res.status(500).render('error', {
-      message: '売上ダッシュボードに遷移できませんでした。時間をおいて再度お試しください。'
+      message: '売上ダッシュボードに遷移できませんでした。時間をおいて再度お試しください。',
+      primaryAction: { href: '/connect/portal', label: '再試行する' },
+      secondaryAction: { href: '/dashboard', label: 'ダッシュボードに戻る' }
     });
   }
 });
