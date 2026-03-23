@@ -31,7 +31,7 @@
   --gutter:30px;
 
   /* typography */
-  --title: ui-serif, "Georgia", "Times New Roman", serif;
+  --title: ui-sans-serif, system-ui, -apple-system, "Noto Sans JP", sans-serif;
   --body: ui-sans-serif, system-ui, -apple-system, "Noto Sans JP", sans-serif;
 }
 
