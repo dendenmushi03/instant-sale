@@ -13,19 +13,28 @@ const userSchema = new mongoose.Schema(
     payoutsEnabled:  { type: Boolean, default: false },
 
     // ▼ 特商法（売主）情報を保存するフィールド
+    // 旧互換の売主情報。新規の販売者情報必須導線では参照しない。
     legal: {
-      // 追加：販売者の種別（'business' | 'individual'）
       sellerType:   { type: String, enum: ['business', 'individual'], default: 'individual' },
-
-      name:         { type: String, default: '' }, // 事業者名/氏名（必須）
-      responsible:  { type: String, default: '' }, // 運営責任者（事業者のみ任意）
-      address:      { type: String, default: '' }, // 住所（必須）
-      phone:        { type: String, default: '' }, // 電話（任意）
-      email:        { type: String, default: '' }, // 連絡先メール（必須）
-      website:      { type: String, default: '' }, // 任意
-      invoiceRegNo: { type: String, default: '' }, // 任意（インボイス）
-      published:    { type: Boolean, default: false }, // 購入ページに表示OK
+      name:         { type: String, default: '' },
+      responsible:  { type: String, default: '' },
+      address:      { type: String, default: '' },
+      phone:        { type: String, default: '' },
+      email:        { type: String, default: '' },
+      website:      { type: String, default: '' },
+      invoiceRegNo: { type: String, default: '' },
+      published:    { type: Boolean, default: false },
       updatedAt:    { type: Date },
+    },
+
+    // 新規の販売者情報登録フローにおける正規ソース。
+    sellerProfile: {
+      legalName:    { type: String, default: '' },
+      postalCode:   { type: String, default: '' },
+      address:      { type: String, default: '' },
+      phoneNumber:  { type: String, default: '' },
+      isCompleted:  { type: Boolean, default: false, index: true },
+      updatedAt:    { type: Date, default: null },
     },
   },
   { timestamps: true }

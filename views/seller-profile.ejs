@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= pageTitle %> | Instant Sale</title>
+  <link rel="stylesheet" href="/public/style.css?v=<%= assetVer %>" />
+  <link rel="icon" href="/public/logo.png?v=<%= assetVer %>" />
+</head>
+<body class="layout">
+  <%- include('partials/header') %>
+
+  <main class="container dashboardPage dashboardPage--narrow sellerProfilePage">
+    <section class="card sellerProfileCard">
+      <div class="sellerProfileCard__head">
+        <p class="sellerProfileCard__eyebrow">SELLER PROFILE</p>
+        <h1 class="sellerProfileCard__title"><%= pageTitle %></h1>
+        <p class="sellerProfileCard__lead">出品を行うには、販売者情報の登録が必要です。公開販売ページには原則表示されず、問題発生時や請求があった場合に管理者が確認・開示対応できるよう保持します。</p>
+      </div>
+
+      <% if (errorMessage) { %>
+        <div class="dashboardAlert dashboardAlert--error"><%= errorMessage %></div>
+      <% } %>
+      <% if (successMessage) { %>
+        <div class="dashboardAlert dashboardAlert--success"><%= successMessage %></div>
+      <% } %>
+
+      <form action="/creator/seller-profile" method="post" class="dashboardForm sellerProfileForm" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+
+        <label class="field sellerProfileField">
+          <span class="fieldLabel">法定名義 <span class="sellerProfileField__required">必須</span></span>
+          <span class="fieldHelp">個人名または法人の正式名称を入力してください。</span>
+          <input class="textInput" type="text" name="legalName" maxlength="120" required value="<%= formValues.legalName %>">
+          <% if (errors.legalName) { %><span class="sellerProfileField__error"><%= errors.legalName %></span><% } %>
+        </label>
+
+        <label class="field sellerProfileField">
+          <span class="fieldLabel">郵便番号 <span class="sellerProfileField__optional">任意</span></span>
+          <span class="fieldHelp">ハイフンあり・なしのどちらでも入力できます。</span>
+          <input class="textInput" type="text" name="postalCode" inputmode="numeric" maxlength="8" value="<%= formValues.postalCode %>">
+          <% if (errors.postalCode) { %><span class="sellerProfileField__error"><%= errors.postalCode %></span><% } %>
+        </label>
+
+        <label class="field sellerProfileField">
+          <span class="fieldLabel">住所 <span class="sellerProfileField__required">必須</span></span>
+          <span class="fieldHelp">建物名・部屋番号まで必要に応じて入力してください。</span>
+          <textarea class="textInput sellerProfileField__textarea" name="address" rows="4" maxlength="240" required><%= formValues.address %></textarea>
+          <% if (errors.address) { %><span class="sellerProfileField__error"><%= errors.address %></span><% } %>
+        </label>
+
+        <label class="field sellerProfileField">
+          <span class="fieldLabel">電話番号 <span class="sellerProfileField__required">必須</span></span>
+          <span class="fieldHelp">連絡が取れる番号を入力してください。</span>
+          <input class="textInput" type="tel" name="phoneNumber" inputmode="tel" maxlength="30" required value="<%= formValues.phoneNumber %>">
+          <% if (errors.phoneNumber) { %><span class="sellerProfileField__error"><%= errors.phoneNumber %></span><% } %>
+        </label>
+
+        <div class="sellerProfileNote card">
+          <strong>保存される情報</strong>
+          <p class="muted">法定名義・住所・電話番号は管理者保持用です。一般公開ページ <code>/s/:slug</code> には表示しません。</p>
+          <% if (sellerProfile && sellerProfile.updatedAt) { %>
+            <p class="muted sellerProfileNote__meta">最終更新: <%= new Date(sellerProfile.updatedAt).toLocaleString(lng === 'en' ? 'en-US' : 'ja-JP') %></p>
+          <% } %>
+        </div>
+
+        <div class="dashboardForm__actions sellerProfileForm__actions">
+          <button class="btn btn--primary" type="submit">保存する</button>
+          <a class="btn btn--ghost" href="<%= backPath || returnTo %>">戻る</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <%- include('partials/footer') %>
+</body>
+</html>
