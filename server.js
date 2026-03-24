@@ -2694,10 +2694,10 @@ app.get('/success', async (req, res) => {
       });
     }
 
-    const downloadUrl = `${BASE_URL}/download/${doc.token}`;
+    const saveUrl = `${BASE_URL}/download/file/${doc.token}`;
 
 return res.render('success', {
-  item, downloadUrl, expiresAt: doc.expiresAt, ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
+  item, saveUrl, expiresAt: doc.expiresAt, ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
   lng: getLng(req)
 });
 

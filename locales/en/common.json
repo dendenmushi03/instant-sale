@@ -216,9 +216,10 @@
     "sale_desc": "Buy high-res now (¥{{price}})"
   },
   "checkout.done_title": "Thank you for your purchase 🎉",
-  "checkout.done_desc": "You can download the high-resolution file using the button below.",
+  "checkout.done_desc": "You can save your purchased image using the button below.",
   "checkout.expire_note_html": "※ Expiration: <strong>{{minutes}} min</strong> (until {{time}})",
-  "checkout.download_btn": "Download",
+  "checkout.download_btn": "Save purchased image",
+  "checkout.save_hint": "Depending on your environment, you may need to use your device's save action after opening.",
   "download.title": "Download | {{title}}",
   "download.notice_line1_html": "Long-press the displayed image to save it.",
   "download.notice_line2": "You will not be able to download after closing this page.",
