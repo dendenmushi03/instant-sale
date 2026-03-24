@@ -192,7 +192,7 @@ async function findOwnedItem(itemId, userId) {
 }
 
 const CREATOR_SECRET = process.env.CREATOR_SECRET || 'changeme';
-const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
+const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '10');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
@@ -2467,7 +2467,7 @@ app.post('/webhooks/stripe', async (req, res) => {
           const item = await Item.findById(itemId);
           if (item) {
             const token = nanoid(32);
-            const ttlMin = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
+            const ttlMin = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '10');
             const expiresAt = new Date(Date.now() + ttlMin * 60 * 1000);
             await DownloadToken.create({
               token,
@@ -2710,34 +2710,12 @@ return res.render('success', {
 async function resolveDownloadToken(token) {
   const doc = await DownloadToken.findOne({ token });
   if (!doc) return { error: { status: 404, message: 'ダウンロードリンクが無効です。' } };
-  if (doc.usedOnce) return { error: { status: 410, message: 'このリンクはすでに使用されています。' } };
-  if (doc.expiresAt.getTime() < Date.now()) return { error: { status: 410, message: 'ダウンロードリンクの有効期限が切れました。' } };
+  if (doc.expiresAt.getTime() <= Date.now()) return { error: { status: 410, message: '購入後10分の有効期限が切れました。' } };
 
   const item = await Item.findById(doc.item);
   if (!item) return { error: { status: 404, message: 'ファイルが見つかりません。' } };
 
   return { doc, item };
-}
-
-async function consumeDownloadToken(token) {
-  const resolved = await resolveDownloadToken(token);
-  if (resolved.error) return resolved;
-
-  const consumedDoc = await DownloadToken.findOneAndUpdate(
-    {
-      _id: resolved.doc._id,
-      usedOnce: false,
-      expiresAt: { $gte: new Date() }
-    },
-    { $set: { usedOnce: true } },
-    { new: true }
-  );
-
-  if (!consumedDoc) {
-    return await resolveDownloadToken(token);
-  }
-
-  return { doc: consumedDoc, item: resolved.item };
 }
 
 function getDownloadFilename(item, fallbackPath = '') {
@@ -2768,6 +2746,7 @@ app.get('/download/:token', async (req, res) => {
       }
 
       return res.render('download-view', {
+        openUrl: `/download/open/${token}`,
         imageUrl: `/download/preview/${token}`,
         saveUrl: `/download/file/${token}`,
         item,
@@ -2788,6 +2767,7 @@ app.get('/download/:token', async (req, res) => {
     const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
 
     return res.render('download-view', {
+      openUrl: `/download/open/${token}`,
       imageUrl: signedUrl,
       saveUrl: `/download/file/${token}`,
       item,
@@ -2831,10 +2811,34 @@ app.get('/download/preview/:token', async (req, res) => {
   }
 });
 
+app.get('/download/open/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const resolved = await resolveDownloadToken(token);
+    if (resolved.error) return res.status(resolved.error.status).render('error', { message: resolved.error.message });
+
+    const { item } = resolved;
+    if (!s3 || !item.s3Key) {
+      return res.redirect(`/download/preview/${token}`);
+    }
+
+    const signedTtlSec = Number(process.env.S3_SIGNED_TTL_SEC || '60');
+    const cmd = new GetObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: item.s3Key
+    });
+    const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
+    return res.redirect(signedUrl);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).render('error', { message: '購入画像の表示に失敗しました。' });
+  }
+});
+
 app.get('/download/file/:token', async (req, res) => {
   try {
     const { token } = req.params;
-    const resolved = await consumeDownloadToken(token);
+    const resolved = await resolveDownloadToken(token);
     if (resolved.error) return res.status(resolved.error.status).render('error', { message: resolved.error.message });
 
     const { item } = resolved;
