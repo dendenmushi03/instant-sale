@@ -18,7 +18,7 @@
   <div class="dlWrap">
 
     <section class="card dlInfo" aria-label="download notice">
-      <p class="muted dlHero__meta"><%= lng === 'en' ? 'Expires in: ' : '有効期限：' %><%= ttlMin %><%= lng === 'en' ? ' min' : '分' %>（<%= lng === 'en' ? 'until ' : '' %><%= expiresAt.toLocaleString(locale) %><%= lng === 'en' ? '' : 'まで' %>）</p>
+      <p class="muted dlHero__meta"><%= lng === 'en' ? 'Expires in: ' : '有効期限：' %><%= ttlMin %><%= lng === 'en' ? ' min' : '分' %>（<%= lng === 'en' ? 'until ' : '' %><%= expiresAt.toLocaleString(locale, { timeZone: 'Asia/Tokyo' }) %><%= lng === 'en' ? '' : 'まで' %>）</p>
       <p class="muted"><%= t('download.open_notice_line1') %></p>
       <p class="muted"><%= t('download.open_notice_line2') %></p>
       <p class="dlHero__actions">

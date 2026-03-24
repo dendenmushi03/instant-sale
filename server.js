@@ -2462,20 +2462,12 @@ app.post('/webhooks/stripe', async (req, res) => {
       // 1) ダウンロードトークンの発行（既存ロジック）
       // --------------------
       if (paid && itemId) {
-        const existing = await DownloadToken.findOne({ sessionId });
-        if (!existing) {
-          const item = await Item.findById(itemId);
-          if (item) {
-            const token = nanoid(32);
-            const ttlMin = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '10');
-            const expiresAt = new Date(Date.now() + ttlMin * 60 * 1000);
-            await DownloadToken.create({
-              token,
-              item: item._id,
-              expiresAt,
-              sessionId,
-            });
-          }
+        const item = await Item.findById(itemId);
+        if (item) {
+          await findOrCreateDownloadToken({
+            sessionId,
+            itemId: item._id,
+          });
         }
       }
 
@@ -2681,18 +2673,11 @@ app.get('/success', async (req, res) => {
     if (!paid) return res.status(403).render('error', { message: 'お支払いの確認ができませんでした。' });
 
     // 既に Webhook が発行したトークンがあればそれを使う
-    let doc = await DownloadToken.findOne({ sessionId: session.id });
-    if (!doc) {
-      // フォールバック：まだ無ければここで発行
-      const token = nanoid(32);
-      const expiresAt = new Date(Date.now() + DOWNLOAD_TOKEN_TTL_MIN * 60 * 1000);
-      doc = await DownloadToken.create({
-        token,
-        item: item._id,
-        expiresAt,
-        sessionId: session.id,
-      });
-    }
+    const doc = await findOrCreateDownloadToken({
+      sessionId: session.id,
+      itemId: item._id,
+    });
+    if (!doc) return res.status(500).render('error', { message: 'ダウンロードトークンの発行に失敗しました。' });
 
     const saveUrl = `${BASE_URL}/download/file/${doc.token}`;
 
@@ -2716,6 +2701,29 @@ async function resolveDownloadToken(token) {
   if (!item) return { error: { status: 404, message: 'ファイルが見つかりません。' } };
 
   return { doc, item };
+}
+
+async function findOrCreateDownloadToken({ sessionId, itemId }) {
+  const expiresAt = new Date(Date.now() + DOWNLOAD_TOKEN_TTL_MIN * 60 * 1000);
+  const insertDoc = {
+    token: nanoid(32),
+    item: itemId,
+    expiresAt,
+    sessionId,
+  };
+
+  try {
+    const doc = await DownloadToken.findOneAndUpdate(
+      { sessionId },
+      { $setOnInsert: insertDoc },
+      { new: true, upsert: true }
+    );
+    if (doc) return doc;
+  } catch (e) {
+    if (e?.code !== 11000) throw e;
+  }
+
+  return await DownloadToken.findOne({ sessionId });
 }
 
 function getDownloadFilename(item, fallbackPath = '') {

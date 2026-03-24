@@ -23,7 +23,7 @@
       <p><%= t('checkout.step_save') %></p>
       <p><%= t('checkout.step_expire') %></p>
       <p class="muted purchaseComplete__meta">
-        <%- t('checkout.expire_note_html', { minutes: ttlMin, time: expiresAt.toLocaleString(locale) }) %>
+        <%- t('checkout.expire_note_html', { minutes: ttlMin, time: expiresAt.toLocaleString(locale, { timeZone: 'Asia/Tokyo' }) }) %>
       </p>
     </div>
 
