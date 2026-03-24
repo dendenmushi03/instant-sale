@@ -192,7 +192,7 @@ async function findOwnedItem(itemId, userId) {
 }
 
 const CREATOR_SECRET = process.env.CREATOR_SECRET || 'changeme';
-const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
+const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '10');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
@@ -2462,20 +2462,12 @@ app.post('/webhooks/stripe', async (req, res) => {
       // 1) ダウンロードトークンの発行（既存ロジック）
       // --------------------
       if (paid && itemId) {
-        const existing = await DownloadToken.findOne({ sessionId });
-        if (!existing) {
-          const item = await Item.findById(itemId);
-          if (item) {
-            const token = nanoid(32);
-            const ttlMin = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '120');
-            const expiresAt = new Date(Date.now() + ttlMin * 60 * 1000);
-            await DownloadToken.create({
-              token,
-              item: item._id,
-              expiresAt,
-              sessionId,
-            });
-          }
+        const item = await Item.findById(itemId);
+        if (item) {
+          await findOrCreateDownloadToken({
+            sessionId,
+            itemId: item._id,
+          });
         }
       }
 
@@ -2681,23 +2673,16 @@ app.get('/success', async (req, res) => {
     if (!paid) return res.status(403).render('error', { message: 'お支払いの確認ができませんでした。' });
 
     // 既に Webhook が発行したトークンがあればそれを使う
-    let doc = await DownloadToken.findOne({ sessionId: session.id });
-    if (!doc) {
-      // フォールバック：まだ無ければここで発行
-      const token = nanoid(32);
-      const expiresAt = new Date(Date.now() + DOWNLOAD_TOKEN_TTL_MIN * 60 * 1000);
-      doc = await DownloadToken.create({
-        token,
-        item: item._id,
-        expiresAt,
-        sessionId: session.id,
-      });
-    }
+    const doc = await findOrCreateDownloadToken({
+      sessionId: session.id,
+      itemId: item._id,
+    });
+    if (!doc) return res.status(500).render('error', { message: 'ダウンロードトークンの発行に失敗しました。' });
 
-    const downloadUrl = `${BASE_URL}/download/${doc.token}`;
+    const saveUrl = `${BASE_URL}/download/file/${doc.token}`;
 
 return res.render('success', {
-  item, downloadUrl, expiresAt: doc.expiresAt, ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
+  item, saveUrl, expiresAt: doc.expiresAt, ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
   lng: getLng(req)
 });
 
@@ -2710,8 +2695,7 @@ return res.render('success', {
 async function resolveDownloadToken(token) {
   const doc = await DownloadToken.findOne({ token });
   if (!doc) return { error: { status: 404, message: 'ダウンロードリンクが無効です。' } };
-  if (doc.usedOnce) return { error: { status: 410, message: 'このリンクはすでに使用されています。' } };
-  if (doc.expiresAt.getTime() < Date.now()) return { error: { status: 410, message: 'ダウンロードリンクの有効期限が切れました。' } };
+  if (doc.expiresAt.getTime() <= Date.now()) return { error: { status: 410, message: '購入後10分の有効期限が切れました。' } };
 
   const item = await Item.findById(doc.item);
   if (!item) return { error: { status: 404, message: 'ファイルが見つかりません。' } };
@@ -2719,25 +2703,27 @@ async function resolveDownloadToken(token) {
   return { doc, item };
 }
 
-async function consumeDownloadToken(token) {
-  const resolved = await resolveDownloadToken(token);
-  if (resolved.error) return resolved;
+async function findOrCreateDownloadToken({ sessionId, itemId }) {
+  const expiresAt = new Date(Date.now() + DOWNLOAD_TOKEN_TTL_MIN * 60 * 1000);
+  const insertDoc = {
+    token: nanoid(32),
+    item: itemId,
+    expiresAt,
+    sessionId,
+  };
 
-  const consumedDoc = await DownloadToken.findOneAndUpdate(
-    {
-      _id: resolved.doc._id,
-      usedOnce: false,
-      expiresAt: { $gte: new Date() }
-    },
-    { $set: { usedOnce: true } },
-    { new: true }
-  );
-
-  if (!consumedDoc) {
-    return await resolveDownloadToken(token);
+  try {
+    const doc = await DownloadToken.findOneAndUpdate(
+      { sessionId },
+      { $setOnInsert: insertDoc },
+      { new: true, upsert: true }
+    );
+    if (doc) return doc;
+  } catch (e) {
+    if (e?.code !== 11000) throw e;
   }
 
-  return { doc: consumedDoc, item: resolved.item };
+  return await DownloadToken.findOne({ sessionId });
 }
 
 function getDownloadFilename(item, fallbackPath = '') {
@@ -2768,6 +2754,7 @@ app.get('/download/:token', async (req, res) => {
       }
 
       return res.render('download-view', {
+        openUrl: `/download/open/${token}`,
         imageUrl: `/download/preview/${token}`,
         saveUrl: `/download/file/${token}`,
         item,
@@ -2788,6 +2775,7 @@ app.get('/download/:token', async (req, res) => {
     const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
 
     return res.render('download-view', {
+      openUrl: `/download/open/${token}`,
       imageUrl: signedUrl,
       saveUrl: `/download/file/${token}`,
       item,
@@ -2831,10 +2819,34 @@ app.get('/download/preview/:token', async (req, res) => {
   }
 });
 
+app.get('/download/open/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const resolved = await resolveDownloadToken(token);
+    if (resolved.error) return res.status(resolved.error.status).render('error', { message: resolved.error.message });
+
+    const { item } = resolved;
+    if (!s3 || !item.s3Key) {
+      return res.redirect(`/download/preview/${token}`);
+    }
+
+    const signedTtlSec = Number(process.env.S3_SIGNED_TTL_SEC || '60');
+    const cmd = new GetObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: item.s3Key
+    });
+    const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
+    return res.redirect(signedUrl);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).render('error', { message: '購入画像の表示に失敗しました。' });
+  }
+});
+
 app.get('/download/file/:token', async (req, res) => {
   try {
     const { token } = req.params;
-    const resolved = await consumeDownloadToken(token);
+    const resolved = await resolveDownloadToken(token);
     if (resolved.error) return res.status(resolved.error.status).render('error', { message: resolved.error.message });
 
     const { item } = resolved;
