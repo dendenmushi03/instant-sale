@@ -17,14 +17,18 @@
 <main class="container purchaseComplete">
   <section class="card success purchaseComplete__card" aria-labelledby="purchaseCompleteTitle">
     <h2 id="purchaseCompleteTitle" class="purchaseComplete__title"><%= t('checkout.done_title') %></h2>
-    <p><%= t('checkout.done_desc') %></p>
-
-    <p class="muted purchaseComplete__meta">
-      <%- t('checkout.expire_note_html', { minutes: ttlMin, time: expiresAt.toLocaleString(locale) }) %>
-    </p>
+    <div class="purchaseComplete__copy">
+      <p class="purchaseComplete__recommend"><%= t('checkout.recommend_note') %></p>
+      <p><%= t('checkout.step_open') %></p>
+      <p><%= t('checkout.step_save') %></p>
+      <p><%= t('checkout.step_expire') %></p>
+      <p class="muted purchaseComplete__meta">
+        <%- t('checkout.expire_note_html', { minutes: ttlMin, time: expiresAt.toLocaleString(locale) }) %>
+      </p>
+    </div>
 
     <p class="purchaseComplete__actions">
-      <a class="btn btn--primary" href="<%= downloadUrl %>"><%= t('checkout.download_btn') %></a>
+      <a class="btn btn--primary" href="<%= saveUrl %>"><%= t('checkout.download_btn') %></a>
     </p>
   </section>
 </main>

@@ -22,9 +22,10 @@
       <p class="muted"><%= t('download.open_notice_line1') %></p>
       <p class="muted"><%= t('download.open_notice_line2') %></p>
       <p class="dlHero__actions">
-        <a class="btn btn--primary" href="<%= saveUrl %>"><%= t('download.open_btn') %></a>
+        <a class="btn btn--primary" href="<%= openUrl %>"><%= t('download.open_btn') %></a>
+        <a class="btn btn--ghost" href="<%= saveUrl %>"><%= t('download.save_btn') %></a>
       </p>
-      <p class="muted"><%= lng === 'en' ? 'This link becomes invalid after the expiration time.' : '※リンクは有効期限を過ぎると無効になります。' %></p>
+      <p class="muted"><%= t('download.expire_notice_10min') %></p>
     </section>
 
 
