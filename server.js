@@ -193,6 +193,8 @@ async function findOwnedItem(itemId, userId) {
 
 const CREATOR_SECRET = process.env.CREATOR_SECRET || 'changeme';
 const DOWNLOAD_TOKEN_TTL_MIN = Number(process.env.DOWNLOAD_TOKEN_TTL_MIN || '10');
+const DOWNLOAD_TOKEN_TTL_MS = DOWNLOAD_TOKEN_TTL_MIN * 60 * 1000;
+const DOWNLOAD_TOKEN_EXPIRED_MESSAGE = '購入後10分の有効期限が切れました。';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change_me';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
@@ -2672,12 +2674,27 @@ app.get('/success', async (req, res) => {
     const paid = session && session.payment_status === 'paid' && session.metadata?.itemId === String(item._id);
     if (!paid) return res.status(403).render('error', { message: 'お支払いの確認ができませんでした。' });
 
-    // 既に Webhook が発行したトークンがあればそれを使う
-    const doc = await findOrCreateDownloadToken({
-      sessionId: session.id,
-      itemId: item._id,
-    });
+    // 既存トークンがあれば再利用。無い場合は「購入後10分以内」だけフォールバック発行する
+    let doc = await DownloadToken.findOne({ sessionId: session.id });
+    if (!doc) {
+      const sessionCreatedAtMs = Number(session.created || 0) * 1000;
+      const isWithinFallbackWindow =
+        sessionCreatedAtMs > 0 &&
+        (Date.now() - sessionCreatedAtMs) <= DOWNLOAD_TOKEN_TTL_MS;
+
+      if (!isWithinFallbackWindow) {
+        return res.status(410).render('error', { message: DOWNLOAD_TOKEN_EXPIRED_MESSAGE });
+      }
+
+      doc = await findOrCreateDownloadToken({
+        sessionId: session.id,
+        itemId: item._id,
+      });
+    }
     if (!doc) return res.status(500).render('error', { message: 'ダウンロードトークンの発行に失敗しました。' });
+    if (doc.expiresAt.getTime() <= Date.now()) {
+      return res.status(410).render('error', { message: DOWNLOAD_TOKEN_EXPIRED_MESSAGE });
+    }
 
     const saveUrl = `${BASE_URL}/download/file/${doc.token}`;
 
@@ -2695,7 +2712,7 @@ return res.render('success', {
 async function resolveDownloadToken(token) {
   const doc = await DownloadToken.findOne({ token });
   if (!doc) return { error: { status: 404, message: 'ダウンロードリンクが無効です。' } };
-  if (doc.expiresAt.getTime() <= Date.now()) return { error: { status: 410, message: '購入後10分の有効期限が切れました。' } };
+  if (doc.expiresAt.getTime() <= Date.now()) return { error: { status: 410, message: DOWNLOAD_TOKEN_EXPIRED_MESSAGE } };
 
   const item = await Item.findById(doc.item);
   if (!item) return { error: { status: 404, message: 'ファイルが見つかりません。' } };
@@ -2704,7 +2721,7 @@ async function resolveDownloadToken(token) {
 }
 
 async function findOrCreateDownloadToken({ sessionId, itemId }) {
-  const expiresAt = new Date(Date.now() + DOWNLOAD_TOKEN_TTL_MIN * 60 * 1000);
+  const expiresAt = new Date(Date.now() + DOWNLOAD_TOKEN_TTL_MS);
   const insertDoc = {
     token: nanoid(32),
     item: itemId,
