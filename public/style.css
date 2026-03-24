@@ -403,6 +403,7 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
 .downloadPage .dlHero__desc{margin:0}
 .downloadPage .dlHero__meta{margin:12px 0 0;line-height:1.7}
 .downloadPage .dlHero__actions{margin:16px 0 0}
+.downloadPage .dlHero__actions .btn{min-width:min(320px,100%)}
 .downloadPage .dlInfo p{margin:0}
 .downloadPage .dlInfo{display:grid;gap:8px}
 .downloadPage .dlPreview{padding:16px}
