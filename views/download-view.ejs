@@ -19,8 +19,12 @@
 
     <section class="card dlInfo" aria-label="download notice">
       <p class="muted dlHero__meta"><%= lng === 'en' ? 'Expires in: ' : '有効期限：' %><%= ttlMin %><%= lng === 'en' ? ' min' : '分' %>（<%= lng === 'en' ? 'until ' : '' %><%= expiresAt.toLocaleString(locale) %><%= lng === 'en' ? '' : 'まで' %>）</p>
+      <p class="muted"><%= t('download.save_notice') %></p>
+      <p class="dlHero__actions">
+        <a class="btn btn--primary" href="<%= saveUrl %>"><%= t('download.save_btn') %></a>
+      </p>
+      <p class="muted"><%= t('download.long_press_hint') %></p>
       <p class="muted"><%= lng === 'en' ? 'This link becomes invalid after the expiration time.' : '※リンクは有効期限を過ぎると無効になります。' %></p>
-      <p class="muted"><%= lng === 'en' ? 'You can save it by long-pressing the image.' : '※画像を長押しで保存できます。' %></p>
     </section>
 
     <section class="card dlPreview" aria-label="image preview">

@@ -2707,60 +2707,170 @@ return res.render('success', {
   }
 });
 
+async function resolveDownloadToken(token) {
+  const doc = await DownloadToken.findOne({ token });
+  if (!doc) return { error: { status: 404, message: 'ダウンロードリンクが無効です。' } };
+  if (doc.usedOnce) return { error: { status: 410, message: 'このリンクはすでに使用されています。' } };
+  if (doc.expiresAt.getTime() < Date.now()) return { error: { status: 410, message: 'ダウンロードリンクの有効期限が切れました。' } };
+
+  const item = await Item.findById(doc.item);
+  if (!item) return { error: { status: 404, message: 'ファイルが見つかりません。' } };
+
+  return { doc, item };
+}
+
+async function consumeDownloadToken(token) {
+  const resolved = await resolveDownloadToken(token);
+  if (resolved.error) return resolved;
+
+  const consumedDoc = await DownloadToken.findOneAndUpdate(
+    {
+      _id: resolved.doc._id,
+      usedOnce: false,
+      expiresAt: { $gte: new Date() }
+    },
+    { $set: { usedOnce: true } },
+    { new: true }
+  );
+
+  if (!consumedDoc) {
+    return await resolveDownloadToken(token);
+  }
+
+  return { doc: consumedDoc, item: resolved.item };
+}
+
+function getDownloadFilename(item, fallbackPath = '') {
+  const keyExt = path.extname(String(item?.s3Key || ''));
+  const fallbackExt = path.extname(String(fallbackPath || ''));
+  const mimeExt = item?.mimeType && mime.extension(item.mimeType) ? `.${mime.extension(item.mimeType)}` : '';
+  return `${item.title}${keyExt || fallbackExt || mimeExt}`;
+}
+
 // download
 app.get('/download/:token', async (req, res) => {
   try {
     const { token } = req.params;
-    const doc = await DownloadToken.findOne({ token });
-    if (!doc) return res.status(404).render('error', { message: 'ダウンロードリンクが無効です。' });
-    if (doc.usedOnce) return res.status(410).render('error', { message: 'このリンクはすでに使用されています。' });
-    if (doc.expiresAt.getTime() < Date.now()) return res.status(410).render('error', { message: 'ダウンロードリンクの有効期限が切れました。' });
+    const resolved = await resolveDownloadToken(token);
+    if (resolved.error) return res.status(resolved.error.status).render('error', { message: resolved.error.message });
 
-    const item = await Item.findById(doc.item);
-    if (!item) return res.status(404).render('error', { message: 'ファイルが見つかりません。' });
+    const { doc, item } = resolved;
 
-if (!s3 || !item.s3Key) {
-  // フォールバック：まだS3化していないレガシーアイテム向け
-  const absRaw = (item.filePath || '').trim();
-  const hasLocalFile = !!absRaw &&
-    fs.existsSync(absRaw) &&
-    (() => { try { return fs.statSync(absRaw).isFile(); } catch { return false; } })();
+    if (!s3 || !item.s3Key) {
+      // フォールバック：まだS3化していないレガシーアイテム向け
+      const absRaw = (item.filePath || '').trim();
+      const hasLocalFile = !!absRaw &&
+        fs.existsSync(absRaw) &&
+        (() => { try { return fs.statSync(absRaw).isFile(); } catch { return false; } })();
 
-  if (!hasLocalFile) {
-    return res.status(404).render('error', { message: 'ファイルが存在しません。' });
-  }
-  res.setHeader('Content-Type', item.mimeType || 'application/octet-stream');
-  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(item.title)}${path.extname(absRaw) || ''}`);
-  return fs.createReadStream(absRaw).pipe(res);
-}
+      if (!hasLocalFile) {
+        return res.status(404).render('error', { message: 'ファイルが存在しません。' });
+      }
 
-// 署名の有効期限（例：60秒）。必要なら環境変数で調整
-const signedTtlSec = Number(process.env.S3_SIGNED_TTL_SEC || '60');
+      return res.render('download-view', {
+        imageUrl: `/download/preview/${token}`,
+        saveUrl: `/download/file/${token}`,
+        item,
+        expiresAt: doc.expiresAt,
+        ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
+        lng: getLng(req)
+      });
+    }
 
-// ★ ビューページに <img> で埋め込むため、Content-Disposition は付けない（= inline）
-const cmd = new GetObjectCommand({
-  Bucket: S3_BUCKET,
-  Key: item.s3Key
-});
-const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
+    // 署名の有効期限（例：60秒）。必要なら環境変数で調整
+    const signedTtlSec = Number(process.env.S3_SIGNED_TTL_SEC || '60');
 
-return res.render('download-view', {
-  imageUrl: signedUrl,
-  item,
-  expiresAt: doc.expiresAt,
-  ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
-  lng: getLng(req)
-});
+    // ★ ビューページに <img> で埋め込むため、Content-Disposition は付けない（= inline）
+    const cmd = new GetObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: item.s3Key
+    });
+    const signedUrl = await getSignedUrl(s3, cmd, { expiresIn: signedTtlSec });
 
-// 補助: S3キーから拡張子取得
-function extnameFromKey(key) {
-  const m = /\.[a-z0-9]+$/i.exec(key);
-  return m ? m[0] : '';
-}
-
+    return res.render('download-view', {
+      imageUrl: signedUrl,
+      saveUrl: `/download/file/${token}`,
+      item,
+      expiresAt: doc.expiresAt,
+      ttlMin: DOWNLOAD_TOKEN_TTL_MIN,
+      lng: getLng(req)
+    });
   } catch (e) {
     console.error(e);
     return res.status(500).render('error', { message: 'ダウンロード処理に失敗しました。' });
+  }
+});
+
+app.get('/download/preview/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const resolved = await resolveDownloadToken(token);
+    if (resolved.error) return res.status(resolved.error.status).render('error', { message: resolved.error.message });
+
+    const { item } = resolved;
+    if (s3 && item.s3Key) {
+      return res.status(404).render('error', { message: 'プレビュー画像が見つかりません。' });
+    }
+
+    const absRaw = (item.filePath || '').trim();
+    const hasLocalFile = !!absRaw &&
+      fs.existsSync(absRaw) &&
+      (() => { try { return fs.statSync(absRaw).isFile(); } catch { return false; } })();
+
+    if (!hasLocalFile) {
+      return res.status(404).render('error', { message: 'ファイルが存在しません。' });
+    }
+
+    if (item.mimeType) {
+      res.setHeader('Content-Type', item.mimeType);
+    }
+    return fs.createReadStream(absRaw).pipe(res);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).render('error', { message: 'プレビュー画像の表示に失敗しました。' });
+  }
+});
+
+app.get('/download/file/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const resolved = await consumeDownloadToken(token);
+    if (resolved.error) return res.status(resolved.error.status).render('error', { message: resolved.error.message });
+
+    const { item } = resolved;
+
+    if (!s3 || !item.s3Key) {
+      const absRaw = (item.filePath || '').trim();
+      const hasLocalFile = !!absRaw &&
+        fs.existsSync(absRaw) &&
+        (() => { try { return fs.statSync(absRaw).isFile(); } catch { return false; } })();
+
+      if (!hasLocalFile) {
+        return res.status(404).render('error', { message: 'ファイルが存在しません。' });
+      }
+
+      res.setHeader('Content-Type', item.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(getDownloadFilename(item, absRaw))}`);
+      return fs.createReadStream(absRaw).pipe(res);
+    }
+
+    const cmd = new GetObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: item.s3Key
+    });
+    const s3Object = await s3.send(cmd);
+
+    res.setHeader('Content-Type', s3Object.ContentType || item.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(getDownloadFilename(item))}`);
+
+    if (!s3Object.Body) {
+      return res.status(404).render('error', { message: 'ファイルが存在しません。' });
+    }
+
+    return s3Object.Body.pipe(res);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).render('error', { message: 'ファイル保存に失敗しました。' });
   }
 });
 
