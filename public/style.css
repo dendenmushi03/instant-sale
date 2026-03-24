@@ -393,6 +393,9 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f4f6;color:#9ca3a
 .purchaseComplete{display:flex;justify-content:center;padding-top:20px;padding-bottom:20px}
 .purchaseComplete__card{width:min(720px,100%);text-align:center}
 .purchaseComplete__title{margin:0 0 10px;font-size:clamp(24px,3.2vw,34px)}
+.purchaseComplete__copy{max-width:560px;margin:0 auto;text-align:left;display:grid;gap:8px}
+.purchaseComplete__copy p{margin:0;line-height:1.7}
+.purchaseComplete__recommend{font-weight:600}
 .purchaseComplete__meta{line-height:1.8;margin:14px 0 0}
 .purchaseComplete__actions{margin:18px 0 0}
 .purchaseComplete__actions .btn{min-width:min(360px,100%)}

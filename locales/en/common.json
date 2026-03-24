@@ -215,8 +215,12 @@
     "sale_title_suffix": "Instant download",
     "sale_desc": "Buy high-res now (¥{{price}})"
   },
-  "checkout.done_title": "Thank you for your purchase 🎉",
+  "checkout.done_title": "Purchase successful!",
   "checkout.done_desc": "You can save your purchased image using the button below.",
+  "checkout.recommend_note": "<Recommended> We suggest viewing this page in a web browser.",
+  "checkout.step_open": "• Open your purchased image from the button below.",
+  "checkout.step_save": "• On the next screen, long-press the image or use your device save action.",
+  "checkout.step_expire": "• Viewing and saving are available only for 10 minutes after purchase.",
   "checkout.expire_note_html": "※ Expiration: <strong>{{minutes}} min</strong> (until {{time}})",
   "checkout.download_btn": "Save purchased image",
   "checkout.save_hint": "Depending on your environment, you may need to use your device's save action after opening.",

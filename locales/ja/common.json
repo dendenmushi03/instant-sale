@@ -215,8 +215,12 @@
     "sale_title_suffix": "即ダウンロード",
     "sale_desc": "高解像度をすぐ購入（¥{{price}}）"
   },
-  "checkout.done_title": "ご購入ありがとうございます🎉",
+  "checkout.done_title": "購入成功！",
   "checkout.done_desc": "以下のボタンから購入画像を保存できます。",
+  "checkout.recommend_note": "〈推奨〉こちらのページはWebブラウザで閲覧することをおすすめします。",
+  "checkout.step_open": "• 下のボタンから購入画像を開いてください。",
+  "checkout.step_save": "• 遷移後の画像を長押し、または端末の保存操作で保存してください。",
+  "checkout.step_expire": "• 購入後10分間のみ、閲覧・保存できます。",
   "checkout.expire_note_html": "※ 有効期限：<strong>{{minutes}}分</strong>（{{time}} まで）",
   "checkout.download_btn": "購入した画像を保存",
   "checkout.save_hint": "環境によっては遷移後に端末の保存操作が必要です。",
