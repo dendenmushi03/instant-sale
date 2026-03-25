@@ -39,6 +39,12 @@
                     <span class="mnav__itemLabel"><%= t('nav.creator') %></span>
                     <span class="mnav__itemArrow" aria-hidden="true">›</span>
                   </a>
+                  <% if (me.isAdmin) { %>
+                    <a class="mnav__itemLink" href="/admin">
+                      <span class="mnav__itemLabel">管理画面</span>
+                      <span class="mnav__itemArrow" aria-hidden="true">›</span>
+                    </a>
+                  <% } %>
                   <a class="mnav__itemLink" href="/dashboard">
                     <span class="mnav__itemLabel"><%= t('nav.dashboard') %></span>
                     <span class="mnav__itemArrow" aria-hidden="true">›</span>
@@ -121,6 +127,9 @@
 
       <% if (me) { %>
         <a class="btn btn--ghost" href="/creator"><%= t('nav.creator') %></a>
+        <% if (me.isAdmin) { %>
+          <a class="btn btn--ghost" href="/admin">管理画面</a>
+        <% } %>
         <a class="btn btn--ghost" href="/dashboard"><%= t('nav.dashboard') %></a>
         <a class="btn btn--ghost" href="/connect/portal"><%= t('nav.payouts') %></a>
         <a class="btn btn--ghost" href="/logout"><%= t('nav.logout') %></a>

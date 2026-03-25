@@ -3281,6 +3281,31 @@ body.menu-open{
     line-height:1.65;
   }
 }
+.adminFilterCard{margin-top:18px}
+.adminFilterForm{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+  align-items:end;
+}
+.adminFilterForm label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:13px;
+  color:var(--muted);
+}
+.adminFilterForm input,
+.adminFilterForm select{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:14px;
+  background:#fff;
+}
+.adminTableWrap{overflow:auto}
+.adminTable th,.adminTable td{white-space:nowrap}
 .sellerProfileSummaryCard{
   gap:18px;
 }
