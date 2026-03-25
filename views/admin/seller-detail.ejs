@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, canonical: baseUrl + '/admin/sellers/' + seller.id }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage adminPage">
+    <div class="dashboardSectionHead dashboardSectionHead--stack">
+      <h1 class="dashboardSectionTitle">販売者詳細</h1>
+      <a class="btn btn--ghost" href="/admin/sellers">← 販売者一覧へ</a>
+    </div>
+
+    <section class="card dashboardDetail">
+      <dl class="dashboardDetailList">
+        <div><dt>出品者名</dt><dd><%= seller.creatorName %></dd></div>
+        <div><dt>メール</dt><dd><%= seller.email %></dd></div>
+        <div><dt>事業種別</dt><dd><%= seller.businessType %></dd></div>
+        <div><dt>Stripe接続状況</dt><dd><%= seller.stripeConnected ? '接続済み' : '未接続' %></dd></div>
+        <div><dt>作成日</dt><dd><%= seller.createdAt ? new Date(seller.createdAt).toLocaleString(locale || 'ja-JP') : '-' %></dd></div>
+        <div><dt>総出品数</dt><dd><%= seller.totalItems %></dd></div>
+        <div><dt>公開中件数</dt><dd><%= seller.activeItems %></dd></div>
+        <div><dt>削除済み件数</dt><dd><%= seller.deletedItems %></dd></div>
+        <div><dt>総アクセス数</dt><dd><%= seller.totalAccessCount == null ? '-' : seller.totalAccessCount %></dd></div>
+        <div><dt>総購入数</dt><dd><%= seller.totalPurchaseCount %></dd></div>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2 class="dashboardSectionTitle">出品作品一覧</h2>
+      <div class="adminTableWrap">
+        <table class="legal-table adminTable">
+          <thead>
+            <tr>
+              <th>タイトル</th>
+              <th>価格</th>
+              <th>状態</th>
+              <th>作成日</th>
+              <th>アクセス数</th>
+              <th>購入回数</th>
+              <th>販売ページ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (!items || items.length === 0) { %>
+              <tr><td colspan="7">出品作品はありません。</td></tr>
+            <% } %>
+            <% (items || []).forEach(function(item){ %>
+              <tr>
+                <td><%= item.title %></td>
+                <td><%= item.priceLabel %></td>
+                <td><%= item.statusLabel %></td>
+                <td><%= item.createdAt ? new Date(item.createdAt).toLocaleDateString(locale || 'ja-JP') : '-' %></td>
+                <td><%= item.accessCount == null ? '-' : item.accessCount %></td>
+                <td><%= item.purchaseCount %></td>
+                <td><a href="<%= item.saleUrl %>" target="_blank" rel="noopener noreferrer">販売ページ</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

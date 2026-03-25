@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, canonical: baseUrl + '/admin/sellers' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage adminPage">
+    <div class="dashboardSectionHead dashboardSectionHead--stack">
+      <h1 class="dashboardSectionTitle">販売者一覧</h1>
+      <a class="btn btn--ghost" href="/admin">← 管理トップへ</a>
+    </div>
+
+    <section class="card adminFilterCard">
+      <form class="adminFilterForm" method="get" action="/admin/sellers">
+        <label>
+          キーワード
+          <input type="text" name="q" value="<%= filters?.q || '' %>" placeholder="クリエイター名 / メール" />
+        </label>
+
+        <label>
+          事業種別
+          <select name="businessType">
+            <option value="">すべて</option>
+            <option value="sole_proprietor" <%= filters?.businessType === 'sole_proprietor' ? 'selected' : '' %>>個人</option>
+            <option value="corporation" <%= filters?.businessType === 'corporation' ? 'selected' : '' %>>法人</option>
+          </select>
+        </label>
+
+        <label>
+          Stripe接続
+          <select name="stripe">
+            <option value="">すべて</option>
+            <option value="connected" <%= filters?.stripeStatus === 'connected' ? 'selected' : '' %>>接続済み</option>
+            <option value="not_connected" <%= filters?.stripeStatus === 'not_connected' ? 'selected' : '' %>>未接続</option>
+          </select>
+        </label>
+
+        <button class="btn btn--primary" type="submit">検索</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="adminTableWrap">
+        <table class="legal-table adminTable">
+          <thead>
+            <tr>
+              <th>出品者名</th>
+              <th>メール</th>
+              <th>事業種別</th>
+              <th>Stripe</th>
+              <th>公開中件数</th>
+              <th>削除済み件数</th>
+              <th>総出品数</th>
+              <th>作成日</th>
+              <th>詳細</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (!sellers || sellers.length === 0) { %>
+              <tr>
+                <td colspan="9">該当する販売者が見つかりませんでした。</td>
+              </tr>
+            <% } %>
+            <% (sellers || []).forEach(function(seller){ %>
+              <tr>
+                <td><%= seller.creatorName %></td>
+                <td><%= seller.email %></td>
+                <td><%= seller.businessType %></td>
+                <td><%= seller.stripeConnected ? '接続済み' : '未接続' %></td>
+                <td><%= seller.activeItems %></td>
+                <td><%= seller.deletedItems %></td>
+                <td><%= seller.totalItems %></td>
+                <td><%= seller.createdAt ? new Date(seller.createdAt).toLocaleDateString(locale || 'ja-JP') : '-' %></td>
+                <td><a href="/admin/sellers/<%= seller.userId %>">詳細</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

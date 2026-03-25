@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, og, canonical: baseUrl + '/admin' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage adminPage">
+    <section class="card dashboardHero">
+      <h1 class="dashboardHero__title">管理画面</h1>
+      <p class="dashboardHero__lead">運営向けの管理メニューです。</p>
+    </section>
+
+    <nav class="dashboardHub__list" aria-label="管理メニュー">
+      <a class="card dashboardHubCard" href="/admin/sellers">
+        <span class="dashboardHubCard__body">
+          <span class="dashboardHubCard__title">販売者一覧</span>
+          <span class="dashboardHubCard__desc">販売者の登録状況・Stripe接続状況・出品件数を確認できます。</span>
+        </span>
+        <span class="dashboardHubCard__chevron" aria-hidden="true">›</span>
+      </a>
+    </nav>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>

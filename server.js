@@ -604,6 +604,22 @@ const ensureAuthed = (req, res, next) => {
   return res.redirect('/login');
 };
 
+const requireAdmin = (req, res, next) => {
+  if (!req.user) return res.redirect('/login');
+  if (req.user.isAdmin) return next();
+  return res.status(403).render('error', { message: 'このページを表示する権限がありません。' });
+};
+
+function sellerBusinessTypeLabel(value) {
+  if (value === 'corporation') return '法人';
+  if (value === 'sole_proprietor') return '個人';
+  return '-';
+}
+
+function adminBaseView(req, extra = {}) {
+  return dashboardBaseView(req, extra);
+}
+
 
 function getSellerProfileCompletion(user) {
   const profile = user?.sellerProfile || {};
@@ -777,6 +793,33 @@ function dashboardBaseView(req, extra = {}) {
     nonEditableFields: ['previewPath', 'filePath', 's3Key', 'licensePreset', 'licenseNotes', 'requireCredit', 'mimeType'],
     ...extra
   };
+}
+
+async function buildSellerItemStats(ownerUserIds = []) {
+  if (!ownerUserIds.length) return new Map();
+
+  const normalizedOwnerIds = ownerUserIds.map((id) => new mongoose.Types.ObjectId(String(id)));
+  const rows = await Item.aggregate([
+    { $match: { ownerUser: { $in: normalizedOwnerIds } } },
+    {
+      $group: {
+        _id: '$ownerUser',
+        totalItems: { $sum: 1 },
+        activeItems: {
+          $sum: {
+            $cond: [{ $eq: ['$isDeleted', true] }, 0, 1]
+          }
+        },
+        deletedItems: {
+          $sum: {
+            $cond: [{ $eq: ['$isDeleted', true] }, 1, 0]
+          }
+        }
+      }
+    }
+  ]);
+
+  return new Map(rows.map((row) => [String(row._id), row]));
 }
 
 function sellerProfileFormValues(profile = {}) {
@@ -1710,6 +1753,148 @@ app.post('/dashboard/items/:id/edit', ensureAuthed, ensureSellerProfileCompleted
       successMessage: '',
       licenseView: licenseViewOf(item)
     }));
+  }
+});
+
+app.get('/admin', ensureAuthed, requireAdmin, async (req, res) => {
+  return res.render('admin/index', adminBaseView(req, {
+    title: '管理画面',
+    og: {
+      title: `Admin | ${req.t('brand')}`,
+      desc: '管理者向けメニューです。',
+      url: `${BASE_URL}/admin`,
+      image: `${BASE_URL}/public/og/instantsale_ogp.jpg`
+    }
+  }));
+});
+
+app.get('/admin/sellers', ensureAuthed, requireAdmin, async (req, res) => {
+  try {
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const businessType = typeof req.query.businessType === 'string' ? req.query.businessType.trim() : '';
+    const stripeStatus = typeof req.query.stripe === 'string' ? req.query.stripe.trim() : '';
+
+    const andConditions = [];
+    if (q) {
+      const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      andConditions.push({
+        $or: [
+        { email: regex },
+        { 'sellerProfile.creatorDisplayName': regex },
+        { name: regex }
+      ]});
+    }
+    if (['sole_proprietor', 'corporation'].includes(businessType)) {
+      andConditions.push({ 'sellerProfile.businessType': businessType });
+    }
+    if (stripeStatus === 'connected') {
+      andConditions.push({ stripeAccountId: { $nin: ['', null] } });
+    } else if (stripeStatus === 'not_connected') {
+      andConditions.push({
+        $or: [
+        { stripeAccountId: { $exists: false } },
+        { stripeAccountId: '' },
+        { stripeAccountId: null }
+      ]});
+    }
+    const userMatch = andConditions.length ? { $and: andConditions } : {};
+
+    const users = await User.find(userMatch)
+      .sort({ createdAt: -1, _id: -1 })
+      .select('name email createdAt stripeAccountId sellerProfile')
+      .limit(300)
+      .lean();
+
+    const itemStatsMap = await buildSellerItemStats(users.map((user) => user._id));
+    const sellerRows = users
+      .map((user) => {
+        const stats = itemStatsMap.get(String(user._id)) || { totalItems: 0, activeItems: 0, deletedItems: 0 };
+        const creatorName = user?.sellerProfile?.creatorDisplayName || user?.name || '-';
+        return {
+          userId: String(user._id),
+          creatorName,
+          email: user?.email || '-',
+          businessType: sellerBusinessTypeLabel(user?.sellerProfile?.businessType),
+          stripeConnected: !!user?.stripeAccountId,
+          activeItems: stats.activeItems || 0,
+          deletedItems: stats.deletedItems || 0,
+          totalItems: stats.totalItems || 0,
+          createdAt: user?.createdAt || null
+        };
+      })
+      .filter((row) => row.totalItems > 0 || row.businessType !== '-');
+
+    return res.render('admin/sellers', adminBaseView(req, {
+      title: '販売者一覧 | 管理画面',
+      filters: { q, businessType, stripeStatus },
+      sellers: sellerRows
+    }));
+  } catch (e) {
+    console.error('[admin:sellers]', e);
+    return res.status(500).render('error', { message: '販売者一覧の表示に失敗しました。' });
+  }
+});
+
+app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+      return res.status(404).render('error', { message: 'ユーザーが見つかりません。' });
+    }
+
+    const user = await User.findById(req.params.userId)
+      .select('name email createdAt stripeAccountId sellerProfile')
+      .lean();
+    if (!user) return res.status(404).render('error', { message: 'ユーザーが見つかりません。' });
+
+    const [itemStatsMap, items, purchaseRows] = await Promise.all([
+      buildSellerItemStats([user._id]),
+      Item.find({ ownerUser: user._id })
+        .sort({ createdAt: -1, _id: -1 })
+        .select('slug title price currency isDeleted createdAt')
+        .lean(),
+      DownloadToken.aggregate([
+        { $lookup: { from: 'items', localField: 'item', foreignField: '_id', as: 'itemDoc' } },
+        { $unwind: '$itemDoc' },
+        { $match: { 'itemDoc.ownerUser': new mongoose.Types.ObjectId(String(user._id)) } },
+        { $group: { _id: '$itemDoc._id', purchaseCount: { $sum: 1 } } }
+      ])
+    ]);
+
+    const purchaseMap = new Map(purchaseRows.map((row) => [String(row._id), row.purchaseCount || 0]));
+    const stats = itemStatsMap.get(String(user._id)) || { totalItems: 0, activeItems: 0, deletedItems: 0 };
+    const totalPurchaseCount = purchaseRows.reduce((sum, row) => sum + (row.purchaseCount || 0), 0);
+
+    const itemRows = items.map((item) => ({
+      id: String(item._id),
+      title: item.title || '(無題)',
+      priceLabel: `${Number(item.price || 0).toLocaleString('ja-JP')}円`,
+      statusLabel: item.isDeleted ? '削除済み' : '公開中',
+      createdAt: item.createdAt || null,
+      accessCount: null,
+      purchaseCount: purchaseMap.get(String(item._id)) || 0,
+      saleUrl: `/s/${item.slug}`
+    }));
+
+    return res.render('admin/seller-detail', adminBaseView(req, {
+      title: '販売者詳細 | 管理画面',
+      seller: {
+        id: String(user._id),
+        creatorName: user?.sellerProfile?.creatorDisplayName || user?.name || '-',
+        email: user?.email || '-',
+        businessType: sellerBusinessTypeLabel(user?.sellerProfile?.businessType),
+        stripeConnected: !!user?.stripeAccountId,
+        createdAt: user?.createdAt || null,
+        totalItems: stats.totalItems || 0,
+        activeItems: stats.activeItems || 0,
+        deletedItems: stats.deletedItems || 0,
+        totalAccessCount: null,
+        totalPurchaseCount
+      },
+      items: itemRows
+    }));
+  } catch (e) {
+    console.error('[admin:seller-detail]', e);
+    return res.status(500).render('error', { message: '販売者詳細の表示に失敗しました。' });
   }
 });
 
