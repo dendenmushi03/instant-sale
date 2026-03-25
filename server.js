@@ -823,6 +823,23 @@ async function buildSellerItemStats(ownerUserIds = []) {
   return new Map(rows.map((row) => [String(row._id), row]));
 }
 
+async function buildSellerPurchaseStats(sellerUserIds = []) {
+  if (!sellerUserIds.length) return new Map();
+
+  const normalizedSellerIds = sellerUserIds.map((id) => new mongoose.Types.ObjectId(String(id)));
+  const rows = await PurchaseRecord.aggregate([
+    { $match: { seller: { $in: normalizedSellerIds } } },
+    {
+      $group: {
+        _id: '$seller',
+        totalPurchaseCount: { $sum: 1 }
+      }
+    }
+  ]);
+
+  return new Map(rows.map((row) => [String(row._id), row.totalPurchaseCount || 0]));
+}
+
 function sellerProfileFormValues(profile = {}) {
   return {
     businessType: profile.businessType || '',
@@ -1806,7 +1823,10 @@ app.get('/admin/sellers', ensureAuthed, requireAdmin, async (req, res) => {
       .limit(300)
       .lean();
 
-    const itemStatsMap = await buildSellerItemStats(users.map((user) => user._id));
+    const [itemStatsMap, purchaseStatsMap] = await Promise.all([
+      buildSellerItemStats(users.map((user) => user._id)),
+      buildSellerPurchaseStats(users.map((user) => user._id))
+    ]);
     const sellerRows = users
       .map((user) => {
         const stats = itemStatsMap.get(String(user._id)) || { totalItems: 0, activeItems: 0, deletedItems: 0 };
@@ -1820,6 +1840,7 @@ app.get('/admin/sellers', ensureAuthed, requireAdmin, async (req, res) => {
           activeItems: stats.activeItems || 0,
           deletedItems: stats.deletedItems || 0,
           totalItems: stats.totalItems || 0,
+          totalPurchaseCount: purchaseStatsMap.get(String(user._id)) || 0,
           createdAt: user?.createdAt || null
         };
       })

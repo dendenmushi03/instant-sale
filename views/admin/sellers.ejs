@@ -53,6 +53,7 @@
               <th>公開中件数</th>
               <th>削除済み件数</th>
               <th>総出品数</th>
+              <th>総購入数</th>
               <th>作成日</th>
               <th>詳細</th>
             </tr>
@@ -60,7 +61,7 @@
           <tbody>
             <% if (!sellers || sellers.length === 0) { %>
               <tr>
-                <td colspan="9">該当する販売者が見つかりませんでした。</td>
+                <td colspan="10">該当する販売者が見つかりませんでした。</td>
               </tr>
             <% } %>
             <% (sellers || []).forEach(function(seller){ %>
@@ -72,6 +73,7 @@
                 <td><%= seller.activeItems %></td>
                 <td><%= seller.deletedItems %></td>
                 <td><%= seller.totalItems %></td>
+                <td><%= seller.totalPurchaseCount %></td>
                 <td><%= seller.createdAt ? new Date(seller.createdAt).toLocaleDateString(locale || 'ja-JP') : '-' %></td>
                 <td><a href="/admin/sellers/<%= seller.userId %>">詳細</a></td>
               </tr>
