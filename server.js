@@ -776,8 +776,22 @@ async function getOwnedItemSummary(userId) {
     Item.countDocuments({ ownerUser: ownerObjectId, isDeleted: { $ne: true } })
   ]);
 
+  const itemIds = items.map((item) => item._id);
+  const salesRows = itemIds.length
+    ? await PurchaseRecord.aggregate([
+      { $match: { seller: ownerObjectId, item: { $in: itemIds } } },
+      { $group: { _id: '$item', salesCount: { $sum: 1 } } }
+    ])
+    : [];
+  const salesCountByItemId = new Map(
+    salesRows.map((row) => [String(row._id), Number(row.salesCount || 0)])
+  );
+
   return {
-    items: items.map(dashboardItemView),
+    items: items.map((item) => dashboardItemView({
+      ...item,
+      salesCount: salesCountByItemId.get(String(item._id)) || 0
+    })),
     totalCount
   };
 }

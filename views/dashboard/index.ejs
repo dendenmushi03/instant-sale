@@ -53,6 +53,7 @@
                   <dl class="dashboardMetaList">
                     <div><dt>価格</dt><dd>¥<%= Number(item.price || 0).toLocaleString(locale) %></dd></div>
                     <div><dt>作成日</dt><dd><%= new Date(item.createdAt).toLocaleDateString(locale) %></dd></div>
+                    <div><dt>販売数</dt><dd><%= Number(item.salesCount || 0).toLocaleString(locale) %>件</dd></div>
                   </dl>
                   <div class="dashboardCard__footer">
                     <span class="dashboardCard__url"><%= item.saleUrl %></span>
