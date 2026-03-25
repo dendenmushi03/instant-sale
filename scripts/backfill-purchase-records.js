@@ -45,11 +45,10 @@ async function listPaidCheckoutSessions(stripe, options) {
     const page = await stripe.checkout.sessions.list({
       limit: Math.min(100, options.limit - out.length),
       ...(startingAfter ? { starting_after: startingAfter } : {}),
+      expand: ['data.payment_intent'],
       ...(options.createdGte || options.createdLte
         ? { created: { ...(options.createdGte ? { gte: options.createdGte } : {}), ...(options.createdLte ? { lte: options.createdLte } : {}) } }
         : {})
-    }, {
-      expand: ['data.payment_intent']
     });
 
     const paid = page.data.filter((session) => session.status === 'complete' && session.payment_status === 'paid');
