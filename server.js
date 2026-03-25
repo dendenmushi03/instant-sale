@@ -27,6 +27,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const Item = require('./models/Item');
 const DownloadToken = require('./models/DownloadToken');
+const PurchaseRecord = require('./models/PurchaseRecord');
 const User = require('./models/User');
 
 const PendingTransfer = require('./models/PendingTransfer');
@@ -1852,11 +1853,9 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
         .sort({ createdAt: -1, _id: -1 })
         .select('slug title price currency isDeleted createdAt')
         .lean(),
-      DownloadToken.aggregate([
-        { $lookup: { from: 'items', localField: 'item', foreignField: '_id', as: 'itemDoc' } },
-        { $unwind: '$itemDoc' },
-        { $match: { 'itemDoc.ownerUser': new mongoose.Types.ObjectId(String(user._id)) } },
-        { $group: { _id: '$itemDoc._id', purchaseCount: { $sum: 1 } } }
+      PurchaseRecord.aggregate([
+        { $match: { seller: new mongoose.Types.ObjectId(String(user._id)) } },
+        { $group: { _id: '$item', purchaseCount: { $sum: 1 } } }
       ])
     ]);
 
@@ -2644,18 +2643,38 @@ app.post('/webhooks/stripe', async (req, res) => {
       const sessionId = session.id;
       const paid = session.payment_status === 'paid';
       const itemId = session.metadata?.itemId;
+      const paymentIntentId = typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent?.id || '';
+      const purchasedAt = Number(session.created)
+        ? new Date(Number(session.created) * 1000)
+        : new Date();
+      const paidAmount = Number.isFinite(session.amount_total)
+        ? Number(session.amount_total)
+        : null;
+      const item = (paid && itemId) ? await Item.findById(itemId) : null;
       
       // --------------------
       // 1) ダウンロードトークンの発行（既存ロジック）
       // --------------------
-      if (paid && itemId) {
-        const item = await Item.findById(itemId);
-        if (item) {
-          await findOrCreateDownloadToken({
-            sessionId,
-            itemId: item._id,
-          });
-        }
+      if (item) {
+        await findOrCreateDownloadToken({
+          sessionId,
+          itemId: item._id,
+        });
+      }
+
+      // --------------------
+      // 1.5) 永続購入履歴の保存（sessionId で冪等化）
+      // --------------------
+      if (item) {
+        await upsertPurchaseRecord({
+          sessionId,
+          paymentIntentId,
+          item,
+          amount: paidAmount ?? Number(item.price || 0),
+          purchasedAt,
+        });
       }
 
       // --------------------
@@ -2669,7 +2688,6 @@ app.post('/webhooks/stripe', async (req, res) => {
           const needTransfer = !pi.transfer_data; // destination でない = 要 transfer
 
           if (needTransfer && itemId) {
-            const item = await Item.findById(itemId);
             if (!item?.ownerUser) {
               console.warn('[transfer] item/seller not found', { itemId });
             } else {
@@ -2926,6 +2944,31 @@ async function findOrCreateDownloadToken({ sessionId, itemId }) {
   }
 
   return await DownloadToken.findOne({ sessionId });
+}
+
+async function upsertPurchaseRecord({ sessionId, paymentIntentId, item, amount, purchasedAt }) {
+  if (!sessionId || !item?._id || !item?.ownerUser) return null;
+  const insertDoc = {
+    seller: item.ownerUser,
+    item: item._id,
+    sessionId,
+    paymentIntentId: String(paymentIntentId || ''),
+    amount: Number.isFinite(amount) ? amount : Number(item.price || 0),
+    purchasedAt: purchasedAt instanceof Date ? purchasedAt : new Date(),
+  };
+
+  try {
+    const doc = await PurchaseRecord.findOneAndUpdate(
+      { sessionId },
+      { $setOnInsert: insertDoc },
+      { new: true, upsert: true }
+    );
+    if (doc) return doc;
+  } catch (e) {
+    if (e?.code !== 11000) throw e;
+  }
+
+  return await PurchaseRecord.findOne({ sessionId });
 }
 
 function getDownloadFilename(item, fallbackPath = '') {
