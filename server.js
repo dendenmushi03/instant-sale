@@ -2409,54 +2409,27 @@ const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
     // ★ 配布原本は JPEG 化したので MIME も固定
     const mimeType = 'image/jpeg';
 
-// 販売ページ向け preview（元画像サイズ維持 + 全面モザイク）
+// 販売ページ向け preview（固定リサイズなし / 元画像サイズ維持 + 全面モザイク）
 const previewName = `${slug}-preview.jpg`;
 const previewFull = path.join(PREVIEW_DIR, previewName);
+const originalBuffer = await fsp.readFile(req.file.path);
+const previewBuffer = await renderSalePreviewBufferFromOriginalBuffer(originalBuffer);
 
-const previewBase = await sharp(req.file.path)
-  .rotate()
-  .toBuffer();
-const previewMeta = await sharp(previewBase).metadata();
-const pw = Math.max(1, previewMeta.width || 1);
-const ph = Math.max(1, previewMeta.height || 1);
-const mosaicBlock = Math.max(12, Math.round(Math.max(pw, ph) / 90));
-const downW = Math.max(1, Math.round(pw / mosaicBlock));
-const downH = Math.max(1, Math.round(ph / mosaicBlock));
-
-// ====== 透かしSVG生成（タイル＋四隅） ======
-const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from(`
-  <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="wm-tile" width="280" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
-        <text x="18" y="112" fill="rgba(255,255,255,${alpha})" font-size="46" font-weight="700" font-family="Arial, sans-serif">SAMPLE</text>
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#wm-tile)" />
-  </svg>
-`);
-
+// ====== 透かしSVG生成（四隅） ======
 const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
   const margin = Math.max(24, Math.round(Math.min(width, height) * 0.03));
   const wmSize = Math.max(26, Math.round(Math.min(width, height) * 0.055));
   return Buffer.from(`
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <style>.wm{ fill: rgba(255,255,255,${alpha}); font-size: ${wmSize}px; font-weight: 700; font-family: Arial, sans-serif; }</style>
-      <text x="${margin}" y="${margin + wmSize}" class="wm">SAMPLE</text>
-      <text x="${width - margin}" y="${margin + wmSize}" text-anchor="end" class="wm">SAMPLE</text>
-      <text x="${margin}" y="${height - margin}" dominant-baseline="ideographic" class="wm">SAMPLE</text>
-      <text x="${width - margin}" y="${height - margin}" text-anchor="end" dominant-baseline="ideographic" class="wm">SAMPLE</text>
+      <text class="wm" x="${margin}" y="${margin + wmSize}">SAMPLE</text>
+      <text class="wm" x="${width - margin}" y="${margin + wmSize}" text-anchor="end">SAMPLE</text>
+      <text class="wm" x="${margin}" y="${height - margin}" dominant-baseline="ideographic">SAMPLE</text>
+      <text class="wm" x="${width - margin}" y="${height - margin}" text-anchor="end" dominant-baseline="ideographic">SAMPLE</text>
     </svg>
   `);
 };
-
-const previewWatermarkSvg = createTiledWatermarkSvg({ width: pw, height: ph, alpha: 0.24 });
-
-await sharp(previewBase)
-  .resize(downW, downH, { fit: 'fill', kernel: sharp.kernel.nearest })
-  .resize(pw, ph, { fit: 'fill', kernel: sharp.kernel.nearest })
-  .composite([{ input: previewWatermarkSvg }])
-  .jpeg({ quality: 85 })
-  .toFile(previewFull);
+await writeFileAtomic(previewFull, previewBuffer);
 
 // ★ Stripe用（縦長が切れない “contain” 版）
 const stripeName = `${slug}-stripe.jpg`;
