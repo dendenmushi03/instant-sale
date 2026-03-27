@@ -1167,6 +1167,96 @@ async function regeneratePreviewForItem(item) {
   return { mode: 'local', previewPath: fallbackPreviewPath };
 }
 
+async function runInspectPreviewCli() {
+  const inspectArg = process.argv.find((arg) => arg.startsWith('--inspect-preview='));
+  if (!inspectArg) return false;
+
+  await mongoose.connection.asPromise();
+
+  const slug = inspectArg.split('=').slice(1).join('=').trim();
+  if (!slug) {
+    console.error('[inspect-preview] slug is required');
+    await mongoose.disconnect();
+    process.exit(1);
+  }
+
+  const item = await Item.findOne({ slug, isDeleted: { $ne: true } })
+    .select('_id slug title filePath previewPath s3Key')
+    .lean();
+
+  if (!item) {
+    console.error(`[inspect-preview] item not found slug=${slug}`);
+    await mongoose.disconnect();
+    process.exit(1);
+  }
+
+  console.log(`[inspect-preview] slug=${item.slug}`);
+  console.log(`[inspect-preview] title=${item.title || ''}`);
+  console.log(`[inspect-preview] filePath=${item.filePath || ''}`);
+  console.log(`[inspect-preview] previewPath=${item.previewPath || ''}`);
+  console.log(`[inspect-preview] s3Key=${item.s3Key || ''}`);
+
+  let originalSource = 'not found';
+  let originalW = null;
+  let originalH = null;
+  try {
+    if (s3 && item.s3Key) {
+      const originalBuffer = await loadOriginalBufferForItem(item);
+      const meta = await sharp(originalBuffer).metadata();
+      originalSource = 's3';
+      originalW = meta.width || null;
+      originalH = meta.height || null;
+    } else if (item.filePath && fs.existsSync(item.filePath)) {
+      const originalBuffer = await fsp.readFile(item.filePath);
+      const meta = await sharp(originalBuffer).metadata();
+      originalSource = 'local';
+      originalW = meta.width || null;
+      originalH = meta.height || null;
+    }
+  } catch (e) {
+    console.error(`[inspect-preview] original metadata error reason=${e.message}`);
+  }
+
+  let previewW = null;
+  let previewH = null;
+  try {
+    if (s3 && item.s3Key) {
+      const previewKey = (() => {
+        const p = String(item.previewPath || '').trim();
+        if (!p) return `previews/${item.slug}-preview.jpg`;
+        if (/^https?:\/\//i.test(p)) {
+          const u = new URL(p);
+          return u.pathname.replace(/^\/+/, '');
+        }
+        return p.replace(/^\/+/, '');
+      })();
+      const obj = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: previewKey }));
+      const previewBuffer = await s3BodyToBuffer(obj.Body);
+      const meta = await sharp(previewBuffer).metadata();
+      previewW = meta.width || null;
+      previewH = meta.height || null;
+    } else {
+      const previewName = `${item.slug}-preview.jpg`;
+      const previewFull = path.join(PREVIEW_DIR, previewName);
+      if (fs.existsSync(previewFull)) {
+        const previewBuffer = await fsp.readFile(previewFull);
+        const meta = await sharp(previewBuffer).metadata();
+        previewW = meta.width || null;
+        previewH = meta.height || null;
+      }
+    }
+  } catch (e) {
+    console.error(`[inspect-preview] preview metadata error reason=${e.message}`);
+  }
+
+  console.log(`[inspect-preview] originalSource=${originalSource}`);
+  console.log(`[inspect-preview] originalSize=${originalW && originalH ? `${originalW}x${originalH}` : 'not found'}`);
+  console.log(`[inspect-preview] previewSize=${previewW && previewH ? `${previewW}x${previewH}` : 'not found'}`);
+
+  await mongoose.disconnect();
+  process.exit(0);
+}
+
 async function runRegeneratePreviewBatchFromCli() {
   const oneArg = process.argv.find((arg) => arg.startsWith('--regenerate-preview='));
   const runAll = process.argv.includes('--regenerate-preview-all');
@@ -3404,7 +3494,11 @@ app.use((err, req, res, next) => {
 });
 
 // start
-runRegeneratePreviewBatchFromCli()
+runInspectPreviewCli()
+  .then((handled) => {
+    if (handled) return true;
+    return runRegeneratePreviewBatchFromCli();
+  })
   .then((handled) => {
     if (handled) return;
     app.listen(PORT, () => {
