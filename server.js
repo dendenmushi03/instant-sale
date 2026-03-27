@@ -1138,7 +1138,15 @@ async function regeneratePreviewForItem(item) {
       const previewPath = S3_PUBLIC_IS_HTTPS
         ? `${S3_PUBLIC_BASE}/${s3KeyPreview}`
         : fallbackPreviewPath;
-      await Item.updateOne({ _id: item._id }, { previewPath });
+      await Item.updateOne(
+        { _id: item._id },
+        { $set: { previewPath }, $currentDate: { updatedAt: true } }
+      );
+    } else {
+      await Item.updateOne(
+        { _id: item._id },
+        { $currentDate: { updatedAt: true } }
+      );
     }
     return { mode: 's3', previewKey: s3KeyPreview };
   }
@@ -1146,7 +1154,15 @@ async function regeneratePreviewForItem(item) {
   const previewFull = path.join(PREVIEW_DIR, previewName);
   await writeFileAtomic(previewFull, previewBuffer);
   if (!item.previewPath) {
-    await Item.updateOne({ _id: item._id }, { previewPath: fallbackPreviewPath });
+    await Item.updateOne(
+      { _id: item._id },
+      { $set: { previewPath: fallbackPreviewPath }, $currentDate: { updatedAt: true } }
+    );
+  } else {
+    await Item.updateOne(
+      { _id: item._id },
+      { $currentDate: { updatedAt: true } }
+    );
   }
   return { mode: 'local', previewPath: fallbackPreviewPath };
 }
