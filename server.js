@@ -2117,7 +2117,7 @@ const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
     // ★ 配布原本は JPEG 化したので MIME も固定
     const mimeType = 'image/jpeg';
 
-// 販売ページ向け preview（元画像サイズ維持 + 全面モザイク）
+// 販売ページ向け preview（固定リサイズなし / 元画像サイズ維持 + 全面モザイク）
 const previewName = `${slug}-preview.jpg`;
 const previewFull = path.join(PREVIEW_DIR, previewName);
 
@@ -2149,10 +2149,10 @@ const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
   return Buffer.from(`
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <style>.wm{ fill: rgba(255,255,255,${alpha}); font-size: ${wmSize}px; font-weight: 700; font-family: Arial, sans-serif; }</style>
-      <text x="${margin}" y="${margin + wmSize}" class="wm">SAMPLE</text>
-      <text x="${width - margin}" y="${margin + wmSize}" text-anchor="end" class="wm">SAMPLE</text>
-      <text x="${margin}" y="${height - margin}" dominant-baseline="ideographic" class="wm">SAMPLE</text>
-      <text x="${width - margin}" y="${height - margin}" text-anchor="end" dominant-baseline="ideographic" class="wm">SAMPLE</text>
+      <text class="wm" x="${margin}" y="${margin + wmSize}">SAMPLE</text>
+      <text class="wm" x="${width - margin}" y="${margin + wmSize}" text-anchor="end">SAMPLE</text>
+      <text class="wm" x="${margin}" y="${height - margin}" dominant-baseline="ideographic">SAMPLE</text>
+      <text class="wm" x="${width - margin}" y="${height - margin}" text-anchor="end" dominant-baseline="ideographic">SAMPLE</text>
     </svg>
   `);
 };
