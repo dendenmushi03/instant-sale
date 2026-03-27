@@ -1170,6 +1170,7 @@ async function regeneratePreviewForItem(item) {
 async function runRegeneratePreviewBatchFromCli() {
   const oneArg = process.argv.find((arg) => arg.startsWith('--regenerate-preview='));
   const runAll = process.argv.includes('--regenerate-preview-all');
+  const dryRun = process.argv.includes('--dry-run');
   if (!oneArg && !runAll) return false;
 
   await mongoose.connection.asPromise();
@@ -1202,28 +1203,36 @@ async function runRegeneratePreviewBatchFromCli() {
       console.log(`[regenerate-preview] ok: ${slug}`);
     } catch (e) {
       failed = 1;
-      console.error(`[regenerate-preview] failed: ${slug}`, e.message);
+      console.error(`[regenerate-preview] failed: ${slug} reason=${e.message}`);
     }
   } else {
     const items = await Item.find({ isDeleted: { $ne: true } })
       .select('_id slug s3Key filePath previewPath')
       .lean();
     total = items.length;
+
+    console.log(`[regenerate-preview] start total=${total}${dryRun ? ' dry-run=true' : ''}`);
+    if (dryRun) {
+      console.log(`[regenerate-preview] done total=${total} success=0 failed=0 dry-run=true`);
+      await mongoose.disconnect();
+      process.exit(0);
+    }
+
     for (const item of items) {
       try {
         await regeneratePreviewForItem(item);
         success++;
-        console.log(`[regenerate-preview-all] ok: ${item.slug}`);
+        console.log(`[regenerate-preview] ok: ${item.slug}`);
       } catch (e) {
         failed++;
-        console.error(`[regenerate-preview-all] failed: ${item.slug}`, e.message);
+        console.error(`[regenerate-preview] failed: ${item.slug} reason=${e.message}`);
       }
     }
   }
 
   console.log(`[regenerate-preview] done total=${total} success=${success} failed=${failed}`);
   await mongoose.disconnect();
-  return true;
+  process.exit(failed > 0 ? 1 : 0);
 }
 
 const storage = multer.diskStorage({
