@@ -2117,15 +2117,19 @@ const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
     // ★ 配布原本は JPEG 化したので MIME も固定
     const mimeType = 'image/jpeg';
 
-// OGPプレビュー（1200x630）
+// 販売ページ向け preview（元画像サイズ維持 + 全面モザイク）
 const previewName = `${slug}-preview.jpg`;
 const previewFull = path.join(PREVIEW_DIR, previewName);
 
 const previewBase = await sharp(req.file.path)
   .rotate()
-  .resize(1200, 630, { fit: 'cover' })
-  .jpeg({ quality: 85 })
   .toBuffer();
+const previewMeta = await sharp(previewBase).metadata();
+const pw = Math.max(1, previewMeta.width || 1);
+const ph = Math.max(1, previewMeta.height || 1);
+const mosaicBlock = Math.max(12, Math.round(Math.max(pw, ph) / 90));
+const downW = Math.max(1, Math.round(pw / mosaicBlock));
+const downH = Math.max(1, Math.round(ph / mosaicBlock));
 
 // ====== 透かしSVG生成（タイル＋四隅） ======
 const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from(`
@@ -2153,10 +2157,13 @@ const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
   `);
 };
 
-const previewWatermarkSvg = createTiledWatermarkSvg({ width: 1200, height: 630, alpha: 0.24 });
+const previewWatermarkSvg = createTiledWatermarkSvg({ width: pw, height: ph, alpha: 0.24 });
 
 await sharp(previewBase)
+  .resize(downW, downH, { fit: 'fill', kernel: sharp.kernel.nearest })
+  .resize(pw, ph, { fit: 'fill', kernel: sharp.kernel.nearest })
   .composite([{ input: previewWatermarkSvg }])
+  .jpeg({ quality: 85 })
   .toFile(previewFull);
 
 // ★ Stripe用（縦長が切れない “contain” 版）
