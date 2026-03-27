@@ -97,6 +97,21 @@ const toAbs = (u) => {
   return /^https?:\/\//i.test(u) ? u : `${BASE_URL}${u.startsWith('/') ? '' : '/'}${u}`;
 };
 
+function appendVersionQuery(target, version) {
+  if (!version) return target;
+
+  if (/^https?:\/\//i.test(target)) {
+    const u = new URL(target);
+    u.searchParams.set('v', String(version));
+    return u.toString();
+  }
+
+  const [pathname, search = ''] = String(target).split('?');
+  const params = new URLSearchParams(search);
+  params.set('v', String(version));
+  return `${pathname}?${params.toString()}`;
+}
+
 function normalizeLng(input) {
   const value = String(input || '').toLowerCase();
   if (value.startsWith('en')) return 'en';
@@ -2712,21 +2727,19 @@ app.get('/view/:slug', async (req, res) => {
     if (item.previewPath) {
       const preview = String(item.previewPath).trim();
       if (/^https?:\/\//i.test(preview)) {
-        return res.redirect(302, preview);
+        return res.redirect(302, appendVersionQuery(preview, req.query.v));
       }
       const normalized = preview.startsWith('/') ? preview : `/${preview}`;
-      return res.redirect(302, normalized);
+      return res.redirect(302, appendVersionQuery(normalized, req.query.v));
     }
 
     // フォールバック：CDN preview、またはローカル preview
     if (S3_PUBLIC_IS_HTTPS && S3_PUBLIC_BASE) {
-      return res.redirect(302, `${S3_PUBLIC_BASE}/previews/${slug}-preview.jpg`);
+      return res.redirect(302, appendVersionQuery(`${S3_PUBLIC_BASE}/previews/${slug}-preview.jpg`, req.query.v));
     }
     const localPreview = path.join(PREVIEW_DIR, `${slug}-preview.jpg`);
     if (fs.existsSync(localPreview)) {
-      res.setHeader('Content-Type', 'image/jpeg');
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      return fs.createReadStream(localPreview).pipe(res);
+      return res.redirect(302, appendVersionQuery(`/previews/${slug}-preview.jpg`, req.query.v));
     }
 
     return res.status(404).send('source image missing');
