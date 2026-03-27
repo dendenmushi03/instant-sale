@@ -2117,15 +2117,19 @@ const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
     // ★ 配布原本は JPEG 化したので MIME も固定
     const mimeType = 'image/jpeg';
 
-// OGPプレビュー（1200x630）
+// 販売ページ向け preview（元画像サイズ維持 + 全面モザイク）
 const previewName = `${slug}-preview.jpg`;
 const previewFull = path.join(PREVIEW_DIR, previewName);
 
 const previewBase = await sharp(req.file.path)
   .rotate()
-  .resize(1200, 630, { fit: 'cover' })
-  .jpeg({ quality: 85 })
   .toBuffer();
+const previewMeta = await sharp(previewBase).metadata();
+const pw = Math.max(1, previewMeta.width || 1);
+const ph = Math.max(1, previewMeta.height || 1);
+const mosaicBlock = Math.max(12, Math.round(Math.max(pw, ph) / 90));
+const downW = Math.max(1, Math.round(pw / mosaicBlock));
+const downH = Math.max(1, Math.round(ph / mosaicBlock));
 
 // ====== 透かしSVG生成（タイル＋四隅） ======
 const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from(`
@@ -2153,10 +2157,13 @@ const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
   `);
 };
 
-const previewWatermarkSvg = createTiledWatermarkSvg({ width: 1200, height: 630, alpha: 0.24 });
+const previewWatermarkSvg = createTiledWatermarkSvg({ width: pw, height: ph, alpha: 0.24 });
 
 await sharp(previewBase)
+  .resize(downW, downH, { fit: 'fill', kernel: sharp.kernel.nearest })
+  .resize(pw, ph, { fit: 'fill', kernel: sharp.kernel.nearest })
   .composite([{ input: previewWatermarkSvg }])
+  .jpeg({ quality: 85 })
   .toFile(previewFull);
 
 // ★ Stripe用（縦長が切れない “contain” 版）
@@ -2445,32 +2452,26 @@ res.set('Cache-Control', 'private, max-age=60');
   }
 });
 
-// /view/:slug（R2/CDN の透かし済み "full" を最優先で返す）
+// /view/:slug（購入前表示用：常に preview を返す）
 app.get('/view/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
     const item = await Item.findOne({ slug, isDeleted: { $ne: true } }).lean();
     if (!item) return res.status(404).send('Not found');
 
-    // 1) CDN（HTTPS）を最優先：/previews/<slug>-full.jpg
-    if (S3_PUBLIC_IS_HTTPS && S3_PUBLIC_BASE) {
-      const cdnFull = `${S3_PUBLIC_BASE}/previews/${slug}-full.jpg`;
-      // 画像タグは 302 を普通に辿るためリダイレクトで十分
-      return res.redirect(302, cdnFull);
+    // DB に保持している previewPath（購入前表示用）を最優先
+    if (item.previewPath) {
+      const preview = String(item.previewPath).trim();
+      if (/^https?:\/\//i.test(preview)) {
+        return res.redirect(302, preview);
+      }
+      const normalized = preview.startsWith('/') ? preview : `/${preview}`;
+      return res.redirect(302, normalized);
     }
 
-    // 2) 次善：ローカルの等倍フル（開発/フォールバック用）
-    const localFull = path.join(PREVIEW_DIR, `${slug}-full.jpg`);
-    if (fs.existsSync(localFull)) {
-      res.setHeader('Content-Type', 'image/jpeg');
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      return fs.createReadStream(localFull).pipe(res);
-    }
-
-    // 3) 最後の保険：CDN のプレビュー、またはローカルのプレビュー
+    // フォールバック：CDN preview、またはローカル preview
     if (S3_PUBLIC_IS_HTTPS && S3_PUBLIC_BASE) {
-      const cdnPreview = `${S3_PUBLIC_BASE}/previews/${slug}-preview.jpg`;
-      return res.redirect(302, cdnPreview);
+      return res.redirect(302, `${S3_PUBLIC_BASE}/previews/${slug}-preview.jpg`);
     }
     const localPreview = path.join(PREVIEW_DIR, `${slug}-preview.jpg`);
     if (fs.existsSync(localPreview)) {
