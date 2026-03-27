@@ -1049,6 +1049,167 @@ const ensureDir = async (dir) => {
 ensureDir(UPLOAD_DIR);
 ensureDir(PREVIEW_DIR);
 
+const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from(`
+  <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="wm-tile" width="280" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+        <text x="18" y="112" fill="rgba(255,255,255,${alpha})" font-size="46" font-weight="700" font-family="Arial, sans-serif">SAMPLE</text>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#wm-tile)" />
+  </svg>
+`);
+
+async function renderSalePreviewBufferFromOriginalBuffer(originalBuffer) {
+  const previewBase = await sharp(originalBuffer)
+    .rotate()
+    .toBuffer();
+
+  const previewMeta = await sharp(previewBase).metadata();
+  const pw = Math.max(1, previewMeta.width || 1);
+  const ph = Math.max(1, previewMeta.height || 1);
+  const mosaicBlock = Math.max(12, Math.round(Math.max(pw, ph) / 90));
+  const downW = Math.max(1, Math.round(pw / mosaicBlock));
+  const downH = Math.max(1, Math.round(ph / mosaicBlock));
+  const previewWatermarkSvg = createTiledWatermarkSvg({ width: pw, height: ph, alpha: 0.24 });
+
+  return sharp(previewBase)
+    .resize(downW, downH, { fit: 'fill', kernel: sharp.kernel.nearest })
+    .resize(pw, ph, { fit: 'fill', kernel: sharp.kernel.nearest })
+    .composite([{ input: previewWatermarkSvg }])
+    .jpeg({ quality: 85 })
+    .toBuffer();
+}
+
+async function writeFileAtomic(targetPath, data) {
+  const dir = path.dirname(targetPath);
+  await ensureDir(dir);
+  const tmpPath = `${targetPath}.tmp-${Date.now()}-${process.pid}-${nanoid(6)}`;
+  await fsp.writeFile(tmpPath, data);
+  await fsp.rename(tmpPath, targetPath);
+}
+
+async function s3BodyToBuffer(body) {
+  if (!body) throw new Error('S3 object body is empty');
+  if (Buffer.isBuffer(body)) return body;
+  if (typeof body.transformToByteArray === 'function') {
+    const arr = await body.transformToByteArray();
+    return Buffer.from(arr);
+  }
+  const chunks = [];
+  for await (const chunk of body) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+async function loadOriginalBufferForItem(item) {
+  if (s3 && item?.s3Key) {
+    const obj = await s3.send(new GetObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: item.s3Key
+    }));
+    return s3BodyToBuffer(obj.Body);
+  }
+
+  const filePath = String(item?.filePath || '').trim();
+  if (!filePath) throw new Error('original path not found');
+  return fsp.readFile(filePath);
+}
+
+async function regeneratePreviewForItem(item) {
+  if (!item?.slug) throw new Error('item slug is missing');
+
+  const originalBuffer = await loadOriginalBufferForItem(item);
+  const previewBuffer = await renderSalePreviewBufferFromOriginalBuffer(originalBuffer);
+  const previewName = `${item.slug}-preview.jpg`;
+  const fallbackPreviewPath = `/previews/${previewName}`;
+
+  if (s3 && item.s3Key) {
+    const s3KeyPreview = `previews/${previewName}`;
+    await s3.send(new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: s3KeyPreview,
+      Body: previewBuffer,
+      ContentType: 'image/jpeg',
+      CacheControl: 'public, max-age=31536000, immutable'
+    }));
+    if (!item.previewPath) {
+      const previewPath = S3_PUBLIC_IS_HTTPS
+        ? `${S3_PUBLIC_BASE}/${s3KeyPreview}`
+        : fallbackPreviewPath;
+      await Item.updateOne({ _id: item._id }, { previewPath });
+    }
+    return { mode: 's3', previewKey: s3KeyPreview };
+  }
+
+  const previewFull = path.join(PREVIEW_DIR, previewName);
+  await writeFileAtomic(previewFull, previewBuffer);
+  if (!item.previewPath) {
+    await Item.updateOne({ _id: item._id }, { previewPath: fallbackPreviewPath });
+  }
+  return { mode: 'local', previewPath: fallbackPreviewPath };
+}
+
+async function runRegeneratePreviewBatchFromCli() {
+  const oneArg = process.argv.find((arg) => arg.startsWith('--regenerate-preview='));
+  const runAll = process.argv.includes('--regenerate-preview-all');
+  if (!oneArg && !runAll) return false;
+
+  await mongoose.connection.asPromise();
+
+  let total = 0;
+  let success = 0;
+  let failed = 0;
+
+  if (oneArg) {
+    const slug = oneArg.split('=').slice(1).join('=').trim();
+    if (!slug) {
+      console.error('[regenerate-preview] slug is required');
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } })
+      .select('_id slug s3Key filePath previewPath')
+      .lean();
+
+    if (!item) {
+      console.log(`[regenerate-preview] item not found: ${slug}`);
+      await mongoose.disconnect();
+      return true;
+    }
+
+    total = 1;
+    try {
+      await regeneratePreviewForItem(item);
+      success = 1;
+      console.log(`[regenerate-preview] ok: ${slug}`);
+    } catch (e) {
+      failed = 1;
+      console.error(`[regenerate-preview] failed: ${slug}`, e.message);
+    }
+  } else {
+    const items = await Item.find({ isDeleted: { $ne: true } })
+      .select('_id slug s3Key filePath previewPath')
+      .lean();
+    total = items.length;
+    for (const item of items) {
+      try {
+        await regeneratePreviewForItem(item);
+        success++;
+        console.log(`[regenerate-preview-all] ok: ${item.slug}`);
+      } catch (e) {
+        failed++;
+        console.error(`[regenerate-preview-all] failed: ${item.slug}`, e.message);
+      }
+    }
+  }
+
+  console.log(`[regenerate-preview] done total=${total} success=${success} failed=${failed}`);
+  await mongoose.disconnect();
+  return true;
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
@@ -2120,29 +2281,10 @@ const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
 // 販売ページ向け preview（固定リサイズなし / 元画像サイズ維持 + 全面モザイク）
 const previewName = `${slug}-preview.jpg`;
 const previewFull = path.join(PREVIEW_DIR, previewName);
+const originalBuffer = await fsp.readFile(req.file.path);
+const previewBuffer = await renderSalePreviewBufferFromOriginalBuffer(originalBuffer);
 
-const previewBase = await sharp(req.file.path)
-  .rotate()
-  .toBuffer();
-const previewMeta = await sharp(previewBase).metadata();
-const pw = Math.max(1, previewMeta.width || 1);
-const ph = Math.max(1, previewMeta.height || 1);
-const mosaicBlock = Math.max(12, Math.round(Math.max(pw, ph) / 90));
-const downW = Math.max(1, Math.round(pw / mosaicBlock));
-const downH = Math.max(1, Math.round(ph / mosaicBlock));
-
-// ====== 透かしSVG生成（タイル＋四隅） ======
-const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from(`
-  <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="wm-tile" width="280" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
-        <text x="18" y="112" fill="rgba(255,255,255,${alpha})" font-size="46" font-weight="700" font-family="Arial, sans-serif">SAMPLE</text>
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#wm-tile)" />
-  </svg>
-`);
-
+// ====== 透かしSVG生成（四隅） ======
 const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
   const margin = Math.max(24, Math.round(Math.min(width, height) * 0.03));
   const wmSize = Math.max(26, Math.round(Math.min(width, height) * 0.055));
@@ -2156,15 +2298,7 @@ const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
     </svg>
   `);
 };
-
-const previewWatermarkSvg = createTiledWatermarkSvg({ width: pw, height: ph, alpha: 0.24 });
-
-await sharp(previewBase)
-  .resize(downW, downH, { fit: 'fill', kernel: sharp.kernel.nearest })
-  .resize(pw, ph, { fit: 'fill', kernel: sharp.kernel.nearest })
-  .composite([{ input: previewWatermarkSvg }])
-  .jpeg({ quality: 85 })
-  .toFile(previewFull);
+await writeFileAtomic(previewFull, previewBuffer);
 
 // ★ Stripe用（縦長が切れない “contain” 版）
 const stripeName = `${slug}-stripe.jpg`;
@@ -3245,6 +3379,15 @@ app.use((err, req, res, next) => {
 });
 
 // start
-app.listen(PORT, () => {
-  console.log(`Server running: ${BASE_URL}`);
-});
+runRegeneratePreviewBatchFromCli()
+  .then((handled) => {
+    if (handled) return;
+    app.listen(PORT, () => {
+      console.log(`Server running: ${BASE_URL}`);
+    });
+  })
+  .catch(async (err) => {
+    console.error('[regenerate-preview] fatal', err);
+    try { await mongoose.disconnect(); } catch {}
+    process.exit(1);
+  });
