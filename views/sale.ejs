@@ -40,7 +40,7 @@
 <div class="product-imageWrap" id="openViewer">
   <img
     class="product-image product-image--blur"
-    src="/view/<%= item.slug %>"
+    src="<%= item.previewPath || ('/previews/' + item.slug + '-preview.jpg') %>"
     alt="<%= item.title %>"
     loading="lazy"
     decoding="async"
@@ -133,7 +133,7 @@
   var btnClose = modal.querySelector('.lightbox__close');
   var btnFit   = modal.querySelector('.lightbox__fit');
   var img      = document.getElementById('viewerImg');
-  var srcBase  = "/view/<%= item.slug %>";   // 等倍生成エンドポイント
+  var srcBase  = "<%= item.previewPath || ('/previews/' + item.slug + '-preview.jpg') %>"; // 購入前は常にモザイク画像
   var fitMode  = false; // false=等倍, true=画面フィット
 
   function fullUrl(){
