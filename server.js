@@ -1076,10 +1076,7 @@ const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from
 `);
 
 async function renderSalePreviewBufferFromOriginalBuffer(originalBuffer) {
-  const previewBase = await sharp(originalBuffer)
-    .rotate()
-    .toBuffer();
-
+  const previewBase = await sharp(originalBuffer).rotate().toBuffer();
   const previewMeta = await sharp(previewBase).metadata();
   const pw = Math.max(1, previewMeta.width || 1);
   const ph = Math.max(1, previewMeta.height || 1);
@@ -1087,7 +1084,6 @@ async function renderSalePreviewBufferFromOriginalBuffer(originalBuffer) {
   const downW = Math.max(1, Math.round(pw / mosaicBlock));
   const downH = Math.max(1, Math.round(ph / mosaicBlock));
   const previewWatermarkSvg = createTiledWatermarkSvg({ width: pw, height: ph, alpha: 0.24 });
-
   return sharp(previewBase)
     .resize(downW, downH, { fit: 'fill', kernel: sharp.kernel.nearest })
     .resize(pw, ph, { fit: 'fill', kernel: sharp.kernel.nearest })
@@ -1096,39 +1092,30 @@ async function renderSalePreviewBufferFromOriginalBuffer(originalBuffer) {
     .toBuffer();
 }
 
+async function s3BodyToBuffer(body) {
+  if (!body) throw new Error('S3 object body is empty');
+  if (Buffer.isBuffer(body)) return body;
+  if (typeof body.transformToByteArray === 'function') {
+    return Buffer.from(await body.transformToByteArray());
+  }
+  const chunks = [];
+  for await (const chunk of body) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  return Buffer.concat(chunks);
+}
+
 async function writeFileAtomic(targetPath, data) {
-  const dir = path.dirname(targetPath);
-  await ensureDir(dir);
   const tmpPath = `${targetPath}.tmp-${Date.now()}-${process.pid}-${nanoid(6)}`;
   await fsp.writeFile(tmpPath, data);
   await fsp.rename(tmpPath, targetPath);
 }
 
-async function s3BodyToBuffer(body) {
-  if (!body) throw new Error('S3 object body is empty');
-  if (Buffer.isBuffer(body)) return body;
-  if (typeof body.transformToByteArray === 'function') {
-    const arr = await body.transformToByteArray();
-    return Buffer.from(arr);
-  }
-  const chunks = [];
-  for await (const chunk of body) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks);
-}
-
 async function loadOriginalBufferForItem(item) {
   if (s3 && item?.s3Key) {
-    const obj = await s3.send(new GetObjectCommand({
-      Bucket: S3_BUCKET,
-      Key: item.s3Key
-    }));
+    const obj = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: item.s3Key }));
     return s3BodyToBuffer(obj.Body);
   }
-
   const filePath = String(item?.filePath || '').trim();
-  if (!filePath) throw new Error('original path not found');
+  if (!filePath) throw new Error('original not found');
   return fsp.readFile(filePath);
 }
 
@@ -1180,6 +1167,88 @@ async function regeneratePreviewForItem(item) {
     );
   }
   return { mode: 'local', previewPath: fallbackPreviewPath };
+}
+
+function getIntFlag(name, fallback) {
+  const arg = process.argv.find((v) => v.startsWith(`${name}=`));
+  if (!arg) return fallback;
+  const n = Number(arg.split('=').slice(1).join('=').trim());
+  return Number.isInteger(n) && n >= 0 ? n : fallback;
+}
+
+async function runRegeneratePreviewBatchFromCli() {
+  const oneArg = process.argv.find((arg) => arg.startsWith('--regenerate-preview='));
+  const runAll = process.argv.includes('--regenerate-preview-all');
+  const dryRun = process.argv.includes('--dry-run');
+  if (!oneArg && !runAll) return false;
+
+  await mongoose.connection.asPromise();
+
+  let total = 0;
+  let success = 0;
+  let failed = 0;
+
+  if (oneArg) {
+    const slug = oneArg.split('=').slice(1).join('=').trim();
+    if (!slug) {
+      console.error('[regenerate-preview] slug is required');
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } })
+      .select('_id slug s3Key filePath previewPath')
+      .lean();
+
+    if (!item) {
+      console.log(`[regenerate-preview] item not found: ${slug}`);
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+
+    total = 1;
+    try {
+      await regeneratePreviewForItem(item);
+      success++;
+      console.log(`[regenerate-preview] ok: ${slug}`);
+    } catch (e) {
+      failed++;
+      console.error(`[regenerate-preview] failed: ${slug} reason=${e.message}`);
+    }
+  } else {
+    const limit = getIntFlag('--limit', 0);
+    const offset = getIntFlag('--offset', 0);
+    let query = Item.find({ isDeleted: { $ne: true } })
+      .sort({ _id: 1 })
+      .skip(offset)
+      .select('_id slug s3Key filePath previewPath')
+      .lean();
+    if (limit > 0) query = query.limit(limit);
+
+    const items = await query;
+    total = items.length;
+
+    console.log(`[regenerate-preview] start total=${total} offset=${offset} limit=${limit || 'all'}${dryRun ? ' dry-run=true' : ''}`);
+    if (dryRun) {
+      console.log(`[regenerate-preview] done total=${total} success=0 failed=0 dry-run=true`);
+      await mongoose.disconnect();
+      process.exit(0);
+    }
+
+    for (const item of items) {
+      try {
+        await regeneratePreviewForItem(item);
+        success++;
+        console.log(`[regenerate-preview] ok: ${item.slug}`);
+      } catch (e) {
+        failed++;
+        console.error(`[regenerate-preview] failed: ${item.slug} reason=${e.message}`);
+      }
+    }
+  }
+
+  console.log(`[regenerate-preview] done total=${total} success=${success} failed=${failed}`);
+  await mongoose.disconnect();
+  process.exit(failed > 0 ? 1 : 0);
 }
 
 async function runInspectPreviewCli() {
@@ -1270,74 +1339,6 @@ async function runInspectPreviewCli() {
 
   await mongoose.disconnect();
   process.exit(0);
-}
-
-async function runRegeneratePreviewBatchFromCli() {
-  const oneArg = process.argv.find((arg) => arg.startsWith('--regenerate-preview='));
-  const runAll = process.argv.includes('--regenerate-preview-all');
-  const dryRun = process.argv.includes('--dry-run');
-  if (!oneArg && !runAll) return false;
-
-  await mongoose.connection.asPromise();
-
-  let total = 0;
-  let success = 0;
-  let failed = 0;
-
-  if (oneArg) {
-    const slug = oneArg.split('=').slice(1).join('=').trim();
-    if (!slug) {
-      console.error('[regenerate-preview] slug is required');
-      await mongoose.disconnect();
-      process.exit(1);
-    }
-    const item = await Item.findOne({ slug, isDeleted: { $ne: true } })
-      .select('_id slug s3Key filePath previewPath')
-      .lean();
-
-    if (!item) {
-      console.log(`[regenerate-preview] item not found: ${slug}`);
-      await mongoose.disconnect();
-      return true;
-    }
-
-    total = 1;
-    try {
-      await regeneratePreviewForItem(item);
-      success = 1;
-      console.log(`[regenerate-preview] ok: ${slug}`);
-    } catch (e) {
-      failed = 1;
-      console.error(`[regenerate-preview] failed: ${slug} reason=${e.message}`);
-    }
-  } else {
-    const items = await Item.find({ isDeleted: { $ne: true } })
-      .select('_id slug s3Key filePath previewPath')
-      .lean();
-    total = items.length;
-
-    console.log(`[regenerate-preview] start total=${total}${dryRun ? ' dry-run=true' : ''}`);
-    if (dryRun) {
-      console.log(`[regenerate-preview] done total=${total} success=0 failed=0 dry-run=true`);
-      await mongoose.disconnect();
-      process.exit(0);
-    }
-
-    for (const item of items) {
-      try {
-        await regeneratePreviewForItem(item);
-        success++;
-        console.log(`[regenerate-preview] ok: ${item.slug}`);
-      } catch (e) {
-        failed++;
-        console.error(`[regenerate-preview] failed: ${item.slug} reason=${e.message}`);
-      }
-    }
-  }
-
-  console.log(`[regenerate-preview] done total=${total} success=${success} failed=${failed}`);
-  await mongoose.disconnect();
-  process.exit(failed > 0 ? 1 : 0);
 }
 
 const storage = multer.diskStorage({
