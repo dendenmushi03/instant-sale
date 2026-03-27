@@ -38,13 +38,14 @@
     <article class="product">
 
 <div class="product-imageWrap" id="openViewer">
+  <% const previewVersion = item.updatedAt ? new Date(item.updatedAt).getTime() : String(item._id || '0'); %>
   <img
     class="product-image product-image--blur"
-    src="<%= item.previewPath || ('/previews/' + item.slug + '-preview.jpg') %>"
+    src="/view/<%= item.slug %>?v=<%= previewVersion %>"
     alt="<%= item.title %>"
     loading="lazy"
     decoding="async"
-    onerror="this.src='/previews/<%= item.slug %>-preview.jpg'"
+    onerror="this.src='/previews/<%= item.slug %>-preview.jpg?v=<%= previewVersion %>'"
   />
 </div>
 
