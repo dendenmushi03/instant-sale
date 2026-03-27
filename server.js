@@ -2452,7 +2452,7 @@ app.get('/view/:slug', async (req, res) => {
     const item = await Item.findOne({ slug, isDeleted: { $ne: true } }).lean();
     if (!item) return res.status(404).send('Not found');
 
-    // DB に保持している previewPath（モザイク）を最優先
+    // DB に保持している previewPath（購入前表示用）を最優先
     if (item.previewPath) {
       const preview = String(item.previewPath).trim();
       if (/^https?:\/\//i.test(preview)) {

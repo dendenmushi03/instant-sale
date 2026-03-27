@@ -128,68 +128,12 @@
 (function(){
   var opener = document.getElementById('openViewer');
   var modal  = document.getElementById('viewer');
-  if(!opener || !modal) return;
+  if (!opener) return;
 
-  var btnClose = modal.querySelector('.lightbox__close');
-  var btnFit   = modal.querySelector('.lightbox__fit');
-  var img      = document.getElementById('viewerImg');
-  var srcBase  = "<%= item.previewPath || ('/previews/' + item.slug + '-preview.jpg') %>"; // 購入前は常にモザイク画像
-  var fitMode  = false; // false=等倍, true=画面フィット
-
-  function fullUrl(){
-    return srcBase + "?t=" + Date.now();
-  }
-
-  // 事前プリロードで初回の空白を防ぐ（cache-bustなし）
-  var pre = new Image();
-  pre.src = srcBase;
-
-  function applyMode(){
-    if (fitMode) {
-      img.style.maxWidth  = "100%";
-      img.style.maxHeight = "100%";
-      img.style.width = "auto"; img.style.height = "auto";
-      btnFit && btnFit.setAttribute('aria-pressed','true');
-    } else {
-      img.style.maxWidth  = "none";   // ← 等倍の要点
-      img.style.maxHeight = "none";
-      img.style.width = "auto"; img.style.height = "auto";
-      btnFit && btnFit.setAttribute('aria-pressed','false');
-    }
-  }
-
-  function show(){
-    var srcFull = fullUrl(); // 表示時にだけキャッシュ回避を付与
-    if (img.getAttribute('src') !== srcFull) img.setAttribute('src', srcFull);
-    fitMode = false;
-    applyMode();     // いつも等倍で開く
-    modal.hidden = false;
-    document.body.classList.add('modal-open');
-
-    var inner = modal.querySelector('.lightbox__inner');
-    if (inner) inner.scrollTo({left:0, top:0, behavior:'auto'}); // 左上から開始
-  }
-
-  function hide(){
-    modal.hidden = true;
-    document.body.classList.remove('modal-open');
-  }
-
-  opener.addEventListener('click', function(e){ e.preventDefault(); show(); });
-  btnClose.addEventListener('click', hide);
-  modal.addEventListener('click', function(e){ if(e.target === modal) hide(); });
-  window.addEventListener('keydown', function(e){ if(e.key === 'Escape') hide(); });
-
-  // ダブルタップ/ダブルクリックで 等倍⇄フィット
-  var lastTap = 0;
-  modal.addEventListener('touchend', function(e){
-    var now = Date.now();
-    if (now - lastTap < 350) { fitMode = !fitMode; applyMode(); e.preventDefault(); }
-    lastTap = now;
-  }, {passive:false});
-  modal.addEventListener('dblclick', function(){ fitMode = !fitMode; applyMode(); });
-
-  btnFit && btnFit.addEventListener('click', function(){ fitMode = !fitMode; applyMode(); });
+  // 購入前は拡大表示を無効化（代替案B）。
+  opener.setAttribute('aria-disabled', 'true');
+  opener.style.cursor = 'default';
+  if (modal) modal.hidden = true;
 })();
 
 </script>
