@@ -2696,6 +2696,20 @@ app.get('/s/:slug', async (req, res) => {
     // ライセンス表示
     const licenseView = licenseViewOf(item);
 
+    // 同一販売者の他商品（最大6件）
+    let relatedItems = [];
+    if (item.ownerUser) {
+      relatedItems = await Item.find({
+        ownerUser: item.ownerUser,
+        slug: { $ne: item.slug },
+        isDeleted: { $ne: true }
+      })
+        .select('slug title price updatedAt')
+        .sort({ _id: -1 })
+        .limit(6)
+        .lean();
+    }
+
 // ページに CSRF トークンが含まれるので第三者キャッシュは禁止
 res.set('Cache-Control', 'private, max-age=60');
 // 必要なら完全に避けたい場合は： res.set('Cache-Control', 'no-store');
@@ -2708,6 +2722,7 @@ res.set('Cache-Control', 'private, max-age=60');
       tokushohoUrl,
       og,
       licenseView,
+      relatedItems,
       lng
       // t, cspNonce は res.locals からそのまま使える
     });
