@@ -2643,7 +2643,7 @@ app.get('/s/:slug', async (req, res) => {
 
     // 商品を軽量に取得
     const item = await Item.findOne({ slug, isDeleted: { $ne: true } })
-      .select('slug title price currency creatorName previewPath licensePreset licenseNotes aiGenerated aiModelName ownerUser s3Key filePath')
+      .select('slug title price currency creatorName previewPath licensePreset licenseNotes aiGenerated aiModelName ownerUser s3Key filePath updatedAt')
       .lean();
 
     if (!item) {
@@ -2709,6 +2709,8 @@ res.set('Cache-Control', 'private, max-age=60');
       tokushohoUrl,
       og,
       licenseView,
+      showRelatedItems,
+      relatedItems,
       lng
       // t, cspNonce は res.locals からそのまま使える
     });
