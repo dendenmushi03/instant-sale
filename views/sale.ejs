@@ -39,14 +39,26 @@
 
 <div class="product-imageWrap" id="openViewer">
   <% const previewVersion = item.updatedAt ? new Date(item.updatedAt).getTime() : String(item._id || '0'); %>
-  <div
-    id="salePreviewBg"
-    class="product-image product-image--blur product-imagePreviewBg"
-    role="img"
-    aria-label="<%= item.title %>"
-    data-preview-src="/view/<%= item.slug %>?v=<%= previewVersion %>"
-    style="background-image:url('/view/<%= item.slug %>?v=<%= previewVersion %>');"
-  ></div>
+  <% const previewSrc = `/view/${item.slug}?v=${previewVersion}`; %>
+  <div class="product-imageSizer">
+    <img
+      class="product-imageSizer__ratio"
+      src="<%= previewSrc %>"
+      alt=""
+      aria-hidden="true"
+      loading="eager"
+      decoding="async"
+      draggable="false"
+    />
+    <div
+      id="salePreviewBg"
+      class="product-image product-image--blur product-imagePreviewBg"
+      role="img"
+      aria-label="<%= item.title %>"
+      data-preview-src="<%= previewSrc %>"
+      style="background-image:url('<%= previewSrc %>');"
+    ></div>
+  </div>
 </div>
 
 <!-- ライトボックス（ページ内等倍ビュー） -->
@@ -130,7 +142,6 @@
 (function(){
   var opener = document.getElementById('openViewer');
   var modal  = document.getElementById('viewer');
-  var previewBg = document.getElementById('salePreviewBg');
   if (!opener) return;
 
   // 購入前は拡大表示を無効化（代替案B）。
@@ -138,18 +149,6 @@
   opener.style.cursor = 'default';
   if (modal) modal.hidden = true;
 
-  if (previewBg) {
-    var src = previewBg.getAttribute('data-preview-src');
-    if (src) {
-      var probe = new Image();
-      probe.onload = function () {
-        if (probe.naturalWidth > 0 && probe.naturalHeight > 0) {
-          previewBg.style.aspectRatio = probe.naturalWidth + ' / ' + probe.naturalHeight;
-        }
-      };
-      probe.src = src;
-    }
-  }
 })();
 
 </script>
