@@ -2696,9 +2696,15 @@ app.get('/s/:slug', async (req, res) => {
     // ライセンス表示
     const licenseView = licenseViewOf(item);
 
-    // 同一販売者の他商品（最大6件）
+    const relatedItemsTestOwnerId = process.env.RELATED_ITEMS_TEST_OWNER_ID;
+    const showRelatedItems = Boolean(
+      item.ownerUser &&
+      relatedItemsTestOwnerId &&
+      String(item.ownerUser) === String(relatedItemsTestOwnerId)
+    );
+
     let relatedItems = [];
-    if (item.ownerUser) {
+    if (showRelatedItems) {
       relatedItems = await Item.find({
         ownerUser: item.ownerUser,
         slug: { $ne: item.slug },
@@ -2722,6 +2728,7 @@ res.set('Cache-Control', 'private, max-age=60');
       tokushohoUrl,
       og,
       licenseView,
+      showRelatedItems,
       relatedItems,
       lng
       // t, cspNonce は res.locals からそのまま使える
