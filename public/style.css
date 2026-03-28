@@ -809,6 +809,67 @@ body.menu-open{
   .section-license{margin-top:16px}
 }
 
+.section-relatedItems{margin-top:12px;padding:18px 16px}
+.relatedItems__lead{
+  margin:4px 0 12px;
+  font-size:13px;
+  line-height:1.6;
+}
+.relatedItems__scroller{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  padding:2px 2px 4px;
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+}
+.relatedItemCard{
+  flex:0 0 176px;
+  min-width:176px;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  box-shadow:0 6px 18px rgba(20,20,20,.06);
+}
+.relatedItemCard:hover{opacity:1;transform:translateY(-1px)}
+.relatedItemCard__image{
+  width:100%;
+  aspect-ratio:4 / 3;
+  background:rgba(20,20,20,.04);
+}
+.relatedItemCard__image--bg{
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  -webkit-touch-callout:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.relatedItemCard__body{padding:10px 10px 11px}
+.relatedItemCard__title{
+  margin:0;
+  font-size:13px;
+  line-height:1.45;
+  color:rgba(20,20,20,.86);
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  min-height:2.9em;
+}
+.relatedItemCard__price{
+  margin:8px 0 0;
+  font-size:14px;
+  font-weight:800;
+  color:rgba(20,20,20,.92);
+}
+@media (min-width:768px){
+  .section-relatedItems{margin-top:16px;padding:20px}
+  .relatedItems__scroller{gap:14px}
+  .relatedItemCard{flex-basis:190px;min-width:190px}
+}
+
 /* =========================
    Progress modal premium refresh (upload only)
    ========================= */
