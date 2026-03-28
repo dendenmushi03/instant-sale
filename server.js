@@ -2696,6 +2696,7 @@ app.get('/s/:slug', async (req, res) => {
     // ライセンス表示
     const licenseView = licenseViewOf(item);
 
+
 // ページに CSRF トークンが含まれるので第三者キャッシュは禁止
 res.set('Cache-Control', 'private, max-age=60');
 // 必要なら完全に避けたい場合は： res.set('Cache-Control', 'no-store');
