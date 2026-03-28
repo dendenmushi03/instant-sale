@@ -120,33 +120,6 @@
           </div>
         </section>
 
-        <% if (showRelatedItems && relatedItems && relatedItems.length > 0) { %>
-          <section class="card saleRelated" aria-label="related-items">
-            <div class="sectionHead">
-              <h3 class="section-title">この販売者の他の商品</h3>
-            </div>
-            <p class="muted saleRelated__lead">同じ販売者の作品を、スワイプしてご覧いただけます。</p>
-
-            <div class="saleRelated__scroller" role="list">
-              <% relatedItems.forEach((related) => { %>
-                <% const relatedPreviewVersion = related.updatedAt ? new Date(related.updatedAt).getTime() : String(related._id || '0'); %>
-                <a class="saleRelated__item" href="/s/<%= related.slug %>" role="listitem">
-                  <div
-                    class="saleRelated__image"
-                    role="img"
-                    aria-label="<%= related.title %>"
-                    style="background-image:url('/view/<%= related.slug %>?v=<%= relatedPreviewVersion %>');"
-                  ></div>
-                  <div class="saleRelated__meta">
-                    <p class="saleRelated__title"><%= related.title %></p>
-                    <p class="saleRelated__price">¥<%= Number(related.price || 0).toLocaleString(locale) %></p>
-                  </div>
-                </a>
-              <% }) %>
-            </div>
-          </section>
-        <% } %>
-
       </div>
       </div>
     </article>
