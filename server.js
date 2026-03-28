@@ -2709,8 +2709,6 @@ res.set('Cache-Control', 'private, max-age=60');
       tokushohoUrl,
       og,
       licenseView,
-      showRelatedItems,
-      relatedItems,
       lng
       // t, cspNonce は res.locals からそのまま使える
     });
