@@ -97,6 +97,21 @@ const toAbs = (u) => {
   return /^https?:\/\//i.test(u) ? u : `${BASE_URL}${u.startsWith('/') ? '' : '/'}${u}`;
 };
 
+function appendVersionQuery(target, version) {
+  if (!version) return target;
+
+  if (/^https?:\/\//i.test(target)) {
+    const u = new URL(target);
+    u.searchParams.set('v', String(version));
+    return u.toString();
+  }
+
+  const [pathname, search = ''] = String(target).split('?');
+  const params = new URLSearchParams(search);
+  params.set('v', String(version));
+  return `${pathname}?${params.toString()}`;
+}
+
 function normalizeLng(input) {
   const value = String(input || '').toLowerCase();
   if (value.startsWith('en')) return 'en';
@@ -1048,6 +1063,283 @@ const ensureDir = async (dir) => {
 
 ensureDir(UPLOAD_DIR);
 ensureDir(PREVIEW_DIR);
+
+const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from(`
+  <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="wm-tile" width="280" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+        <text x="18" y="112" fill="rgba(255,255,255,${alpha})" font-size="46" font-weight="700" font-family="Arial, sans-serif">SAMPLE</text>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#wm-tile)" />
+  </svg>
+`);
+
+async function renderSalePreviewBufferFromOriginalBuffer(originalBuffer) {
+  const previewBase = await sharp(originalBuffer).rotate().toBuffer();
+  const previewMeta = await sharp(previewBase).metadata();
+  const pw = Math.max(1, previewMeta.width || 1);
+  const ph = Math.max(1, previewMeta.height || 1);
+  const mosaicBlock = Math.max(12, Math.round(Math.max(pw, ph) / 90));
+  const downW = Math.max(1, Math.round(pw / mosaicBlock));
+  const downH = Math.max(1, Math.round(ph / mosaicBlock));
+  const previewWatermarkSvg = createTiledWatermarkSvg({ width: pw, height: ph, alpha: 0.24 });
+  return sharp(previewBase)
+    .resize(downW, downH, { fit: 'fill', kernel: sharp.kernel.nearest })
+    .resize(pw, ph, { fit: 'fill', kernel: sharp.kernel.nearest })
+    .composite([{ input: previewWatermarkSvg }])
+    .jpeg({ quality: 85 })
+    .toBuffer();
+}
+
+async function s3BodyToBuffer(body) {
+  if (!body) throw new Error('S3 object body is empty');
+  if (Buffer.isBuffer(body)) return body;
+  if (typeof body.transformToByteArray === 'function') {
+    return Buffer.from(await body.transformToByteArray());
+  }
+  const chunks = [];
+  for await (const chunk of body) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  return Buffer.concat(chunks);
+}
+
+async function writeFileAtomic(targetPath, data) {
+  const tmpPath = `${targetPath}.tmp-${Date.now()}-${process.pid}-${nanoid(6)}`;
+  await fsp.writeFile(tmpPath, data);
+  await fsp.rename(tmpPath, targetPath);
+}
+
+async function loadOriginalBufferForItem(item) {
+  if (s3 && item?.s3Key) {
+    const obj = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: item.s3Key }));
+    return s3BodyToBuffer(obj.Body);
+  }
+  const filePath = String(item?.filePath || '').trim();
+  if (!filePath) throw new Error('original not found');
+  return fsp.readFile(filePath);
+}
+
+async function regeneratePreviewForItem(item) {
+  if (!item?.slug) throw new Error('item slug is missing');
+
+  const originalBuffer = await loadOriginalBufferForItem(item);
+  const previewBuffer = await renderSalePreviewBufferFromOriginalBuffer(originalBuffer);
+  const previewName = `${item.slug}-preview.jpg`;
+  const fallbackPreviewPath = `/previews/${previewName}`;
+
+  if (s3 && item.s3Key) {
+    const s3KeyPreview = `previews/${previewName}`;
+    await s3.send(new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: s3KeyPreview,
+      Body: previewBuffer,
+      ContentType: 'image/jpeg',
+      CacheControl: 'public, max-age=31536000, immutable'
+    }));
+    if (!item.previewPath) {
+      const previewPath = S3_PUBLIC_IS_HTTPS
+        ? `${S3_PUBLIC_BASE}/${s3KeyPreview}`
+        : fallbackPreviewPath;
+      await Item.updateOne(
+        { _id: item._id },
+        { $set: { previewPath }, $currentDate: { updatedAt: true } }
+      );
+    } else {
+      await Item.updateOne(
+        { _id: item._id },
+        { $currentDate: { updatedAt: true } }
+      );
+    }
+    return { mode: 's3', previewKey: s3KeyPreview };
+  }
+
+  const previewFull = path.join(PREVIEW_DIR, previewName);
+  await writeFileAtomic(previewFull, previewBuffer);
+  if (!item.previewPath) {
+    await Item.updateOne(
+      { _id: item._id },
+      { $set: { previewPath: fallbackPreviewPath }, $currentDate: { updatedAt: true } }
+    );
+  } else {
+    await Item.updateOne(
+      { _id: item._id },
+      { $currentDate: { updatedAt: true } }
+    );
+  }
+  return { mode: 'local', previewPath: fallbackPreviewPath };
+}
+
+function getIntFlag(name, fallback) {
+  const arg = process.argv.find((v) => v.startsWith(`${name}=`));
+  if (!arg) return fallback;
+  const n = Number(arg.split('=').slice(1).join('=').trim());
+  return Number.isInteger(n) && n >= 0 ? n : fallback;
+}
+
+async function runRegeneratePreviewBatchFromCli() {
+  const oneArg = process.argv.find((arg) => arg.startsWith('--regenerate-preview='));
+  const runAll = process.argv.includes('--regenerate-preview-all');
+  const dryRun = process.argv.includes('--dry-run');
+  if (!oneArg && !runAll) return false;
+
+  await mongoose.connection.asPromise();
+
+  let total = 0;
+  let success = 0;
+  let failed = 0;
+
+  if (oneArg) {
+    const slug = oneArg.split('=').slice(1).join('=').trim();
+    if (!slug) {
+      console.error('[regenerate-preview] slug is required');
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+    const item = await Item.findOne({ slug, isDeleted: { $ne: true } })
+      .select('_id slug s3Key filePath previewPath')
+      .lean();
+
+    if (!item) {
+      console.log(`[regenerate-preview] item not found: ${slug}`);
+      await mongoose.disconnect();
+      process.exit(1);
+    }
+
+    total = 1;
+    try {
+      await regeneratePreviewForItem(item);
+      success++;
+      console.log(`[regenerate-preview] ok: ${slug}`);
+    } catch (e) {
+      failed++;
+      console.error(`[regenerate-preview] failed: ${slug} reason=${e.message}`);
+    }
+  } else {
+    const limit = getIntFlag('--limit', 0);
+    const offset = getIntFlag('--offset', 0);
+    let query = Item.find({ isDeleted: { $ne: true } })
+      .sort({ _id: 1 })
+      .skip(offset)
+      .select('_id slug s3Key filePath previewPath')
+      .lean();
+    if (limit > 0) query = query.limit(limit);
+
+    const items = await query;
+    total = items.length;
+
+    console.log(`[regenerate-preview] start total=${total} offset=${offset} limit=${limit || 'all'}${dryRun ? ' dry-run=true' : ''}`);
+    if (dryRun) {
+      console.log(`[regenerate-preview] done total=${total} success=0 failed=0 dry-run=true`);
+      await mongoose.disconnect();
+      process.exit(0);
+    }
+
+    for (const item of items) {
+      try {
+        await regeneratePreviewForItem(item);
+        success++;
+        console.log(`[regenerate-preview] ok: ${item.slug}`);
+      } catch (e) {
+        failed++;
+        console.error(`[regenerate-preview] failed: ${item.slug} reason=${e.message}`);
+      }
+    }
+  }
+
+  console.log(`[regenerate-preview] done total=${total} success=${success} failed=${failed}`);
+  await mongoose.disconnect();
+  process.exit(failed > 0 ? 1 : 0);
+}
+
+async function runInspectPreviewCli() {
+  const inspectArg = process.argv.find((arg) => arg.startsWith('--inspect-preview='));
+  if (!inspectArg) return false;
+
+  await mongoose.connection.asPromise();
+
+  const slug = inspectArg.split('=').slice(1).join('=').trim();
+  if (!slug) {
+    console.error('[inspect-preview] slug is required');
+    await mongoose.disconnect();
+    process.exit(1);
+  }
+
+  const item = await Item.findOne({ slug, isDeleted: { $ne: true } })
+    .select('_id slug title filePath previewPath s3Key')
+    .lean();
+
+  if (!item) {
+    console.error(`[inspect-preview] item not found slug=${slug}`);
+    await mongoose.disconnect();
+    process.exit(1);
+  }
+
+  console.log(`[inspect-preview] slug=${item.slug}`);
+  console.log(`[inspect-preview] title=${item.title || ''}`);
+  console.log(`[inspect-preview] filePath=${item.filePath || ''}`);
+  console.log(`[inspect-preview] previewPath=${item.previewPath || ''}`);
+  console.log(`[inspect-preview] s3Key=${item.s3Key || ''}`);
+
+  let originalSource = 'not found';
+  let originalW = null;
+  let originalH = null;
+  try {
+    if (s3 && item.s3Key) {
+      const originalBuffer = await loadOriginalBufferForItem(item);
+      const meta = await sharp(originalBuffer).metadata();
+      originalSource = 's3';
+      originalW = meta.width || null;
+      originalH = meta.height || null;
+    } else if (item.filePath && fs.existsSync(item.filePath)) {
+      const originalBuffer = await fsp.readFile(item.filePath);
+      const meta = await sharp(originalBuffer).metadata();
+      originalSource = 'local';
+      originalW = meta.width || null;
+      originalH = meta.height || null;
+    }
+  } catch (e) {
+    console.error(`[inspect-preview] original metadata error reason=${e.message}`);
+  }
+
+  let previewW = null;
+  let previewH = null;
+  try {
+    if (s3 && item.s3Key) {
+      const previewKey = (() => {
+        const p = String(item.previewPath || '').trim();
+        if (!p) return `previews/${item.slug}-preview.jpg`;
+        if (/^https?:\/\//i.test(p)) {
+          const u = new URL(p);
+          return u.pathname.replace(/^\/+/, '');
+        }
+        return p.replace(/^\/+/, '');
+      })();
+      const obj = await s3.send(new GetObjectCommand({ Bucket: S3_BUCKET, Key: previewKey }));
+      const previewBuffer = await s3BodyToBuffer(obj.Body);
+      const meta = await sharp(previewBuffer).metadata();
+      previewW = meta.width || null;
+      previewH = meta.height || null;
+    } else {
+      const previewName = `${item.slug}-preview.jpg`;
+      const previewFull = path.join(PREVIEW_DIR, previewName);
+      if (fs.existsSync(previewFull)) {
+        const previewBuffer = await fsp.readFile(previewFull);
+        const meta = await sharp(previewBuffer).metadata();
+        previewW = meta.width || null;
+        previewH = meta.height || null;
+      }
+    }
+  } catch (e) {
+    console.error(`[inspect-preview] preview metadata error reason=${e.message}`);
+  }
+
+  console.log(`[inspect-preview] originalSource=${originalSource}`);
+  console.log(`[inspect-preview] originalSize=${originalW && originalH ? `${originalW}x${originalH}` : 'not found'}`);
+  console.log(`[inspect-preview] previewSize=${previewW && previewH ? `${previewW}x${previewH}` : 'not found'}`);
+
+  await mongoose.disconnect();
+  process.exit(0);
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
@@ -2117,54 +2409,27 @@ const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
     // ★ 配布原本は JPEG 化したので MIME も固定
     const mimeType = 'image/jpeg';
 
-// 販売ページ向け preview（元画像サイズ維持 + 全面モザイク）
+// 販売ページ向け preview（固定リサイズなし / 元画像サイズ維持 + 全面モザイク）
 const previewName = `${slug}-preview.jpg`;
 const previewFull = path.join(PREVIEW_DIR, previewName);
+const originalBuffer = await fsp.readFile(req.file.path);
+const previewBuffer = await renderSalePreviewBufferFromOriginalBuffer(originalBuffer);
 
-const previewBase = await sharp(req.file.path)
-  .rotate()
-  .toBuffer();
-const previewMeta = await sharp(previewBase).metadata();
-const pw = Math.max(1, previewMeta.width || 1);
-const ph = Math.max(1, previewMeta.height || 1);
-const mosaicBlock = Math.max(12, Math.round(Math.max(pw, ph) / 90));
-const downW = Math.max(1, Math.round(pw / mosaicBlock));
-const downH = Math.max(1, Math.round(ph / mosaicBlock));
-
-// ====== 透かしSVG生成（タイル＋四隅） ======
-const createTiledWatermarkSvg = ({ width, height, alpha = 0.22 }) => Buffer.from(`
-  <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="wm-tile" width="280" height="180" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
-        <text x="18" y="112" fill="rgba(255,255,255,${alpha})" font-size="46" font-weight="700" font-family="Arial, sans-serif">SAMPLE</text>
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#wm-tile)" />
-  </svg>
-`);
-
+// ====== 透かしSVG生成（四隅） ======
 const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
   const margin = Math.max(24, Math.round(Math.min(width, height) * 0.03));
   const wmSize = Math.max(26, Math.round(Math.min(width, height) * 0.055));
   return Buffer.from(`
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <style>.wm{ fill: rgba(255,255,255,${alpha}); font-size: ${wmSize}px; font-weight: 700; font-family: Arial, sans-serif; }</style>
-      <text x="${margin}" y="${margin + wmSize}" class="wm">SAMPLE</text>
-      <text x="${width - margin}" y="${margin + wmSize}" text-anchor="end" class="wm">SAMPLE</text>
-      <text x="${margin}" y="${height - margin}" dominant-baseline="ideographic" class="wm">SAMPLE</text>
-      <text x="${width - margin}" y="${height - margin}" text-anchor="end" dominant-baseline="ideographic" class="wm">SAMPLE</text>
+      <text class="wm" x="${margin}" y="${margin + wmSize}">SAMPLE</text>
+      <text class="wm" x="${width - margin}" y="${margin + wmSize}" text-anchor="end">SAMPLE</text>
+      <text class="wm" x="${margin}" y="${height - margin}" dominant-baseline="ideographic">SAMPLE</text>
+      <text class="wm" x="${width - margin}" y="${height - margin}" text-anchor="end" dominant-baseline="ideographic">SAMPLE</text>
     </svg>
   `);
 };
-
-const previewWatermarkSvg = createTiledWatermarkSvg({ width: pw, height: ph, alpha: 0.24 });
-
-await sharp(previewBase)
-  .resize(downW, downH, { fit: 'fill', kernel: sharp.kernel.nearest })
-  .resize(pw, ph, { fit: 'fill', kernel: sharp.kernel.nearest })
-  .composite([{ input: previewWatermarkSvg }])
-  .jpeg({ quality: 85 })
-  .toFile(previewFull);
+await writeFileAtomic(previewFull, previewBuffer);
 
 // ★ Stripe用（縦長が切れない “contain” 版）
 const stripeName = `${slug}-stripe.jpg`;
@@ -2463,21 +2728,19 @@ app.get('/view/:slug', async (req, res) => {
     if (item.previewPath) {
       const preview = String(item.previewPath).trim();
       if (/^https?:\/\//i.test(preview)) {
-        return res.redirect(302, preview);
+        return res.redirect(302, appendVersionQuery(preview, req.query.v));
       }
       const normalized = preview.startsWith('/') ? preview : `/${preview}`;
-      return res.redirect(302, normalized);
+      return res.redirect(302, appendVersionQuery(normalized, req.query.v));
     }
 
     // フォールバック：CDN preview、またはローカル preview
     if (S3_PUBLIC_IS_HTTPS && S3_PUBLIC_BASE) {
-      return res.redirect(302, `${S3_PUBLIC_BASE}/previews/${slug}-preview.jpg`);
+      return res.redirect(302, appendVersionQuery(`${S3_PUBLIC_BASE}/previews/${slug}-preview.jpg`, req.query.v));
     }
     const localPreview = path.join(PREVIEW_DIR, `${slug}-preview.jpg`);
     if (fs.existsSync(localPreview)) {
-      res.setHeader('Content-Type', 'image/jpeg');
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      return fs.createReadStream(localPreview).pipe(res);
+      return res.redirect(302, appendVersionQuery(`/previews/${slug}-preview.jpg`, req.query.v));
     }
 
     return res.status(404).send('source image missing');
@@ -3245,6 +3508,19 @@ app.use((err, req, res, next) => {
 });
 
 // start
-app.listen(PORT, () => {
-  console.log(`Server running: ${BASE_URL}`);
-});
+runInspectPreviewCli()
+  .then((handled) => {
+    if (handled) return true;
+    return runRegeneratePreviewBatchFromCli();
+  })
+  .then((handled) => {
+    if (handled) return;
+    app.listen(PORT, () => {
+      console.log(`Server running: ${BASE_URL}`);
+    });
+  })
+  .catch(async (err) => {
+    console.error('[regenerate-preview] fatal', err);
+    try { await mongoose.disconnect(); } catch {}
+    process.exit(1);
+  });
