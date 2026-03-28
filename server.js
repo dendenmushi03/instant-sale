@@ -2696,6 +2696,25 @@ app.get('/s/:slug', async (req, res) => {
     // ライセンス表示
     const licenseView = licenseViewOf(item);
 
+    const relatedItemsTestOwnerId = process.env.RELATED_ITEMS_TEST_OWNER_ID;
+    const showRelatedItems = Boolean(
+      item.ownerUser &&
+      relatedItemsTestOwnerId &&
+      String(item.ownerUser) === String(relatedItemsTestOwnerId)
+    );
+
+    let relatedItems = [];
+    if (showRelatedItems) {
+      relatedItems = await Item.find({
+        ownerUser: item.ownerUser,
+        slug: { $ne: item.slug },
+        isDeleted: { $ne: true }
+      })
+        .select('slug title price updatedAt')
+        .sort({ _id: -1 })
+        .limit(6)
+        .lean();
+    }
 
 // ページに CSRF トークンが含まれるので第三者キャッシュは禁止
 res.set('Cache-Control', 'private, max-age=60');
