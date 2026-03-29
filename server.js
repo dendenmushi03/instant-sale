@@ -40,6 +40,9 @@ const {
 const FileType = require('file-type'); // ★ 追加：実体MIME検査（CJSはfromFileを使う）
 
 const app = express();
+// Render環境でのメモリ急増を抑えるため、Sharpのキャッシュ/並列度を制限
+sharp.cache(false);
+sharp.concurrency(1);
 
 // === PATH CONSTANTS ===
 const ROOT_DIR    = __dirname;
@@ -2381,11 +2384,12 @@ if (!/^image\/(png|jpe?g|webp|gif)$/i.test(realMime)) {
     // ★ 原本も再エンコードして EXIF/メタデータを除去（配布時の位置情報漏洩を防ぐ）
     //    ここでは JPEG に統一（色変化を抑えたい場合は PNG 保存でも可）
     try {
-      const cleaned = await sharp(req.file.path)
+      const cleanedPath = `${req.file.path}.cleaned.jpg`;
+      await sharp(req.file.path)
         .rotate()
         .jpeg({ quality: 95 }) // withMetadata() を付けない = EXIF除去
-        .toBuffer();
-      await fsp.writeFile(req.file.path, cleaned);
+        .toFile(cleanedPath);
+      await fsp.rename(cleanedPath, req.file.path);
     } catch (re) {
       await fsp.unlink(req.file.path).catch(() => {});
       return res.status(400).render('error', { message: '画像の処理に失敗しました。別の画像でお試しください。' });
@@ -2449,21 +2453,22 @@ await sharp(req.file.path)
 const fullName = `${slug}-full.jpg`;
 const fullPath    = path.join(PREVIEW_DIR, fullName);
 
-// まず「回転＋内接リサイズ」をバッファに作る
-const fullBase = await sharp(req.file.path)
-  .rotate()
-  .resize(4096, 4096, { fit: 'inside' })
-  .toBuffer();
-
-// 出来上がった fullBase の実寸を取得（←これが確実）
-const fullMeta = await sharp(fullBase).metadata();
-const fw = Math.max(1, fullMeta.width  || 1200);
-const fh = Math.max(1, fullMeta.height || 1200);
+// full実寸を計算（EXIF回転後の向き + 4096内接）
+const fullInputMeta = await sharp(req.file.path).metadata();
+const orientation = Number(fullInputMeta.orientation || 1);
+const swapsAxes = [5, 6, 7, 8].includes(orientation);
+const sourceW = Math.max(1, swapsAxes ? (fullInputMeta.height || 1) : (fullInputMeta.width || 1));
+const sourceH = Math.max(1, swapsAxes ? (fullInputMeta.width || 1) : (fullInputMeta.height || 1));
+const fullScale = Math.min(1, 4096 / sourceW, 4096 / sourceH);
+const fw = Math.max(1, Math.round(sourceW * fullScale));
+const fh = Math.max(1, Math.round(sourceH * fullScale));
 
 // full は購入前閲覧用：視認性を保ちつつ最も弱い四隅透かし
 const svgFull = createCornerWatermarkSvg({ width: fw, height: fh, alpha: 0.18 });
 
-await sharp(fullBase)
+await sharp(req.file.path)
+  .rotate()
+  .resize(4096, 4096, { fit: 'inside' })
   .composite([{ input: svgFull }])  // ← fullBase と同寸の SVG なので安全
   .jpeg({ quality: 90 })
   .toFile(fullPath);
