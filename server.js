@@ -36,7 +36,6 @@ const {
   PLATFORM_FEE_DISPLAY_EN,
   calculateRevenueSplit,
 } = require('./utils/revenue');
-const { detectInAppBrowser } = require('./utils/inAppBrowser');
 
 const FileType = require('file-type'); // ★ 追加：実体MIME検査（CJSはfromFileを使う）
 
@@ -133,6 +132,14 @@ function getLng(req) {
 // 言語→数値ロケールの簡易マップ
 function toNumberLocale(lng) {
   return (lng === 'en') ? 'en-US' : 'ja-JP';
+}
+
+function isXInAppBrowser(userAgent = '') {
+  if (!userAgent || typeof userAgent !== 'string') return false;
+  const ua = userAgent.toLowerCase();
+  const hasXToken = ua.includes('x.com') || ua.includes('twitter');
+  const hasInAppToken = ua.includes('twitter for') || ua.includes('twitterandroid') || ua.includes('twitterios');
+  return hasXToken && hasInAppToken;
 }
 
 // 出品時に選ばれた licensePreset を販売ページ表示用に整形
@@ -1461,13 +1468,10 @@ app.get('/sitemap.xml', (req, res) => {
 app.get('/auth/sign-in', (req, res) => {
   if (req.user) return res.redirect('/creator');
   const ua = req.get('user-agent') || '';
-  const inAppBrowserDetection = detectInAppBrowser(ua);
-  const forceInAppGuidance = req.query.inapp === '1';
   res.render('auth-sign-in', {
     canonical: `${BASE_URL}/auth/sign-in`,
     robots: 'noindex,follow',
-    isInAppBrowser: inAppBrowserDetection.isInAppBrowser,
-    showInAppGuidance: forceInAppGuidance || inAppBrowserDetection.isInAppBrowser
+    isXInAppBrowser: isXInAppBrowser(ua)
   });
 });
 
@@ -1482,13 +1486,6 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/auth/google',
-  (req, res, next) => {
-    const ua = req.get('user-agent') || '';
-    if (detectInAppBrowser(ua).isInAppBrowser) {
-      return res.redirect('/auth/sign-in?inapp=1');
-    }
-    return next();
-  },
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
