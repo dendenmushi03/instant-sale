@@ -10,7 +10,7 @@
   <link rel="canonical" href="<%= canonical %>" />
   <meta name="robots" content="<%= robots %>" />
 </head>
-<body class="layout">
+<body class="layout authSignInBody" data-show-inapp-guidance="<%= showInAppGuidance ? 'true' : 'false' %>">
 <%- include('partials/header') %>
 
 <main class="container authSignInPage">
@@ -20,23 +20,80 @@
     </div>
     <p class="authSignInCard__desc muted"><%= (lng==='en') ? 'Log in with Google to create and publish your image sales link.' : 'Googleでログインして、画像の販売リンクを作成できます。' %></p>
 
-    <a class="btn btn--lg authSignInCard__googleBtn" href="/auth/google">
+    <a class="btn btn--lg authSignInCard__googleBtn" href="/auth/google" id="googleSignInBtn">
       <span class="authSignInCard__googleMark" aria-hidden="true">G</span>
       <span><%= (lng==='en') ? 'Continue with Google' : 'Googleでログイン' %></span>
     </a>
 
-    <aside class="authSignInInfoCard <%= isXInAppBrowser ? 'is-x-in-app' : '' %>" data-x-in-app="<%= isXInAppBrowser ? 'true' : 'false' %>" aria-label="ログインに関するご案内">
+    <aside class="authSignInInfoCard <%= isInAppBrowser ? 'is-in-app' : '' %>" data-in-app="<%= isInAppBrowser ? 'true' : 'false' %>" aria-label="ログインに関するご案内">
       <p class="authSignInInfoCard__label" aria-hidden="true">ℹ︎ <%= (lng==='en') ? 'Help' : 'ご案内' %></p>
-      <p class="authSignInInfoCard__title"><%= (lng==='en') ? 'If you are using X in-app browser' : 'Xアプリ内ブラウザでご利用の方へ' %></p>
+      <p class="authSignInInfoCard__title"><%= (lng==='en') ? 'If you are using an in-app browser' : 'アプリ内ブラウザでご利用の方へ' %></p>
       <p class="authSignInInfoCard__body"><%= (lng==='en')
-        ? 'Google login may not work properly. If that happens, tap the bottom “...” menu, choose “Open in browser”, then reopen this page in Safari / Chrome and try signing in again.'
-        : 'Googleログインが正常に動作しない場合があります。\nその場合は、画面下部の「…」から「ブラウザで開く」を選択し、Safari / Chrome で開き直してから再度ログインしてください。' %></p>
+        ? 'Google login may not work in in-app browsers (X / Instagram / LINE / Facebook / Messenger). Please open this page from the menu or share action in Safari / Chrome.'
+        : 'X / Instagram / LINE / Facebook / Messenger のアプリ内ブラウザでは Google ログインが正常に動作しない場合があります。\nメニューまたは共有から Safari / Chrome で開き直してからログインしてください。' %></p>
     </aside>
 
     <a class="authSignInCard__back" href="/"><%= (lng==='en') ? 'Back to top' : 'トップページへ戻る' %></a>
   </section>
 </main>
 
+<div class="authInAppModal" id="inAppBrowserModal" hidden>
+  <div class="authInAppModal__backdrop" data-modal-close="true"></div>
+  <div class="authInAppModal__dialog" role="dialog" aria-modal="true" aria-labelledby="inAppBrowserModalTitle">
+    <p class="authInAppModal__label">⚠️ <%= (lng==='en') ? 'Notice' : 'ご注意' %></p>
+    <h2 class="authInAppModal__title" id="inAppBrowserModalTitle">
+      <%= (lng==='en') ? 'Google login may fail in in-app browser' : 'アプリ内ブラウザでは Google ログインが正常に動作しない場合があります' %>
+    </h2>
+    <p class="authInAppModal__text"><%= (lng==='en')
+      ? 'Please open this page from the menu or share action in Safari / Chrome.'
+      : 'メニューまたは共有から Safari / Chrome で開いてください。' %></p>
+    <ul class="authInAppModal__list">
+      <li><strong><%= (lng==='en') ? 'iPhone:' : 'iPhone:' %></strong> <%= (lng==='en') ? 'Tap share/menu icon → Open in Safari.' : '共有またはメニュー →「Safariで開く」。' %></li>
+      <li><strong><%= (lng==='en') ? 'Android:' : 'Android:' %></strong> <%= (lng==='en') ? 'Tap menu (︙) → Open in browser / Chrome.' : 'メニュー（︙）→「ブラウザで開く / Chromeで開く」。' %></li>
+    </ul>
+    <button type="button" class="btn authInAppModal__close" id="inAppBrowserModalClose">
+      <%= (lng==='en') ? 'Close' : '閉じる' %>
+    </button>
+  </div>
+</div>
+
 <%- include('partials/footer') %>
+<script>
+  (function () {
+    var btn = document.getElementById('googleSignInBtn');
+    var modal = document.getElementById('inAppBrowserModal');
+    var closeBtn = document.getElementById('inAppBrowserModalClose');
+    var showInAppGuidance = document.body && document.body.getAttribute('data-show-inapp-guidance') === 'true';
+    if (!btn || !modal || !closeBtn) return;
+
+    function openModal() {
+      modal.hidden = false;
+      document.body.classList.add('authSignInModalOpen');
+    }
+
+    function closeModal() {
+      modal.hidden = true;
+      document.body.classList.remove('authSignInModalOpen');
+    }
+
+    btn.addEventListener('click', function (event) {
+      if (!showInAppGuidance) return;
+      event.preventDefault();
+      openModal();
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', function (event) {
+      if (event.target && event.target.getAttribute('data-modal-close') === 'true') {
+        closeModal();
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    if (showInAppGuidance) openModal();
+  })();
+</script>
 </body>
 </html>
