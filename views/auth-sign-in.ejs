@@ -58,42 +58,6 @@
 </div>
 
 <%- include('partials/footer') %>
-<script>
-  (function () {
-    var btn = document.getElementById('googleSignInBtn');
-    var modal = document.getElementById('inAppBrowserModal');
-    var closeBtn = document.getElementById('inAppBrowserModalClose');
-    var showInAppGuidance = document.body && document.body.getAttribute('data-show-inapp-guidance') === 'true';
-    if (!btn || !modal || !closeBtn) return;
-
-    function openModal() {
-      modal.hidden = false;
-      document.body.classList.add('authSignInModalOpen');
-    }
-
-    function closeModal() {
-      modal.hidden = true;
-      document.body.classList.remove('authSignInModalOpen');
-    }
-
-    btn.addEventListener('click', function (event) {
-      if (!showInAppGuidance) return;
-      event.preventDefault();
-      openModal();
-    });
-
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', function (event) {
-      if (event.target && event.target.getAttribute('data-modal-close') === 'true') {
-        closeModal();
-      }
-    });
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && !modal.hidden) closeModal();
-    });
-
-    if (showInAppGuidance) openModal();
-  })();
-</script>
+<script src="/public/auth-sign-in.js?v=<%= assetVer %>" defer></script>
 </body>
 </html>
