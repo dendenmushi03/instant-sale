@@ -2376,6 +2376,10 @@ body.menu-open{
   padding:20px;
 }
 
+.authInAppModal[hidden]{
+  display:none !important;
+}
+
 .authInAppModal__backdrop{
   position:absolute;
   inset:0;
