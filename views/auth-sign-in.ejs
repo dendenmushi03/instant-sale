@@ -25,14 +25,6 @@
       <span><%= (lng==='en') ? 'Continue with Google' : 'Googleでログイン' %></span>
     </a>
 
-    <aside class="authSignInInfoCard <%= isInAppBrowser ? 'is-in-app' : '' %>" data-in-app="<%= isInAppBrowser ? 'true' : 'false' %>" aria-label="ログインに関するご案内">
-      <p class="authSignInInfoCard__label" aria-hidden="true">ℹ︎ <%= (lng==='en') ? 'Help' : 'ご案内' %></p>
-      <p class="authSignInInfoCard__title"><%= (lng==='en') ? 'If you are using an in-app browser' : 'アプリ内ブラウザでご利用の方へ' %></p>
-      <p class="authSignInInfoCard__body"><%= (lng==='en')
-        ? 'Google login may not work in in-app browsers (X / Instagram / LINE / Facebook / Messenger). Please open this page from the menu or share action in Safari / Chrome.'
-        : 'X / Instagram / LINE / Facebook / Messenger のアプリ内ブラウザでは Google ログインが正常に動作しない場合があります。\nメニューまたは共有から Safari / Chrome で開き直してからログインしてください。' %></p>
-    </aside>
-
     <a class="authSignInCard__back" href="/"><%= (lng==='en') ? 'Back to top' : 'トップページへ戻る' %></a>
   </section>
 </main>
@@ -48,8 +40,8 @@
       ? 'Please open this page from the menu or share action in Safari / Chrome.'
       : 'メニューまたは共有から Safari / Chrome で開いてください。' %></p>
     <ul class="authInAppModal__list">
-      <li><strong><%= (lng==='en') ? 'iPhone:' : 'iPhone:' %></strong> <%= (lng==='en') ? 'Tap share/menu icon → Open in Safari.' : '共有またはメニュー →「Safariで開く」。' %></li>
-      <li><strong><%= (lng==='en') ? 'Android:' : 'Android:' %></strong> <%= (lng==='en') ? 'Tap menu (︙) → Open in browser / Chrome.' : 'メニュー（︙）→「ブラウザで開く / Chromeで開く」。' %></li>
+      <li><strong><%= (lng==='en') ? 'iPhone:' : 'iPhone:' %></strong> <%= (lng==='en') ? 'Tap share/menu icon → Open in Safari.' : '共有またはメニュー（︙） →「ブラウザで開く」' %></li>
+      <li><strong><%= (lng==='en') ? 'Android:' : 'Android:' %></strong> <%= (lng==='en') ? 'Tap menu (︙) → Open in browser / Chrome.' : 'メニュー（︙）→「ブラウザで開く / Chromeで開く」' %></li>
     </ul>
     <button type="button" class="btn authInAppModal__close" id="inAppBrowserModalClose">
       <%= (lng==='en') ? 'Close' : '閉じる' %>
