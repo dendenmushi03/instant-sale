@@ -220,6 +220,7 @@ const DEFAULT_PRODUCT_DESC =
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 const DEFAULT_ITEM_SALE_STATUS = Item.SALE_STATUSES.PUBLISHED;
+const IMAGE_REVIEW_MODE = String(process.env.IMAGE_REVIEW_MODE || 'stub').toLowerCase();
 const REVIEW_KEYWORDS = Object.freeze([
   'r18',
   '18禁',
@@ -271,6 +272,51 @@ function resolveInitialSaleStatus({ title, licenseNotes, aiModelName } = {}) {
   return {
     status: DEFAULT_ITEM_SALE_STATUS,
     reason: 'no_keyword_match'
+  };
+}
+
+async function resolveImageReviewDecision(filePath) {
+  if (!filePath) {
+    return { shouldReview: true, reason: 'image:path_missing' };
+  }
+
+  if (IMAGE_REVIEW_MODE === 'stub') {
+    return { shouldReview: false, reason: 'image:stub_no_review' };
+  }
+
+  console.warn(`[image-review] unknown IMAGE_REVIEW_MODE="${IMAGE_REVIEW_MODE}". Falling back to stub.`);
+  return { shouldReview: false, reason: 'image:stub_no_review' };
+}
+
+async function resolveInitialSaleModerationDecision({ title, licenseNotes, aiModelName, filePath } = {}) {
+  const textDecision = resolveInitialSaleStatus({ title, licenseNotes, aiModelName });
+
+  let imageDecision = { shouldReview: false, reason: 'image:not_checked' };
+  try {
+    imageDecision = await resolveImageReviewDecision(filePath);
+  } catch (error) {
+    console.error('[image-review] failed', error);
+    imageDecision = { shouldReview: true, reason: 'image:image_check_failed' };
+  }
+
+  const reasons = [];
+  if (textDecision.status === Item.SALE_STATUSES.UNDER_REVIEW && textDecision.reason) {
+    reasons.push(textDecision.reason);
+  }
+  if (imageDecision.shouldReview && imageDecision.reason) {
+    reasons.push(imageDecision.reason);
+  }
+
+  if (reasons.length > 0) {
+    return {
+      status: Item.SALE_STATUSES.UNDER_REVIEW,
+      reason: reasons.join('|')
+    };
+  }
+
+  return {
+    status: DEFAULT_ITEM_SALE_STATUS,
+    reason: 'auto_pass:text_and_image'
   };
 }
 
@@ -2573,10 +2619,11 @@ const requireCreditBool = false; // ← プラットフォーム方針：常に�
 const aiGeneratedBool   = !!aiGenerated;
 const licenseNotesSafe  = (licenseNotes || '').trim().slice(0, 1000);
 const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
-const initialSaleStatus = resolveInitialSaleStatus({
+const initialSaleStatus = await resolveInitialSaleModerationDecision({
   title,
   licenseNotes: licenseNotesSafe,
-  aiModelName: aiModelNameSafe
+  aiModelName: aiModelNameSafe,
+  filePath: req.file.path
 });
 
     const slug = nanoid(10);
