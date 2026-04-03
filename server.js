@@ -220,6 +220,59 @@ const DEFAULT_PRODUCT_DESC =
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 const DEFAULT_ITEM_SALE_STATUS = Item.SALE_STATUSES.PUBLISHED;
+const REVIEW_KEYWORDS = Object.freeze([
+  'r18',
+  '18禁',
+  'エロ',
+  '性的',
+  'フェチ',
+  'jk',
+  'jc',
+  '制服',
+  'ロリ',
+  '少女',
+  '下着',
+  '巨乳',
+  '爆乳',
+  'パイズリ',
+  '潮吹き',
+  '挿入',
+  '精液',
+  '中出し',
+]);
+
+function normalizeForSaleStatusReview(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .trim();
+}
+
+function resolveInitialSaleStatus({ title, licenseNotes, aiModelName } = {}) {
+  const reviewTargets = [
+    { field: 'title', value: title },
+    { field: 'licenseNotes', value: licenseNotes },
+    { field: 'aiModelName', value: aiModelName }
+  ];
+
+  for (const target of reviewTargets) {
+    const normalizedValue = normalizeForSaleStatusReview(target.value);
+    if (!normalizedValue) continue;
+
+    const matchedKeyword = REVIEW_KEYWORDS.find((keyword) => normalizedValue.includes(keyword));
+    if (matchedKeyword) {
+      return {
+        status: Item.SALE_STATUSES.UNDER_REVIEW,
+        reason: `${target.field}:${matchedKeyword}`
+      };
+    }
+  }
+
+  return {
+    status: DEFAULT_ITEM_SALE_STATUS,
+    reason: 'no_keyword_match'
+  };
+}
 
 const DAYS_180_MS = 1000 * 60 * 60 * 24 * 180;
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -2505,6 +2558,11 @@ const requireCreditBool = false; // ← プラットフォーム方針：常に�
 const aiGeneratedBool   = !!aiGenerated;
 const licenseNotesSafe  = (licenseNotes || '').trim().slice(0, 1000);
 const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
+const initialSaleStatus = resolveInitialSaleStatus({
+  title,
+  licenseNotes: licenseNotesSafe,
+  aiModelName: aiModelNameSafe
+});
 
     const slug = nanoid(10);
     // ★ 配布原本は JPEG 化したので MIME も固定
@@ -2596,7 +2654,7 @@ if (!s3) {
   licenseNotes:  licenseNotesSafe,
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
-  saleStatus: DEFAULT_ITEM_SALE_STATUS,
+  saleStatus: initialSaleStatus.status,
 });
 
 const saleUrl = `${BASE_URL}/s/${item.slug}`;
@@ -2707,7 +2765,7 @@ filePath: '',
   licenseNotes:  licenseNotesSafe,
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
-  saleStatus: DEFAULT_ITEM_SALE_STATUS,
+  saleStatus: initialSaleStatus.status,
 });
 
 const saleUrl = `${BASE_URL}/s/${item.slug}`;
