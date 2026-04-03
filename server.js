@@ -2160,7 +2160,7 @@ app.get('/admin/reviews', ensureAuthed, requireAdmin, async (req, res) => {
       isDeleted: { $ne: true }
     })
       .sort({ createdAt: -1, _id: -1 })
-      .select('slug title price previewPath ownerUser createdAt')
+      .select('slug title price previewPath ownerUser createdAt saleStatusReason')
       .lean();
 
     const ownerUserIds = [...new Set(
@@ -2192,6 +2192,7 @@ app.get('/admin/reviews', ensureAuthed, requireAdmin, async (req, res) => {
         sellerName: owner?.sellerProfile?.creatorDisplayName || owner?.name || '不明',
         priceLabel: `${Number(item.price || 0).toLocaleString('ja-JP')}円`,
         createdAt: item.createdAt || null,
+        saleStatusReason: item.saleStatusReason || '',
         saleUrl: `/s/${item.slug}`
       };
     });
@@ -2216,7 +2217,14 @@ app.post('/admin/reviews/:itemId/approve', ensureAuthed, requireAdmin, async (re
 
     await Item.updateOne(
       { _id: itemId, saleStatus: Item.SALE_STATUSES.UNDER_REVIEW, isDeleted: { $ne: true } },
-      { $set: { saleStatus: Item.SALE_STATUSES.PUBLISHED }, $currentDate: { updatedAt: true } }
+      {
+        $set: {
+          saleStatus: Item.SALE_STATUSES.PUBLISHED,
+          saleStatusReason: 'manual:approved',
+          saleStatusUpdatedAt: new Date()
+        },
+        $currentDate: { updatedAt: true }
+      }
     );
 
     return res.redirect('/admin/reviews?status=approved');
@@ -2235,7 +2243,14 @@ app.post('/admin/reviews/:itemId/reject', ensureAuthed, requireAdmin, async (req
 
     await Item.updateOne(
       { _id: itemId, saleStatus: Item.SALE_STATUSES.UNDER_REVIEW, isDeleted: { $ne: true } },
-      { $set: { saleStatus: Item.SALE_STATUSES.BLOCKED }, $currentDate: { updatedAt: true } }
+      {
+        $set: {
+          saleStatus: Item.SALE_STATUSES.BLOCKED,
+          saleStatusReason: 'manual:rejected',
+          saleStatusUpdatedAt: new Date()
+        },
+        $currentDate: { updatedAt: true }
+      }
     );
 
     return res.redirect('/admin/reviews?status=rejected');
@@ -2655,6 +2670,8 @@ if (!s3) {
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
   saleStatus: initialSaleStatus.status,
+  saleStatusReason: initialSaleStatus.reason,
+  saleStatusUpdatedAt: new Date(),
 });
 
 const saleUrl = `${BASE_URL}/s/${item.slug}`;
@@ -2766,6 +2783,8 @@ filePath: '',
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
   saleStatus: initialSaleStatus.status,
+  saleStatusReason: initialSaleStatus.reason,
+  saleStatusUpdatedAt: new Date(),
 });
 
 const saleUrl = `${BASE_URL}/s/${item.slug}`;

@@ -69,6 +69,8 @@ price: {
       enum: Object.values(ITEM_SALE_STATUSES),
       default: ITEM_SALE_STATUSES.PUBLISHED
     },
+    saleStatusReason: { type: String, default: '' },
+    saleStatusUpdatedAt: { type: Date, default: null },
 
     isDeleted: { type: Boolean, default: false, index: true },
     deletedAt: { type: Date, default: null }

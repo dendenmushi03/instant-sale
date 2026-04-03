@@ -26,6 +26,7 @@
               <th>販売者名</th>
               <th>価格</th>
               <th>作成日</th>
+              <th>審査理由</th>
               <th>販売ページ</th>
               <th>操作</th>
             </tr>
@@ -33,7 +34,7 @@
           <tbody>
             <% if (!reviewItems || reviewItems.length === 0) { %>
               <tr>
-                <td colspan="7">審査中の作品はありません。</td>
+                <td colspan="8">審査中の作品はありません。</td>
               </tr>
             <% } %>
             <% (reviewItems || []).forEach(function(item){ %>
@@ -51,6 +52,7 @@
                 <td><%= item.sellerName %></td>
                 <td><%= item.priceLabel %></td>
                 <td><%= item.createdAt ? new Date(item.createdAt).toLocaleDateString(locale || 'ja-JP') : '-' %></td>
+                <td><%= item.saleStatusReason || '-' %></td>
                 <td>
                   <a href="<%= item.saleUrl %>" target="_blank" rel="noopener noreferrer">販売ページ</a>
                 </td>
