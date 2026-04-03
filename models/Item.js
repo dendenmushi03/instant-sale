@@ -1,6 +1,12 @@
 // models/Item.js
 const mongoose = require('mongoose');
 
+const ITEM_SALE_STATUSES = Object.freeze({
+  PUBLISHED: 'published',
+  UNDER_REVIEW: 'under_review',
+  BLOCKED: 'blocked'
+});
+
 const ItemSchema = new mongoose.Schema(
   {
     slug: { type: String, required: true, unique: true, index: true },
@@ -58,6 +64,11 @@ price: {
     licenseNotes: { type: String, default: '' },
     aiGenerated: { type: Boolean, default: false },
     aiModelName: { type: String, default: '' },
+    saleStatus: {
+      type: String,
+      enum: Object.values(ITEM_SALE_STATUSES),
+      default: ITEM_SALE_STATUSES.PUBLISHED
+    },
 
     isDeleted: { type: Boolean, default: false, index: true },
     deletedAt: { type: Date, default: null }
@@ -70,7 +81,17 @@ ItemSchema.pre('validate', function (next) {
   if (!this.filePath && !this.s3Key) {
     return next(new Error('Either filePath or s3Key is required'));
   }
+
+  if (!this.saleStatus) {
+    this.saleStatus = ITEM_SALE_STATUSES.PUBLISHED;
+  }
+
   next();
 });
+
+ItemSchema.statics.SALE_STATUSES = ITEM_SALE_STATUSES;
+ItemSchema.statics.resolveSaleStatus = function resolveSaleStatus(item = {}) {
+  return item.saleStatus || ITEM_SALE_STATUSES.PUBLISHED;
+};
 
 module.exports = mongoose.model('Item', ItemSchema);
