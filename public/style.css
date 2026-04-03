@@ -3445,6 +3445,54 @@ body.authSignInBody.authSignInModalOpen{
 }
 .adminTableWrap{overflow:auto}
 .adminTable th,.adminTable td{white-space:nowrap}
+.adminReviewLead{
+  margin:0 0 14px;
+}
+.adminReviewTable td{
+  vertical-align:middle;
+}
+.adminReviewThumb{
+  width:72px;
+  height:72px;
+  border-radius:10px;
+  object-fit:cover;
+  background:#f7f7f7;
+  border:1px solid rgba(17,24,39,.08);
+}
+.adminReviewActions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.adminReviewActions form{
+  margin:0;
+}
+.adminReviewBtn{
+  min-width:62px;
+}
+.adminReviewBtn--approve{
+  border-color:rgba(46,125,50,.35);
+  background:#eefaf0;
+  color:#1f6b2a;
+}
+.adminReviewBtn--reject{
+  border-color:rgba(179,38,30,.35);
+  background:#fff1f1;
+  color:#a72d2d;
+}
+@media (max-width: 640px){
+  .adminReviewThumb{
+    width:64px;
+    height:64px;
+  }
+  .adminReviewActions{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .adminReviewActions .btn{
+    width:100%;
+  }
+}
 .sellerProfileSummaryCard{
   gap:18px;
 }

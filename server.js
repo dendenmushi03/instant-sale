@@ -2100,6 +2100,98 @@ app.get('/admin', ensureAuthed, requireAdmin, async (req, res) => {
   }));
 });
 
+app.get('/admin/reviews', ensureAuthed, requireAdmin, async (req, res) => {
+  try {
+    const underReviewItems = await Item.find({
+      saleStatus: Item.SALE_STATUSES.UNDER_REVIEW,
+      isDeleted: { $ne: true }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .select('slug title price previewPath ownerUser createdAt')
+      .lean();
+
+    const ownerUserIds = [...new Set(
+      underReviewItems
+        .map((item) => item.ownerUser)
+        .filter(Boolean)
+        .map((id) => String(id))
+    )];
+
+    const owners = ownerUserIds.length
+      ? await User.find({ _id: { $in: ownerUserIds } })
+        .select('name sellerProfile.creatorDisplayName')
+        .lean()
+      : [];
+    const ownerMap = new Map(owners.map((owner) => [String(owner._id), owner]));
+
+    const successMessage = req.query.status === 'approved'
+      ? '作品を承認しました。'
+      : req.query.status === 'rejected'
+        ? '作品を却下しました。'
+        : '';
+
+    const reviewItems = underReviewItems.map((item) => {
+      const owner = item.ownerUser ? ownerMap.get(String(item.ownerUser)) : null;
+      return {
+        id: String(item._id),
+        thumbnailUrl: item.previewPath || `/previews/${item.slug}-preview.jpg`,
+        title: item.title || '(無題)',
+        sellerName: owner?.sellerProfile?.creatorDisplayName || owner?.name || '不明',
+        priceLabel: `${Number(item.price || 0).toLocaleString('ja-JP')}円`,
+        createdAt: item.createdAt || null,
+        saleUrl: `/s/${item.slug}`
+      };
+    });
+
+    return res.render('admin/reviews', adminBaseView(req, {
+      title: '出品審査一覧 | 管理画面',
+      reviewItems,
+      successMessage
+    }));
+  } catch (e) {
+    console.error('[admin:reviews]', e);
+    return res.status(500).render('error', { message: '出品審査一覧の表示に失敗しました。' });
+  }
+});
+
+app.post('/admin/reviews/:itemId/approve', ensureAuthed, requireAdmin, async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(404).render('error', { message: '作品が見つかりません。' });
+    }
+
+    await Item.updateOne(
+      { _id: itemId, saleStatus: Item.SALE_STATUSES.UNDER_REVIEW, isDeleted: { $ne: true } },
+      { $set: { saleStatus: Item.SALE_STATUSES.PUBLISHED }, $currentDate: { updatedAt: true } }
+    );
+
+    return res.redirect('/admin/reviews?status=approved');
+  } catch (e) {
+    console.error('[admin:reviews:approve]', e);
+    return res.status(500).render('error', { message: '承認処理に失敗しました。' });
+  }
+});
+
+app.post('/admin/reviews/:itemId/reject', ensureAuthed, requireAdmin, async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(404).render('error', { message: '作品が見つかりません。' });
+    }
+
+    await Item.updateOne(
+      { _id: itemId, saleStatus: Item.SALE_STATUSES.UNDER_REVIEW, isDeleted: { $ne: true } },
+      { $set: { saleStatus: Item.SALE_STATUSES.BLOCKED }, $currentDate: { updatedAt: true } }
+    );
+
+    return res.redirect('/admin/reviews?status=rejected');
+  } catch (e) {
+    console.error('[admin:reviews:reject]', e);
+    return res.status(500).render('error', { message: '却下処理に失敗しました。' });
+  }
+});
+
 app.get('/admin/sellers', ensureAuthed, requireAdmin, async (req, res) => {
   try {
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
