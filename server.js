@@ -2942,6 +2942,17 @@ app.post('/checkout/:slug', async (req, res) => {
     const { slug } = req.params;
     const item = await Item.findOne({ slug, isDeleted: { $ne: true } });
     if (!item) return res.status(404).render('error', { message: '商品が見つかりません。' });
+    const saleStatus = Item.resolveSaleStatus(item);
+    if (saleStatus === Item.SALE_STATUSES.UNDER_REVIEW) {
+      return res.status(403).render('error', {
+        message: 'この作品は現在確認中のため購入できません。'
+      });
+    }
+    if (saleStatus === Item.SALE_STATUSES.BLOCKED) {
+      return res.status(403).render('error', {
+        message: 'この作品は現在公開停止中です。'
+      });
+    }
 
 // 仕様固定の収益分配（プラットフォーム手数料 4% + 30円）
 const { platformFeeAmount: platformFee } = calcRevenueSplit(item.price);
