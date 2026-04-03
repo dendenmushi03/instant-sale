@@ -7,7 +7,8 @@
     "start": "node server.js",
     "start:prod": "cross-env NODE_ENV=production node server.js",
     "dev": "cross-env NODE_ENV=development nodemon server.js",
-    "backfill:purchase-records": "node scripts/backfill-purchase-records.js"
+    "backfill:purchase-records": "node scripts/backfill-purchase-records.js",
+    "backfill:item-sale-status": "node scripts/backfill-item-sale-status.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.901.0",

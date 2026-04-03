@@ -170,6 +170,7 @@ function dashboardPreviewPath(item) {
 function dashboardItemView(item) {
   return {
     ...item,
+    saleStatus: Item.resolveSaleStatus(item),
     previewPath: dashboardPreviewPath(item),
     saleUrl: saleUrlFor(item)
   };
@@ -218,6 +219,7 @@ const DEFAULT_PRODUCT_DESC =
 
 
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+const DEFAULT_ITEM_SALE_STATUS = Item.SALE_STATUSES.PUBLISHED;
 
 const DAYS_180_MS = 1000 * 60 * 60 * 24 * 180;
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -2502,6 +2504,7 @@ if (!s3) {
   licenseNotes:  licenseNotesSafe,
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
+  saleStatus: DEFAULT_ITEM_SALE_STATUS,
 });
 
 const saleUrl = `${BASE_URL}/s/${item.slug}`;
@@ -2612,6 +2615,7 @@ filePath: '',
   licenseNotes:  licenseNotesSafe,
   aiGenerated:   aiGeneratedBool,
   aiModelName:   aiModelNameSafe,
+  saleStatus: DEFAULT_ITEM_SALE_STATUS,
 });
 
 const saleUrl = `${BASE_URL}/s/${item.slug}`;
