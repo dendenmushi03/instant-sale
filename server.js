@@ -318,8 +318,10 @@ async function resolveImageReviewDecision(filePath) {
             model: OPENAI_IMAGE_REVIEW_MODEL,
             input: [
               {
-                type: 'input_image',
-                image_url: imageDataUrl,
+                type: 'image_url',
+                image_url: {
+                  url: imageDataUrl,
+                },
               }
             ],
           }),
@@ -331,11 +333,17 @@ async function resolveImageReviewDecision(filePath) {
 
       if (!response.ok) {
         const bodyText = await response.text().catch(() => '');
-        console.error(`[image-review] OpenAI moderation API failed: ${response.status} ${response.statusText}`, bodyText);
+        const requestId = response.headers.get('x-request-id') || '';
+        console.error(
+          `[image-review] OpenAI moderation API failed: ${response.status} ${response.statusText} request_id=${requestId}`,
+          bodyText
+        );
         return { shouldReview: true, reason: 'image:image_check_failed' };
       }
 
       const moderation = await response.json();
+      const requestId = response.headers.get('x-request-id') || '';
+      console.info(`[image-review] OpenAI moderation API success: request_id=${requestId}`);
       const result = moderation?.results?.[0];
       if (!result || typeof result !== 'object') {
         console.error('[image-review] invalid moderation response', moderation);
