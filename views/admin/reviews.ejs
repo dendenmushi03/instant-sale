@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="<%= lng || 'ja' %>">
+<head>
+  <%- include('../partials/head', { title, canonical: baseUrl + '/admin/reviews' }) %>
+</head>
+<body class="layout">
+  <%- include('../partials/header') %>
+
+  <main class="container dashboardPage adminPage">
+    <div class="dashboardSectionHead dashboardSectionHead--stack">
+      <h1 class="dashboardSectionTitle">出品審査一覧</h1>
+      <a class="btn btn--ghost" href="/admin">← 管理トップへ</a>
+    </div>
+
+    <section class="card">
+      <p class="muted adminReviewLead">審査中の出品作品を確認し、承認 / 却下できます。</p>
+      <% if (successMessage) { %>
+        <p class="dashboardAlert dashboardAlert--success"><%= successMessage %></p>
+      <% } %>
+      <div class="adminTableWrap">
+        <table class="legal-table adminTable adminReviewTable">
+          <thead>
+            <tr>
+              <th>サムネイル</th>
+              <th>タイトル</th>
+              <th>販売者名</th>
+              <th>価格</th>
+              <th>作成日</th>
+              <th>販売ページ</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (!reviewItems || reviewItems.length === 0) { %>
+              <tr>
+                <td colspan="7">審査中の作品はありません。</td>
+              </tr>
+            <% } %>
+            <% (reviewItems || []).forEach(function(item){ %>
+              <tr>
+                <td>
+                  <img
+                    class="adminReviewThumb"
+                    src="<%= item.thumbnailUrl %>"
+                    alt="<%= item.title %>"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </td>
+                <td><%= item.title %></td>
+                <td><%= item.sellerName %></td>
+                <td><%= item.priceLabel %></td>
+                <td><%= item.createdAt ? new Date(item.createdAt).toLocaleDateString(locale || 'ja-JP') : '-' %></td>
+                <td>
+                  <a href="<%= item.saleUrl %>" target="_blank" rel="noopener noreferrer">販売ページ</a>
+                </td>
+                <td>
+                  <div class="adminReviewActions">
+                    <form method="post" action="/admin/reviews/<%= item.id %>/approve">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button class="btn btn--compact adminReviewBtn adminReviewBtn--approve" type="submit">承認</button>
+                    </form>
+                    <form method="post" action="/admin/reviews/<%= item.id %>/reject">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button class="btn btn--compact adminReviewBtn adminReviewBtn--reject" type="submit">却下</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>
