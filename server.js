@@ -221,6 +221,10 @@ const DEFAULT_PRODUCT_DESC =
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 const DEFAULT_ITEM_SALE_STATUS = Item.SALE_STATUSES.PUBLISHED;
 const IMAGE_REVIEW_MODE = String(process.env.IMAGE_REVIEW_MODE || 'stub').toLowerCase();
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const OPENAI_IMAGE_REVIEW_TIMEOUT_MS = Number(process.env.OPENAI_IMAGE_REVIEW_TIMEOUT_MS || '7000');
+const OPENAI_IMAGE_REVIEW_MODEL = 'omni-moderation-latest';
+const OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD = 0.35;
 const REVIEW_KEYWORDS = Object.freeze([
   'r18',
   '18禁',
@@ -282,6 +286,107 @@ async function resolveImageReviewDecision(filePath) {
 
   if (IMAGE_REVIEW_MODE === 'stub') {
     return { shouldReview: false, reason: 'image:stub_no_review' };
+  }
+
+  if (IMAGE_REVIEW_MODE === 'openai') {
+    try {
+      if (!OPENAI_API_KEY) {
+        console.warn('[image-review] OPENAI_API_KEY is not set.');
+        return { shouldReview: true, reason: 'image:image_check_failed' };
+      }
+
+      const imageBuffer = await fsp.readFile(filePath);
+      const mimeType = mime.lookup(filePath) || 'application/octet-stream';
+      const base64Image = imageBuffer.toString('base64');
+      const imageDataUrl = `data:${mimeType};base64,${base64Image}`;
+
+      const controller = new AbortController();
+      const timeoutMs = Number.isFinite(OPENAI_IMAGE_REVIEW_TIMEOUT_MS) && OPENAI_IMAGE_REVIEW_TIMEOUT_MS > 0
+        ? OPENAI_IMAGE_REVIEW_TIMEOUT_MS
+        : 7000;
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+      let response;
+      try {
+        response = await fetch('https://api.openai.com/v1/moderations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: OPENAI_IMAGE_REVIEW_MODEL,
+            input: [
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imageDataUrl,
+                },
+              }
+            ],
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      if (!response.ok) {
+        const bodyText = await response.text().catch(() => '');
+        const requestId = response.headers.get('x-request-id') || '';
+        console.error(
+          `[image-review] OpenAI moderation API failed: ${response.status} ${response.statusText} request_id=${requestId}`,
+          bodyText
+        );
+        return { shouldReview: true, reason: 'image:image_check_failed' };
+      }
+
+      const moderation = await response.json();
+      const requestId = response.headers.get('x-request-id') || '';
+      console.info(`[image-review] OpenAI moderation API success: request_id=${requestId}`);
+      const result = moderation?.results?.[0];
+      if (!result || typeof result !== 'object') {
+        console.error('[image-review] invalid moderation response', moderation);
+        return { shouldReview: true, reason: 'image:image_check_failed' };
+      }
+
+      const categories = result.categories && typeof result.categories === 'object' ? result.categories : {};
+      const categoryScores = result.category_scores && typeof result.category_scores === 'object'
+        ? result.category_scores
+        : {};
+      const isFlagged = !!result.flagged;
+
+      const sexualCategoryKey = Object.keys(categories).find((key) => {
+        const normalizedKey = String(key).toLowerCase();
+        return normalizedKey.includes('sexual') || normalizedKey.includes('nudity');
+      });
+      if (sexualCategoryKey && categories[sexualCategoryKey]) {
+        return { shouldReview: true, reason: `image:sexual_flagged:${sexualCategoryKey}` };
+      }
+
+      const highSexualScoreKey = Object.keys(categoryScores).find((key) => {
+        const normalizedKey = String(key).toLowerCase();
+        const score = Number(categoryScores[key]);
+        return (
+          (normalizedKey.includes('sexual') || normalizedKey.includes('nudity')) &&
+          Number.isFinite(score) &&
+          score >= OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD
+        );
+      });
+      if (highSexualScoreKey) {
+        return { shouldReview: true, reason: `image:sexual_score_high:${highSexualScoreKey}` };
+      }
+
+      if (isFlagged) {
+        return { shouldReview: true, reason: 'image:openai_flagged' };
+      }
+
+      return { shouldReview: false, reason: 'image:openai_no_review' };
+    } catch (error) {
+      const errorMessage = error?.name === 'AbortError' ? 'timeout' : error;
+      console.error('[image-review] openai moderation failed', errorMessage);
+      return { shouldReview: true, reason: 'image:image_check_failed' };
+    }
   }
 
   console.warn(`[image-review] unknown IMAGE_REVIEW_MODE="${IMAGE_REVIEW_MODE}". Falling back to stub.`);
