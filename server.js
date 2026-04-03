@@ -784,7 +784,7 @@ async function getOwnedItemSummary(userId) {
   const [items, totalCount] = await Promise.all([
     Item.find({ ownerUser: ownerObjectId, isDeleted: { $ne: true } })
       .sort({ createdAt: -1, _id: -1 })
-      .select('slug title price currency creatorName previewPath ownerUser createdAt updatedAt')
+      .select('slug title price currency creatorName previewPath ownerUser createdAt updatedAt saleStatus')
       .lean(),
     Item.countDocuments({ ownerUser: ownerObjectId, isDeleted: { $ne: true } })
   ]);
