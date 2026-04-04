@@ -224,7 +224,9 @@ const IMAGE_REVIEW_MODE = String(process.env.IMAGE_REVIEW_MODE || 'stub').toLowe
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_IMAGE_REVIEW_TIMEOUT_MS = Number(process.env.OPENAI_IMAGE_REVIEW_TIMEOUT_MS || '7000');
 const OPENAI_IMAGE_REVIEW_MODEL = 'omni-moderation-latest';
-const OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD = 0.35;
+const OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD = Number(
+  process.env.OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD || '0.2'
+);
 const REVIEW_KEYWORDS = Object.freeze([
   'r18',
   '18禁',
@@ -356,15 +358,13 @@ async function resolveImageReviewDecision(filePath) {
         : {};
       const isFlagged = !!result.flagged;
 
-      const sexualCategoryKey = Object.keys(categories).find((key) => {
+      const sexualOrNudityCategoryKeys = Object.keys(categories).filter((key) => {
         const normalizedKey = String(key).toLowerCase();
         return normalizedKey.includes('sexual') || normalizedKey.includes('nudity');
       });
-      if (sexualCategoryKey && categories[sexualCategoryKey]) {
-        return { shouldReview: true, reason: `image:sexual_flagged:${sexualCategoryKey}` };
-      }
+      const flaggedSexualOrNudityCategoryKeys = sexualOrNudityCategoryKeys.filter((key) => !!categories[key]);
 
-      const highSexualScoreKey = Object.keys(categoryScores).find((key) => {
+      const highSexualOrNudityScoreKey = Object.keys(categoryScores).find((key) => {
         const normalizedKey = String(key).toLowerCase();
         const score = Number(categoryScores[key]);
         return (
@@ -373,12 +373,56 @@ async function resolveImageReviewDecision(filePath) {
           score >= OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD
         );
       });
-      if (highSexualScoreKey) {
-        return { shouldReview: true, reason: `image:sexual_score_high:${highSexualScoreKey}` };
+
+      const reviewSummary = {
+        request_id: requestId,
+        flagged: isFlagged,
+        categories: flaggedSexualOrNudityCategoryKeys,
+        category_scores: sexualOrNudityCategoryKeys.reduce((acc, key) => {
+          const score = Number(categoryScores[key]);
+          if (Number.isFinite(score)) {
+            acc[key] = Number(score.toFixed(4));
+          }
+          return acc;
+        }, {}),
+      };
+      const logReviewDecision = (reason) => {
+        console.info('[image-review] review decision', { ...reviewSummary, reason });
+      };
+
+      const sexualFlaggedCategoryKey = flaggedSexualOrNudityCategoryKeys.find((key) => {
+        const normalizedKey = String(key).toLowerCase();
+        return normalizedKey.includes('sexual');
+      });
+      if (sexualFlaggedCategoryKey) {
+        const reason = `image:sexual_flagged:${sexualFlaggedCategoryKey}`;
+        logReviewDecision(reason);
+        return { shouldReview: true, reason };
+      }
+
+      const nudityFlaggedCategoryKey = flaggedSexualOrNudityCategoryKeys.find((key) => {
+        const normalizedKey = String(key).toLowerCase();
+        return normalizedKey.includes('nudity');
+      });
+      if (nudityFlaggedCategoryKey) {
+        const reason = `image:nudity_flagged:${nudityFlaggedCategoryKey}`;
+        logReviewDecision(reason);
+        return { shouldReview: true, reason };
+      }
+
+      if (highSexualOrNudityScoreKey) {
+        const normalizedKey = String(highSexualOrNudityScoreKey).toLowerCase();
+        const reason = normalizedKey.includes('nudity')
+          ? `image:nudity_score_high:${highSexualOrNudityScoreKey}`
+          : `image:sexual_score_high:${highSexualOrNudityScoreKey}`;
+        logReviewDecision(reason);
+        return { shouldReview: true, reason };
       }
 
       if (isFlagged) {
-        return { shouldReview: true, reason: 'image:openai_flagged' };
+        const reason = 'image:openai_flagged';
+        logReviewDecision(reason);
+        return { shouldReview: true, reason };
       }
 
       return { shouldReview: false, reason: 'image:openai_no_review' };
