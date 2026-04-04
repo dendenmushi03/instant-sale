@@ -38,6 +38,8 @@
       <li><%= t('terms.fees.li_payout') || '払出しは Stripe Connect の規約…' %></li>
       <li><%= t('terms.fees.li_chargeback') || '返金・チャージバック時の相殺…' %></li>
       <li><%= t('terms.fees.li_change') || '手数料率の変更時は掲示等で通知…' %></li>
+      <li><%= t('terms.fees.li_provider_controls') || 'Stripeその他の決済代行会社、カード会社、金融機関等（以下「決済事業者等」といいます。）の審査・判断・要請により、決済受付の停止、アカウント制限、売上金の留保、振込の停止または遅延等が生じる場合があります。' %></li>
+      <li><%= t('terms.fees.li_no_guarantee') || '前項に定める措置は当社の直接支配が及ばない場合があり、当社は、法令上許容される範囲で、かつ当社の故意または重過失による場合を除き、決済事業者等の判断または措置に起因する支払時期、振込実行または本サービスの継続的利用を保証しません。' %></li>
     </ul>
 
 <h3 style="margin-top:12px"><%= t('terms.fees.expiration_title') %></h3>
@@ -54,13 +56,17 @@
       <li><%= t('terms.prohibited.security') || '不正アクセス等' %></li>
       <li><%= t('terms.prohibited.operation') || '運営妨害' %></li>
       <li><%= t('terms.prohibited.false') || '虚偽登録' %></li>
+      <li><%= t('terms.prohibited.adult') || 'アダルトコンテンツ、性的満足を主目的とするコンテンツ、ポルノ、その他性的刺激を強く意図した画像・文章その他一切のコンテンツ（AI生成コンテンツを含みます。）の出品' %></li>
+      <li><%= t('terms.prohibited.minor_sexual') || '未成年者、または未成年者に見える人物を含む性的表現その他これに類するコンテンツの出品' %></li>
     </ul>
 
     <h2>8. <%= t('terms.section.moderation') || 'コンテンツ削除・アカウント停止' %></h2>
     <p><%= t('terms.moderation_html') || '違法または不適切なコンテンツの削除…' %></p>
+    <p><%= t('terms.moderation_adult_html') || '当社は、前条の禁止事項に違反し、または違反するおそれがあると判断した場合、事前通知なく、出品停止、販売ページの非公開化または削除、売上金の支払保留、アカウント停止その他当社が必要と判断する措置を講じることができます。' %></p>
 
     <h2>9. <%= t('terms.section.disclaimer') || '免責' %></h2>
     <p><%= t('terms.disclaimer_html') || '当社は完全性等を保証しません…' %></p>
+    <p><%= t('terms.disclaimer_payment_html') || '決済事業者等による審査・判断・要請に基づく措置（決済停止、留保、振込停止・遅延、アカウント制限等）に起因して出品者または購入者に生じた損害について、当社は、法令上許容される範囲で、かつ当社の故意または重過失がある場合を除き、責任を負いません。' %></p>
 
     <h2>10. <%= t('terms.section.ip') || '知的財産' %></h2>
     <p><%= t('terms.ip_html') || '権利は各権利者に帰属…' %></p>
