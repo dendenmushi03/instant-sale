@@ -229,6 +229,8 @@ const OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD = Number(
 );
 const OPENAI_IMAGE_REVIEW_MAX_SIDE = Number(process.env.OPENAI_IMAGE_REVIEW_MAX_SIDE || '1536');
 const OPENAI_IMAGE_REVIEW_JPEG_QUALITY = Number(process.env.OPENAI_IMAGE_REVIEW_JPEG_QUALITY || '75');
+const WORKING_IMAGE_MAX_SIDE = Number(process.env.WORKING_IMAGE_MAX_SIDE || '3072');
+const WORKING_IMAGE_JPEG_QUALITY = Number(process.env.WORKING_IMAGE_JPEG_QUALITY || '85');
 const REVIEW_KEYWORDS = Object.freeze([
   'r18',
   '18禁',
@@ -295,7 +297,55 @@ function resolveImageReviewJpegQuality() {
   return Math.max(40, Math.min(90, Math.floor(OPENAI_IMAGE_REVIEW_JPEG_QUALITY)));
 }
 
-async function resolveImageReviewDecision(filePath) {
+function resolveWorkingImageMaxSide() {
+  const fallbackMaxSide = 3072;
+  if (!Number.isFinite(WORKING_IMAGE_MAX_SIDE)) return fallbackMaxSide;
+  return Math.max(1024, Math.min(4096, Math.floor(WORKING_IMAGE_MAX_SIDE)));
+}
+
+function resolveWorkingImageJpegQuality() {
+  const fallbackQuality = 85;
+  if (!Number.isFinite(WORKING_IMAGE_JPEG_QUALITY)) return fallbackQuality;
+  return Math.max(60, Math.min(95, Math.floor(WORKING_IMAGE_JPEG_QUALITY)));
+}
+
+async function createWorkingImageBufferFromPath(filePath) {
+  const workingMaxSide = resolveWorkingImageMaxSide();
+  const workingJpegQuality = resolveWorkingImageJpegQuality();
+  const originalMetadata = await sharp(filePath).metadata();
+  const { data: workingBuffer, info: workingInfo } = await sharp(filePath)
+    .rotate()
+    .resize({
+      width: workingMaxSide,
+      height: workingMaxSide,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({
+      quality: workingJpegQuality,
+      mozjpeg: true,
+    })
+    .toBuffer({ resolveWithObject: true });
+
+  console.info('[upload:image] prepared working image', {
+    original: `${originalMetadata.width || '?'}x${originalMetadata.height || '?'}`,
+    working: `${workingInfo.width || '?'}x${workingInfo.height || '?'}`,
+    workingMaxSide,
+    workingJpegQuality,
+  });
+
+  return {
+    workingBuffer,
+    workingInfo,
+    originalMetadata,
+    workingMaxSide,
+    workingJpegQuality,
+  };
+}
+
+async function resolveImageReviewDecision(filePath, options = {}) {
+  const source = options.source || 'original';
+
   if (!filePath) {
     return { shouldReview: true, reason: 'image:path_missing' };
   }
@@ -330,6 +380,7 @@ async function resolveImageReviewDecision(filePath) {
       const base64Image = reviewImageBuffer.toString('base64');
       const imageDataUrl = `data:image/jpeg;base64,${base64Image}`;
       console.info('[image-review] prepared moderation image', {
+        source,
         original: `${originalMetadata.width || '?'}x${originalMetadata.height || '?'}`,
         review: `${reviewImageInfo.width || '?'}x${reviewImageInfo.height || '?'}`,
         maxSide,
@@ -471,12 +522,12 @@ async function resolveImageReviewDecision(filePath) {
   return { shouldReview: false, reason: 'image:stub_no_review' };
 }
 
-async function resolveInitialSaleModerationDecision({ title, licenseNotes, aiModelName, filePath } = {}) {
+async function resolveInitialSaleModerationDecision({ title, licenseNotes, aiModelName, filePath, imageSource = "original" } = {}) {
   const textDecision = resolveInitialSaleStatus({ title, licenseNotes, aiModelName });
 
   let imageDecision = { shouldReview: false, reason: 'image:not_checked' };
   try {
-    imageDecision = await resolveImageReviewDecision(filePath);
+    imageDecision = await resolveImageReviewDecision(filePath, { source: imageSource });
   } catch (error) {
     console.error('[image-review] failed', error);
     imageDecision = { shouldReview: true, reason: 'image:image_check_failed' };
@@ -2739,6 +2790,7 @@ res.render('upload', {
 
 // upload
 app.post('/upload', ensureAuthed, ensureSellerProfileCompleted, upload.single('image'), async (req, res) => {
+  let workingImagePath = '';
   try {
 
 const {
@@ -2802,11 +2854,19 @@ const requireCreditBool = false; // ← プラットフォーム方針：常に�
 const aiGeneratedBool   = !!aiGenerated;
 const licenseNotesSafe  = (licenseNotes || '').trim().slice(0, 1000);
 const aiModelNameSafe   = (aiModelName || '').trim().slice(0, 200);
+const { workingBuffer } = await createWorkingImageBufferFromPath(req.file.path);
+workingImagePath = `${req.file.path}.working.jpg`;
+await writeFileAtomic(workingImagePath, workingBuffer);
+console.info('[upload:image] prepared sources', {
+  originalPath: req.file.path,
+  workingPath: workingImagePath,
+});
 const initialSaleStatus = await resolveInitialSaleModerationDecision({
   title,
   licenseNotes: licenseNotesSafe,
   aiModelName: aiModelNameSafe,
-  filePath: req.file.path
+  filePath: workingImagePath,
+  imageSource: 'working'
 });
 
     const slug = nanoid(10);
@@ -2816,8 +2876,8 @@ const initialSaleStatus = await resolveInitialSaleModerationDecision({
 // 販売ページ向け preview（固定リサイズなし / 元画像サイズ維持 + 全面モザイク）
 const previewName = `${slug}-preview.jpg`;
 const previewFull = path.join(PREVIEW_DIR, previewName);
-const originalBuffer = await fsp.readFile(req.file.path);
-const previewBuffer = await renderSalePreviewBufferFromOriginalBuffer(originalBuffer);
+const previewBuffer = await renderSalePreviewBufferFromOriginalBuffer(workingBuffer);
+console.info('[upload:image] preview generated', { source: 'working' });
 
 // ====== 透かしSVG生成（四隅） ======
 const createCornerWatermarkSvg = ({ width, height, alpha = 0.18 }) => {
@@ -2839,7 +2899,7 @@ await writeFileAtomic(previewFull, previewBuffer);
 const stripeName = `${slug}-stripe.jpg`;
 const stripeFull  = path.join(PREVIEW_DIR, stripeName);
 
-await sharp(req.file.path)
+await sharp(workingImagePath)
   .rotate()
   .resize(1200, 630, {
     fit: 'contain',
@@ -2854,7 +2914,7 @@ const fullName = `${slug}-full.jpg`;
 const fullPath    = path.join(PREVIEW_DIR, fullName);
 
 // full実寸を計算（EXIF回転後の向き + 4096内接）
-const fullInputMeta = await sharp(req.file.path).metadata();
+const fullInputMeta = await sharp(workingImagePath).metadata();
 const orientation = Number(fullInputMeta.orientation || 1);
 const swapsAxes = [5, 6, 7, 8].includes(orientation);
 const sourceW = Math.max(1, swapsAxes ? (fullInputMeta.height || 1) : (fullInputMeta.width || 1));
@@ -2866,12 +2926,18 @@ const fh = Math.max(1, Math.round(sourceH * fullScale));
 // full は購入前閲覧用：視認性を保ちつつ最も弱い四隅透かし
 const svgFull = createCornerWatermarkSvg({ width: fw, height: fh, alpha: 0.18 });
 
-await sharp(req.file.path)
+await sharp(workingImagePath)
   .rotate()
   .resize(4096, 4096, { fit: 'inside' })
   .composite([{ input: svgFull }])  // ← fullBase と同寸の SVG なので安全
   .jpeg({ quality: 90 })
   .toFile(fullPath);
+console.info('[upload:image] full generated', { source: 'working' });
+console.info('[upload:image] download original kept', { source: 'original', path: req.file.path });
+if (workingImagePath) {
+  await fsp.unlink(workingImagePath).catch(() => {});
+  workingImagePath = '';
+}
 
 // ====== ここから S3 へアップロード ======
 if (!s3) {
@@ -3039,6 +3105,9 @@ return res.render('upload', {
 
 } catch (e) {
   console.error(e);
+  if (workingImagePath) {
+    await fsp.unlink(workingImagePath).catch(() => {});
+  }
   if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
     return res.status(500).json({ ok: false, message: e?.message || 'アップロードに失敗しました。' });
   }
