@@ -227,6 +227,8 @@ const OPENAI_IMAGE_REVIEW_MODEL = 'omni-moderation-latest';
 const OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD = Number(
   process.env.OPENAI_IMAGE_REVIEW_SCORE_THRESHOLD || '0.2'
 );
+const OPENAI_IMAGE_REVIEW_MAX_SIDE = Number(process.env.OPENAI_IMAGE_REVIEW_MAX_SIDE || '1536');
+const OPENAI_IMAGE_REVIEW_JPEG_QUALITY = Number(process.env.OPENAI_IMAGE_REVIEW_JPEG_QUALITY || '75');
 const REVIEW_KEYWORDS = Object.freeze([
   'r18',
   '18禁',
@@ -281,6 +283,18 @@ function resolveInitialSaleStatus({ title, licenseNotes, aiModelName } = {}) {
   };
 }
 
+function resolveImageReviewResizeMaxSide() {
+  const fallbackMaxSide = 1536;
+  if (!Number.isFinite(OPENAI_IMAGE_REVIEW_MAX_SIDE)) return fallbackMaxSide;
+  return Math.max(512, Math.min(4096, Math.floor(OPENAI_IMAGE_REVIEW_MAX_SIDE)));
+}
+
+function resolveImageReviewJpegQuality() {
+  const fallbackQuality = 75;
+  if (!Number.isFinite(OPENAI_IMAGE_REVIEW_JPEG_QUALITY)) return fallbackQuality;
+  return Math.max(40, Math.min(90, Math.floor(OPENAI_IMAGE_REVIEW_JPEG_QUALITY)));
+}
+
 async function resolveImageReviewDecision(filePath) {
   if (!filePath) {
     return { shouldReview: true, reason: 'image:path_missing' };
@@ -297,10 +311,30 @@ async function resolveImageReviewDecision(filePath) {
         return { shouldReview: true, reason: 'image:image_check_failed' };
       }
 
-      const imageBuffer = await fsp.readFile(filePath);
-      const mimeType = mime.lookup(filePath) || 'application/octet-stream';
-      const base64Image = imageBuffer.toString('base64');
-      const imageDataUrl = `data:${mimeType};base64,${base64Image}`;
+      const maxSide = resolveImageReviewResizeMaxSide();
+      const jpegQuality = resolveImageReviewJpegQuality();
+      const originalMetadata = await sharp(filePath).metadata();
+      const { data: reviewImageBuffer, info: reviewImageInfo } = await sharp(filePath)
+        .rotate()
+        .resize({
+          width: maxSide,
+          height: maxSide,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .jpeg({
+          quality: jpegQuality,
+          mozjpeg: true,
+        })
+        .toBuffer({ resolveWithObject: true });
+      const base64Image = reviewImageBuffer.toString('base64');
+      const imageDataUrl = `data:image/jpeg;base64,${base64Image}`;
+      console.info('[image-review] prepared moderation image', {
+        original: `${originalMetadata.width || '?'}x${originalMetadata.height || '?'}`,
+        review: `${reviewImageInfo.width || '?'}x${reviewImageInfo.height || '?'}`,
+        maxSide,
+        jpegQuality,
+      });
 
       const controller = new AbortController();
       const timeoutMs = Number.isFinite(OPENAI_IMAGE_REVIEW_TIMEOUT_MS) && OPENAI_IMAGE_REVIEW_TIMEOUT_MS > 0
