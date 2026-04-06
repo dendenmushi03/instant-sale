@@ -40,6 +40,12 @@ const userSchema = new mongoose.Schema(
       isCompleted:        { type: Boolean, default: false, index: true },
       updatedAt:          { type: Date, default: null },
     },
+
+    // 管理画面トップの「新着あり」判定に使う最終確認時刻
+    adminSeen: {
+      sellersLastSeenAt: { type: Date, default: null },
+      reviewsLastSeenAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );

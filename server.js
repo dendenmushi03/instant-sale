@@ -967,6 +967,20 @@ function adminBaseView(req, extra = {}) {
   return dashboardBaseView(req, extra);
 }
 
+function coerceDateOrNull(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function hasAdminNewBadge(latestUpdatedAt, lastSeenAt) {
+  const latest = coerceDateOrNull(latestUpdatedAt);
+  const seen = coerceDateOrNull(lastSeenAt);
+  if (!latest) return false;
+  if (!seen) return true;
+  return latest.getTime() > seen.getTime();
+}
+
 
 function getSellerProfileCompletion(user) {
   const profile = user?.sellerProfile || {};
@@ -2422,19 +2436,53 @@ app.post('/dashboard/items/:id/edit', ensureAuthed, ensureSellerProfileCompleted
 });
 
 app.get('/admin', ensureAuthed, requireAdmin, async (req, res) => {
-  return res.render('admin/index', adminBaseView(req, {
-    title: '管理画面',
-    og: {
-      title: `Admin | ${req.t('brand')}`,
-      desc: '管理者向けメニューです。',
-      url: `${BASE_URL}/admin`,
-      image: `${BASE_URL}/public/og/instantsale_ogp.jpg`
-    }
-  }));
+  try {
+    const [latestSeller, latestReviewRows] = await Promise.all([
+      User.findOne({ 'sellerProfile.isCompleted': true })
+        .sort({ createdAt: -1, _id: -1 })
+        .select('createdAt')
+        .lean(),
+      Item.aggregate([
+        { $match: { saleStatus: Item.SALE_STATUSES.UNDER_REVIEW, isDeleted: { $ne: true } } },
+        {
+          $project: {
+            latestUpdatedAt: { $ifNull: ['$saleStatusUpdatedAt', '$createdAt'] }
+          }
+        },
+        { $sort: { latestUpdatedAt: -1, _id: -1 } },
+        { $limit: 1 }
+      ])
+    ]);
+
+    const sellerLatestUpdatedAt = latestSeller?.createdAt || null;
+    const reviewLatestUpdatedAt = latestReviewRows?.[0]?.latestUpdatedAt || null;
+    const sellersLastSeenAt = req.user?.adminSeen?.sellersLastSeenAt || null;
+    const reviewsLastSeenAt = req.user?.adminSeen?.reviewsLastSeenAt || null;
+
+    return res.render('admin/index', adminBaseView(req, {
+      title: '管理画面',
+      og: {
+        title: `Admin | ${req.t('brand')}`,
+        desc: '管理者向けメニューです。',
+        url: `${BASE_URL}/admin`,
+        image: `${BASE_URL}/public/og/instantsale_ogp.jpg`
+      },
+      hasNewSellers: hasAdminNewBadge(sellerLatestUpdatedAt, sellersLastSeenAt),
+      hasNewReviews: hasAdminNewBadge(reviewLatestUpdatedAt, reviewsLastSeenAt)
+    }));
+  } catch (e) {
+    console.error('[admin:index]', e);
+    return res.status(500).render('error', { message: '管理画面トップの表示に失敗しました。' });
+  }
 });
 
 app.get('/admin/reviews', ensureAuthed, requireAdmin, async (req, res) => {
   try {
+    await User.updateOne(
+      { _id: req.user._id },
+      { $set: { 'adminSeen.reviewsLastSeenAt': new Date() } }
+    );
+
     const underReviewItems = await Item.find({
       saleStatus: Item.SALE_STATUSES.UNDER_REVIEW,
       isDeleted: { $ne: true }
@@ -2542,6 +2590,11 @@ app.post('/admin/reviews/:itemId/reject', ensureAuthed, requireAdmin, async (req
 
 app.get('/admin/sellers', ensureAuthed, requireAdmin, async (req, res) => {
   try {
+    await User.updateOne(
+      { _id: req.user._id },
+      { $set: { 'adminSeen.sellersLastSeenAt': new Date() } }
+    );
+
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
     const businessType = typeof req.query.businessType === 'string' ? req.query.businessType.trim() : '';
     const stripeStatus = typeof req.query.stripe === 'string' ? req.query.stripe.trim() : '';
