@@ -33,6 +33,7 @@
         <table class="legal-table adminTable">
           <thead>
             <tr>
+              <th>サムネイル</th>
               <th>タイトル</th>
               <th>価格</th>
               <th>状態</th>
@@ -44,10 +45,23 @@
           </thead>
           <tbody>
             <% if (!items || items.length === 0) { %>
-              <tr><td colspan="7">出品作品はありません。</td></tr>
+              <tr><td colspan="8">出品作品はありません。</td></tr>
             <% } %>
             <% (items || []).forEach(function(item){ %>
               <tr>
+                <td class="adminThumbCell">
+                  <% if (item.previewPath) { %>
+                    <img
+                      class="adminReviewThumb"
+                      src="<%= item.previewPath %>"
+                      alt="<%= item.title %>"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  <% } else { %>
+                    <span class="adminReviewThumb adminReviewThumb--placeholder" aria-hidden="true">-</span>
+                  <% } %>
+                </td>
                 <td><%= item.title %></td>
                 <td><%= item.priceLabel %></td>
                 <td><%= item.statusLabel %></td>

@@ -3466,13 +3466,24 @@ body.authSignInBody.authSignInModalOpen{
 .adminReviewTable td{
   vertical-align:middle;
 }
+.adminThumbCell{
+  vertical-align:middle;
+}
 .adminReviewThumb{
   width:72px;
   height:72px;
+  display:block;
   border-radius:10px;
   object-fit:cover;
   background:#f7f7f7;
   border:1px solid rgba(17,24,39,.08);
+}
+.adminReviewThumb--placeholder{
+  display:grid;
+  place-items:center;
+  color:rgba(17,24,39,.38);
+  font-size:12px;
+  font-weight:700;
 }
 .adminReviewActions{
   display:flex;
