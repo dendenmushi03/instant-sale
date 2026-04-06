@@ -3,6 +3,14 @@
 const mongoose = require('mongoose');
 const Item = require('../models/Item');
 
+const EXCLUDED_REASON_PATTERNS = [
+  /under[_\s-]?review/i,
+  /blocked/i,
+  /reject(ed)?/i,
+  /manual:(rejected|policy_blocked)/i,
+  /review/i
+];
+
 function parseArgs(argv) {
   const flags = new Set(argv.slice(2));
   const dryRun = !flags.has('--apply');
@@ -11,30 +19,77 @@ function parseArgs(argv) {
   return { dryRun, limit };
 }
 
+function shouldExcludeByReason(reason) {
+  const normalized = typeof reason === 'string' ? reason.trim() : '';
+  if (!normalized) return false;
+  return EXCLUDED_REASON_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
+function buildBaseFilter() {
+  return {
+    saleStatus: { $exists: false },
+    isDeleted: { $ne: true }
+  };
+}
+
 async function run() {
   const options = parseArgs(process.argv);
   const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/instant_sale';
   await mongoose.connect(mongoUri);
 
-  const filter = { saleStatus: { $exists: false } };
+  const baseFilter = buildBaseFilter();
   const summary = {
     dryRun: options.dryRun,
-    filter,
-    missingSaleStatus: 0,
     limit: options.limit,
+    baseFilter,
+    stats: {
+      missingSaleStatus: 0,
+      candidatesBeforeReasonCheck: 0,
+      eligibleCount: 0,
+      excludedByReasonCount: 0
+    },
     matchedIds: [],
+    excludedIds: [],
     modifiedCount: 0
   };
 
   try {
-    summary.missingSaleStatus = await Item.countDocuments(filter);
-    const targets = await Item.find(filter).select('_id').limit(options.limit).lean();
-    summary.matchedIds = targets.map((row) => String(row._id));
+    summary.stats.missingSaleStatus = await Item.countDocuments({ saleStatus: { $exists: false } });
+    summary.stats.candidatesBeforeReasonCheck = await Item.countDocuments(baseFilter);
+
+    const candidates = await Item.find(baseFilter)
+      .select('_id saleStatusReason createdAt')
+      .sort({ _id: 1 })
+      .limit(options.limit)
+      .lean();
+
+    const eligible = [];
+    const excluded = [];
+
+    for (const item of candidates) {
+      if (shouldExcludeByReason(item.saleStatusReason)) {
+        excluded.push(String(item._id));
+        continue;
+      }
+      eligible.push(String(item._id));
+    }
+
+    summary.stats.eligibleCount = eligible.length;
+    summary.stats.excludedByReasonCount = excluded.length;
+    summary.matchedIds = eligible;
+    summary.excludedIds = excluded;
 
     if (!options.dryRun && summary.matchedIds.length > 0) {
       const result = await Item.updateMany(
         { _id: { $in: summary.matchedIds } },
-        { $set: { saleStatus: Item.SALE_STATUSES.PUBLISHED } }
+        [
+          {
+            $set: {
+              saleStatus: Item.SALE_STATUSES.PUBLISHED,
+              saleStatusUpdatedAt: { $ifNull: ['$createdAt', '$$NOW'] }
+            }
+          }
+        ]
       );
       summary.modifiedCount = Number(result.modifiedCount || 0);
     }

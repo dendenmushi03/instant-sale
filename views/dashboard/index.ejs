@@ -43,7 +43,7 @@
       <% } else { %>
         <div class="dashboardGrid">
           <% dashboardItems.forEach(function(item){ %>
-            <% const status = item.saleStatus || 'published'; %>
+            <% const status = item.saleStatus; %>
             <% const statusLabelMap = { published: '出品中', under_review: '審査中', blocked: '公開停止中' }; %>
             <article class="card dashboardCard">
               <a class="dashboardCard__link" href="/dashboard/items/<%= item._id %>">
