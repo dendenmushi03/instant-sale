@@ -3374,6 +3374,12 @@ body.authSignInBody.authSignInModalOpen{
   display:grid;
   gap:6px;
 }
+.dashboardHubCard__titleRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
 .dashboardHubCard__title{
   font-size:1.05rem;
   font-weight:700;
@@ -3393,6 +3399,11 @@ body.authSignInBody.authSignInModalOpen{
 .dashboardHubCard__chevron svg{
   width:18px;
   height:18px;
+}
+.dashboardStatusBadge--new{
+  color:#2f6953;
+  background:rgba(79, 138, 110, .10);
+  border-color:rgba(79, 138, 110, .28);
 }
 @media (max-width: 640px){
   .dashboardHub{
@@ -3418,6 +3429,10 @@ body.authSignInBody.authSignInModalOpen{
   .dashboardHubCard__desc{
     font-size:.94rem;
     line-height:1.65;
+  }
+  .dashboardHubCard__titleRow{
+    align-items:flex-start;
+    flex-wrap:wrap;
   }
 }
 .adminFilterCard{margin-top:18px}

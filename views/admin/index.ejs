@@ -15,7 +15,12 @@
     <nav class="dashboardHub__list" aria-label="管理メニュー">
       <a class="card dashboardHubCard" href="/admin/sellers">
         <span class="dashboardHubCard__body">
-          <span class="dashboardHubCard__title">販売者一覧</span>
+          <span class="dashboardHubCard__titleRow">
+            <span class="dashboardHubCard__title">販売者一覧</span>
+            <% if (hasNewSellers) { %>
+              <span class="dashboardStatusBadge dashboardStatusBadge--new">新着あり</span>
+            <% } %>
+          </span>
           <span class="dashboardHubCard__desc">販売者の登録状況・Stripe接続状況・出品件数を確認できます。</span>
         </span>
         <span class="dashboardHubCard__chevron" aria-hidden="true">›</span>
@@ -23,7 +28,12 @@
 
       <a class="card dashboardHubCard" href="/admin/reviews">
         <span class="dashboardHubCard__body">
-          <span class="dashboardHubCard__title">出品審査一覧</span>
+          <span class="dashboardHubCard__titleRow">
+            <span class="dashboardHubCard__title">出品審査一覧</span>
+            <% if (hasNewReviews) { %>
+              <span class="dashboardStatusBadge dashboardStatusBadge--new">新着あり</span>
+            <% } %>
+          </span>
           <span class="dashboardHubCard__desc">審査中の出品作品を確認し、承認 / 却下できます</span>
         </span>
         <span class="dashboardHubCard__chevron" aria-hidden="true">›</span>
