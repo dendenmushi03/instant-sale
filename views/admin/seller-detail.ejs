@@ -82,6 +82,11 @@
                       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                       <button class="btn btn--compact adminReviewBtn adminReviewBtn--reject" type="submit">公開停止</button>
                     </form>
+                  <% } else if (item.canUnblock) { %>
+                    <form method="post" action="/admin/items/<%= item.id %>/unblock">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button class="btn btn--compact" type="submit">停止解除</button>
+                    </form>
                   <% } else { %>
                     <span class="muted">-</span>
                   <% } %>

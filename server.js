@@ -2708,6 +2708,7 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
         priceLabel: `${Number(item.price || 0).toLocaleString('ja-JP')}円`,
         statusLabel,
         canBlock: saleStatus === Item.SALE_STATUSES.PUBLISHED && item.isDeleted !== true,
+        canUnblock: saleStatus === Item.SALE_STATUSES.BLOCKED && item.isDeleted !== true,
         createdAt: item.createdAt || null,
         accessCount: null,
         purchaseCount: purchaseMap.get(String(item._id)) || 0,
@@ -2719,9 +2720,15 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
       ? '作品を公開停止にしました。'
       : req.query.status === 'already_blocked'
         ? 'この作品はすでに公開停止済みです。'
+      : req.query.status === 'unblocked'
+        ? '作品の公開停止を解除しました。'
+      : req.query.status === 'already_published'
+        ? 'この作品はすでに公開中です。'
       : '';
     const errorMessage = req.query.error === 'deleted'
       ? 'この作品は削除済みのため公開停止できません。'
+      : req.query.error === 'not_blocked'
+        ? '公開停止中の作品のみ停止解除できます。'
       : req.query.error === 'not_publishable'
         ? '公開中の作品のみ公開停止できます。'
         : '';
@@ -2798,6 +2805,56 @@ app.post('/admin/items/:itemId/block', ensureAuthed, requireAdmin, async (req, r
   } catch (e) {
     console.error('[admin:items:block]', e);
     return res.status(500).render('error', { message: '公開停止処理に失敗しました。' });
+  }
+});
+
+app.post('/admin/items/:itemId/unblock', ensureAuthed, requireAdmin, async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(404).render('error', { message: '停止解除対象の作品が見つかりません。' });
+    }
+
+    // Item.resolveSaleStatus は saleStatus だけを参照するため、select に saleStatus を必ず含める。
+    const item = await Item.findById(itemId).select('ownerUser isDeleted saleStatus').lean();
+    if (!item) {
+      return res.status(404).render('error', { message: '停止解除対象の作品が見つかりません。' });
+    }
+
+    const ownerUserId = item.ownerUser ? String(item.ownerUser) : '';
+    if (item.isDeleted === true) {
+      if (ownerUserId) return res.redirect(`/admin/sellers/${ownerUserId}?error=deleted`);
+      return res.status(400).render('error', { message: 'この作品は削除済みのため停止解除できません。' });
+    }
+
+    const saleStatus = Item.resolveSaleStatus(item);
+    if (saleStatus === Item.SALE_STATUSES.PUBLISHED) {
+      if (ownerUserId) return res.redirect(`/admin/sellers/${ownerUserId}?status=already_published`);
+      return res.status(400).render('error', { message: 'この作品はすでに公開中です。' });
+    }
+
+    if (saleStatus !== Item.SALE_STATUSES.BLOCKED) {
+      if (ownerUserId) return res.redirect(`/admin/sellers/${ownerUserId}?error=not_blocked`);
+      return res.status(400).render('error', { message: '公開停止中の作品のみ停止解除できます。' });
+    }
+
+    await Item.updateOne(
+      { _id: itemId },
+      {
+        $set: {
+          saleStatus: Item.SALE_STATUSES.PUBLISHED,
+          saleStatusReason: 'manual:unblocked_by_admin',
+          saleStatusUpdatedAt: new Date()
+        },
+        $currentDate: { updatedAt: true }
+      }
+    );
+
+    if (ownerUserId) return res.redirect(`/admin/sellers/${ownerUserId}?status=unblocked`);
+    return res.redirect('/admin/sellers?status=unblocked');
+  } catch (e) {
+    console.error('[admin:items:unblock]', e);
+    return res.status(500).render('error', { message: '停止解除処理に失敗しました。' });
   }
 });
 
