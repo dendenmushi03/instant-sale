@@ -29,6 +29,9 @@
 
     <section class="card">
       <h2 class="dashboardSectionTitle">出品作品一覧</h2>
+      <% if (successMessage) { %>
+        <p class="dashboardAlert dashboardAlert--success"><%= successMessage %></p>
+      <% } %>
       <div class="adminTableWrap">
         <table class="legal-table adminTable">
           <thead>
@@ -41,11 +44,12 @@
               <th>アクセス数</th>
               <th>購入回数</th>
               <th>販売ページ</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
             <% if (!items || items.length === 0) { %>
-              <tr><td colspan="8">出品作品はありません。</td></tr>
+              <tr><td colspan="9">出品作品はありません。</td></tr>
             <% } %>
             <% (items || []).forEach(function(item){ %>
               <tr>
@@ -69,6 +73,16 @@
                 <td><%= item.accessCount == null ? '-' : item.accessCount %></td>
                 <td><%= item.purchaseCount %></td>
                 <td><a href="<%= item.saleUrl %>" target="_blank" rel="noopener noreferrer">販売ページ</a></td>
+                <td>
+                  <% if (item.canBlock) { %>
+                    <form method="post" action="/admin/items/<%= item.id %>/block">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button class="btn btn--compact adminReviewBtn adminReviewBtn--reject" type="submit">公開停止</button>
+                    </form>
+                  <% } else { %>
+                    <span class="muted">-</span>
+                  <% } %>
+                </td>
               </tr>
             <% }) %>
           </tbody>
