@@ -2679,7 +2679,7 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
       buildSellerItemStats([user._id]),
       Item.find({ ownerUser: user._id })
         .sort({ createdAt: -1, _id: -1 })
-        .select('slug title price currency isDeleted createdAt previewPath')
+        .select('slug title price currency isDeleted createdAt previewPath saleStatus')
         .lean(),
       PurchaseRecord.aggregate([
         { $match: { seller: new mongoose.Types.ObjectId(String(user._id)) } },
@@ -2691,17 +2691,29 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
     const stats = itemStatsMap.get(String(user._id)) || { totalItems: 0, activeItems: 0, deletedItems: 0 };
     const totalPurchaseCount = purchaseRows.reduce((sum, row) => sum + (row.purchaseCount || 0), 0);
 
-    const itemRows = items.map((item) => ({
-      id: String(item._id),
-      title: item.title || '(無題)',
-      previewPath: typeof item.previewPath === 'string' ? item.previewPath.trim() : '',
-      priceLabel: `${Number(item.price || 0).toLocaleString('ja-JP')}円`,
-      statusLabel: item.isDeleted ? '削除済み' : '公開中',
-      createdAt: item.createdAt || null,
-      accessCount: null,
-      purchaseCount: purchaseMap.get(String(item._id)) || 0,
-      saleUrl: `/s/${item.slug}`
-    }));
+    const itemRows = items.map((item) => {
+      const saleStatus = Item.resolveSaleStatus(item);
+      return {
+        id: String(item._id),
+        title: item.title || '(無題)',
+        previewPath: typeof item.previewPath === 'string' ? item.previewPath.trim() : '',
+        priceLabel: `${Number(item.price || 0).toLocaleString('ja-JP')}円`,
+        statusLabel: saleStatus === Item.SALE_STATUSES.BLOCKED
+          ? '公開停止中'
+          : item.isDeleted
+            ? '削除済み'
+            : '公開中',
+        canBlock: saleStatus === Item.SALE_STATUSES.PUBLISHED && item.isDeleted !== true,
+        createdAt: item.createdAt || null,
+        accessCount: null,
+        purchaseCount: purchaseMap.get(String(item._id)) || 0,
+        saleUrl: `/s/${item.slug}`
+      };
+    });
+
+    const successMessage = req.query.status === 'blocked'
+      ? '作品を公開停止にしました。'
+      : '';
 
     return res.render('admin/seller-detail', adminBaseView(req, {
       title: '販売者詳細 | 管理画面',
@@ -2718,11 +2730,43 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
         totalAccessCount: null,
         totalPurchaseCount
       },
-      items: itemRows
+      items: itemRows,
+      successMessage
     }));
   } catch (e) {
     console.error('[admin:seller-detail]', e);
     return res.status(500).render('error', { message: '販売者詳細の表示に失敗しました。' });
+  }
+});
+
+app.post('/admin/items/:itemId/block', ensureAuthed, requireAdmin, async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+      return res.status(404).render('error', { message: '作品が見つかりません。' });
+    }
+
+    const item = await Item.findOneAndUpdate(
+      { _id: itemId, saleStatus: Item.SALE_STATUSES.PUBLISHED, isDeleted: { $ne: true } },
+      {
+        $set: {
+          saleStatus: Item.SALE_STATUSES.BLOCKED,
+          saleStatusReason: 'manual:policy_blocked',
+          saleStatusUpdatedAt: new Date()
+        },
+        $currentDate: { updatedAt: true }
+      },
+      { new: false }
+    ).select('ownerUser').lean();
+
+    if (!item) {
+      return res.status(404).render('error', { message: '公開停止対象の作品が見つかりません。' });
+    }
+
+    return res.redirect(`/admin/sellers/${item.ownerUser}?status=blocked`);
+  } catch (e) {
+    console.error('[admin:items:block]', e);
+    return res.status(500).render('error', { message: '公開停止処理に失敗しました。' });
   }
 });
 
