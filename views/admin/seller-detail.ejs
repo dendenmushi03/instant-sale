@@ -32,6 +32,9 @@
       <% if (successMessage) { %>
         <p class="dashboardAlert dashboardAlert--success"><%= successMessage %></p>
       <% } %>
+      <% if (errorMessage) { %>
+        <p class="dashboardAlert dashboardAlert--error"><%= errorMessage %></p>
+      <% } %>
       <div class="adminTableWrap">
         <table class="legal-table adminTable">
           <thead>
