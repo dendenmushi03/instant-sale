@@ -2679,7 +2679,7 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
       buildSellerItemStats([user._id]),
       Item.find({ ownerUser: user._id })
         .sort({ createdAt: -1, _id: -1 })
-        .select('slug title price currency isDeleted createdAt')
+        .select('slug title price currency isDeleted createdAt previewPath')
         .lean(),
       PurchaseRecord.aggregate([
         { $match: { seller: new mongoose.Types.ObjectId(String(user._id)) } },
@@ -2694,6 +2694,7 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
     const itemRows = items.map((item) => ({
       id: String(item._id),
       title: item.title || '(無題)',
+      previewPath: typeof item.previewPath === 'string' ? item.previewPath.trim() : '',
       priceLabel: `${Number(item.price || 0).toLocaleString('ja-JP')}円`,
       statusLabel: item.isDeleted ? '削除済み' : '公開中',
       createdAt: item.createdAt || null,
