@@ -2693,16 +2693,20 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
 
     const itemRows = items.map((item) => {
       const saleStatus = Item.resolveSaleStatus(item);
+      const statusLabel = item.isDeleted
+        ? '削除済み'
+        : saleStatus === Item.SALE_STATUSES.BLOCKED
+          ? '公開停止中'
+          : saleStatus === Item.SALE_STATUSES.UNDER_REVIEW
+            ? '審査中'
+            : '公開中';
+
       return {
         id: String(item._id),
         title: item.title || '(無題)',
         previewPath: typeof item.previewPath === 'string' ? item.previewPath.trim() : '',
         priceLabel: `${Number(item.price || 0).toLocaleString('ja-JP')}円`,
-        statusLabel: saleStatus === Item.SALE_STATUSES.BLOCKED
-          ? '公開停止中'
-          : item.isDeleted
-            ? '削除済み'
-            : '公開中',
+        statusLabel,
         canBlock: saleStatus === Item.SALE_STATUSES.PUBLISHED && item.isDeleted !== true,
         createdAt: item.createdAt || null,
         accessCount: null,
@@ -2713,7 +2717,14 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
 
     const successMessage = req.query.status === 'blocked'
       ? '作品を公開停止にしました。'
+      : req.query.status === 'already_blocked'
+        ? 'この作品はすでに公開停止済みです。'
       : '';
+    const errorMessage = req.query.error === 'deleted'
+      ? 'この作品は削除済みのため公開停止できません。'
+      : req.query.error === 'not_publishable'
+        ? '公開中の作品のみ公開停止できます。'
+        : '';
 
     return res.render('admin/seller-detail', adminBaseView(req, {
       title: '販売者詳細 | 管理画面',
@@ -2731,7 +2742,8 @@ app.get('/admin/sellers/:userId', ensureAuthed, requireAdmin, async (req, res) =
         totalPurchaseCount
       },
       items: itemRows,
-      successMessage
+      successMessage,
+      errorMessage
     }));
   } catch (e) {
     console.error('[admin:seller-detail]', e);
@@ -2743,11 +2755,34 @@ app.post('/admin/items/:itemId/block', ensureAuthed, requireAdmin, async (req, r
   try {
     const { itemId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(itemId)) {
-      return res.status(404).render('error', { message: '作品が見つかりません。' });
+      return res.status(404).render('error', { message: '公開停止対象の作品が見つかりません。' });
     }
 
-    const item = await Item.findOneAndUpdate(
-      { _id: itemId, saleStatus: Item.SALE_STATUSES.PUBLISHED, isDeleted: { $ne: true } },
+    // Item.resolveSaleStatus は saleStatus だけを参照するため、select に saleStatus を必ず含める。
+    const item = await Item.findById(itemId).select('ownerUser isDeleted saleStatus').lean();
+    if (!item) {
+      return res.status(404).render('error', { message: '公開停止対象の作品が見つかりません。' });
+    }
+
+    const ownerUserId = item.ownerUser ? String(item.ownerUser) : '';
+    if (item.isDeleted === true) {
+      if (ownerUserId) return res.redirect(`/admin/sellers/${ownerUserId}?error=deleted`);
+      return res.status(400).render('error', { message: 'この作品は削除済みのため公開停止できません。' });
+    }
+
+    const saleStatus = Item.resolveSaleStatus(item);
+    if (saleStatus === Item.SALE_STATUSES.BLOCKED) {
+      if (ownerUserId) return res.redirect(`/admin/sellers/${ownerUserId}?status=already_blocked`);
+      return res.status(400).render('error', { message: 'この作品はすでに公開停止済みです。' });
+    }
+
+    if (saleStatus !== Item.SALE_STATUSES.PUBLISHED) {
+      if (ownerUserId) return res.redirect(`/admin/sellers/${ownerUserId}?error=not_publishable`);
+      return res.status(400).render('error', { message: '公開中の作品のみ公開停止できます。' });
+    }
+
+    await Item.updateOne(
+      { _id: itemId },
       {
         $set: {
           saleStatus: Item.SALE_STATUSES.BLOCKED,
@@ -2755,15 +2790,11 @@ app.post('/admin/items/:itemId/block', ensureAuthed, requireAdmin, async (req, r
           saleStatusUpdatedAt: new Date()
         },
         $currentDate: { updatedAt: true }
-      },
-      { new: false }
-    ).select('ownerUser').lean();
+      }
+    );
 
-    if (!item) {
-      return res.status(404).render('error', { message: '公開停止対象の作品が見つかりません。' });
-    }
-
-    return res.redirect(`/admin/sellers/${item.ownerUser}?status=blocked`);
+    if (ownerUserId) return res.redirect(`/admin/sellers/${ownerUserId}?status=blocked`);
+    return res.redirect('/admin/sellers?status=blocked');
   } catch (e) {
     console.error('[admin:items:block]', e);
     return res.status(500).render('error', { message: '公開停止処理に失敗しました。' });
