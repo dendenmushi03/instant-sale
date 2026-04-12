@@ -9,7 +9,7 @@
   
   <main class="container legal">
     <h1><%= t('terms.h1') || '利用規約' %></h1>
-    <p><%= t('terms.intro_html', { site }) %></p>
+    <p><%= t('terms.intro_html', { site: (t('brand') || 'Instant Sale') }) %></p>
 
     <h2>1. <%= t('terms.section.definitions') || '定義' %></h2>
     <ul>
